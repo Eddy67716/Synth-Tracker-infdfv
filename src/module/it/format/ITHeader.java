@@ -5,6 +5,7 @@
  */
 package module.it.format;
 
+import io.IReadable;
 import io.Reader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -18,27 +19,43 @@ import java.io.IOException;
 public class ITHeader {
 
     // constants
-    public static final String HEADER_CODE = "IMPM";  // The IT head tag
-    public static final String PATTERN_NAME_CODE = "PNAM"; // the pattern name code
-    public static final String CHANNEL_NAME_CODE = "CNAM"; // the channel name code
-    public static final short KNOWN_HEADER_LENGTH = 192;    // then known header length
-    public static final byte EDIT_HISTORY_LENGTH = 8;   // length of each edit history
-    public static final short MIDI_MACROS_LENGTH = 4896; // length of MIDI macros
+    // The IT head tag
+    public static final String HEADER_CODE = "IMPM";
+    // the pattern name code
+    public static final String PATTERN_NAME_CODE = "PNAM";
+    // the channel name code
+    public static final String CHANNEL_NAME_CODE = "CNAM";
+    // then known header length
+    public static final short KNOWN_HEADER_LENGTH = 192;
+    // length of each edit history    
+    public static final byte EDIT_HISTORY_LENGTH = 8;
+    // length of MIDI macros
+    public static final short MIDI_MACROS_LENGTH = 4896; 
     
 
     // instance variables
-    private String fileName;            // name of file
-    private Reader reader;             // read methods
-    private String testHeader;          // used to check the header is valid
-    private String songName;            // Name of song, can't be more tha 26 characters
-    private short[] patternHilight;     // Pattern row hilight     
-    private int orderNum;               // Number of orders in song
-    private int instrumentNum;          // number of instruments
-    private int sampleNum;              // number of samples
-    private int patternNum;             // number of patterns
-    private int createdWithTracker;     // tracker ID
-    private int compatibleWithTracker;  // tracker campatibility number
-    private int flags;                  // described below
+    // name of file
+    private String fileName;
+    // reader
+    private IReadable reader;
+    // used to check the header is valid
+    private String testHeader;
+    // Name of song, can't be more tha 26 characters
+    private String songName;
+    // Pattern row hilight   
+    private short[] patternHilight;
+    // Number of orders in song
+    private int orderNum;
+    // number of instruments
+    private int instrumentNum;
+    // number of samples
+    private int sampleNum;
+    // number of patterns
+    private int patternNum;
+    // tracker ID
+    private int createdWithTracker;
+    // tracker campatibility number
+    private int compatibleWithTracker;
     /**
      * bit 0: Channels, 1 = stereo, 0 = mono; bit 1: volume mix, 1 = no mixing,
      * 0 = volume at mixing time is 0; bit 2: voice source, 1 = instruments, 0 =
@@ -48,6 +65,7 @@ public class ITHeader {
      * 1 = request embedded MIDI configuration
      * In Open MPT bit 15 is extended filter range;
      */
+    private int flags;
     private boolean stereo;
     private boolean mix;
     private boolean instrumental;
@@ -57,43 +75,70 @@ public class ITHeader {
     private boolean midiPitchControlled;
     private boolean embeddedMidiConfiguration;
     private boolean filterRangeExtended;
-    private int special;
     /**
      * bit 0: 1 = Song message attached bit 1: Embedded edit history 2: Embedded
      * pattern hilight 3: Midi Configuration embedded bits 4-15 reserved
      * 
      */
+    private int special;
     private boolean songMessageAttached;
     private boolean editHistoryEmbedded;
     private boolean hilightEmbedded;
     private boolean midiConfigurationEmbedded;
-    private short globalVolume;             // 0-128
-    private short mixVolume;                // 0-128
-    private short initialSpeed;             // starting speed in ticks
-    private short initialTempo;             // starting tempo in BPM
-    private short panSeperation;            // 0-128 128 is maximum seperation
-    private short pitchWheelDepth;          // for midi
+    // 0-128
+    private short globalVolume;
+    // 0-128
+    private short mixVolume;
+    // starting speed in ticks
+    private short initialSpeed;
+    // starting tempo in BPM
+    private short initialTempo;
+    // 0-128 128 is maximum seperation
+    private short panSeperation;
+    // for midi
+    private short pitchWheelDepth;
+    // length of message
     private int messageLength;
-    private long messageOffset;             // offset in bytes
-    private String headerReserved;          // used for version identification
-    private String possibleCreationSoftware;    // show what software created this file
-    private boolean interpretModPlugMade;       // use for OpenMPT mods.
-    private short[] channelPan;             // pan for each channel 0 = left
-    private short[] channelVolume;          // volume for each cnannel
-    private short[] orders;                 // order of patterns played
-    private long[] offsetOfInstruments;     // offset of instruments
-    private long[] offsetOfSampleHeaders;   // offset of samples
-    private long[] offsetOfPatterns;        // offset of patterns
-    private boolean possiblyUnmo3;          // needed when finding out some data
-    private String songMessage;             // message
-    private int editHistoryParapointer;     // used to check for edit history
-    private EditHistoryInfo[] editHistory;  // stores all the edit history dates
-    private MidiMacros midiMacros;          // stores MIDI macros;
-    private String testString;              // test for pattern or channel names
-    private long patternNameLength;         // length of pattern name
-    private PatternNames patternNames;      // stores pattern names
-    private long channelNameLength;         // length of channel names
-    private ChannelNames channelNames;      // channel names
+    // offset in bytes
+    private long messageOffset;
+    // used for version identification
+    private String headerReserved;
+    // show what software created this file
+    private String possibleCreationSoftware;
+    // use for OpenMPT mods.    
+    private boolean interpretModPlugMade;
+    // pan for each channel 0 = left, 64 = right and 100 is surround
+    private short[] channelPan;
+    // volume for each cnannel (0-64)
+    private short[] channelVolume;
+    // order of patterns played
+    private short[] orders;
+    // offset of instruments
+    private long[] offsetOfInstruments;
+    // offset of samples
+    private long[] offsetOfSampleHeaders;
+    // offset of patterns
+    private long[] offsetOfPatterns;
+    // needed when finding out some data
+    private boolean possiblyUnmo3;
+    // message
+    private String songMessage;
+    // used to check for edit history
+    private int editHistoryParapointer;
+    // stores all the edit history dates
+    private EditHistoryInfo[] editHistory;
+    // stores MIDI macros
+    private MidiMacros midiMacros;
+    // test for pattern or channel names
+    private String testString;
+    // length of pattern name
+    private long patternNameLength;
+    // stores pattern names
+    private PatternNames patternNames;
+    // length of channel names
+    private long channelNameLength;
+    // channel names
+    private ChannelNames channelNames;      
 
     // constructor
     public ITHeader(String fileName) {

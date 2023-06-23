@@ -33,15 +33,24 @@ public class ITFile implements IModuleFile {
     public static final int IT_MOD_TYPE_ID = 4;
 
     // instance variables
-    private String file;                        // file name
-    private ITHeader header;                    // file header
-    private List<ITInstrument> instruments;     // instruments
-    private List<ITSampleHeader> sampleHeaders; // sample headers
-    private List<ITPattern> patterns;           // pattenrs
-    private long[] offsetOfInstruments;         // stores the start of instrument headers
-    private long[] offsetOfSamples;             // stores the start of sample headers
-    private long[] offsetOfPatterns;            // stores the start of patterns
-    private byte totalNumberOfChannels;         // total number of channels in file
+    // file name
+    private String file;
+    // file header
+    private ITHeader header;
+    // instruments
+    private List<ITInstrument> instruments;
+    // sample headers
+    private List<ITSampleHeader> sampleHeaders;
+    // patterns
+    private List<ITPattern> patterns;
+    // stores the start of instrument headers
+    private long[] offsetOfInstruments;
+    // stores the start of sample headers
+    private long[] offsetOfSamples;
+    // stores the start of patterns
+    private long[] offsetOfPatterns;
+    // total number of channels in file
+    private byte totalNumberOfChannels;         
 
     // constructor
     public ITFile(String file) {

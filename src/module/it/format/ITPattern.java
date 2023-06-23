@@ -33,15 +33,24 @@ public class ITPattern implements IPattern {
     private Reader reader;
     private long offsetToPattern;
     private String name;
-    private int length;                 // length of packed data
-    private short rows;                 // rows data
-    private byte[] packedData;          // data packed
-    private byte[][][] unpackedData;    // [row][channel][0-5 note-effect]
-    private int packedDataIndex;        // used to keep track of packe reading
-    private byte numberOfChannels;      // number of channels used
-    private byte globalChannels;        // total number of channels in file
-    private short[] previousChannelMask;  // previous mask variable per channel
-    private byte[][] previousValues;   //[channels][note-effect]
+    // length of packed data
+    private int length;                 
+    // rows data
+    private short rows;                 
+    // data packed
+    private byte[] packedData;          
+    // [row][channel][0-5 note-effect]
+    private byte[][][] unpackedData;
+    // used to keep track of packe reading    
+    private int packedDataIndex;
+    // number of channels used
+    private byte numberOfChannels;
+    // total number of channels in file
+    private byte globalChannels;
+    // previous mask variable per channel
+    private short[] previousChannelMask;
+    //[channels][note-effect]
+    private byte[][] previousValues;   
 
     // constructor
     public ITPattern(String fileName, long offsetToPattern) {

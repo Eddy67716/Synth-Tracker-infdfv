@@ -24,48 +24,80 @@ public class ITInstrument implements IInstrument{
     public static final short INSTRUMENT_LENGTH = 554;
 
     // instance variables
-    private String fileName;                        // name of file
-    private long offsetToInstrument;        // where to start reading the file
-    private boolean oldFormat;              // used to define which instrument type is used
+    // name of file
+    private String fileName;
+    // where to start reading the file
+    private long offsetToInstrument;
+    // used to define which instrument type is used
+    private boolean oldFormat;              
     // if > 0x200, use new format
-    private String testCode;                // test code with default code
-    private String dosFileName;             // file name
+    // test code with default code
+    private String testCode;
+    // file name
+    private String dosFileName;             
     // old format
-    private short flags;                    // flags for old format
+    // flags for old format
+    private short flags;                    
     private boolean volumeEnvelopeEnabled;
     private boolean volumeLoopEnabled;
     private boolean sustainVolumeLoopEnabled;
-    private short volumeLoopStart;          // node of volume start
-    private short volumeLoopEnd;            // node
+    // node of volume start
+    private short volumeLoopStart;
+    // node
+    private short volumeLoopEnd;            
     private short sustainLoopStart;
     private short sustainLoopEnd;
-    private boolean duplicateNoteCheck;      // check for duplicate notes
-    private short[] volumeEnvelopeNodes;    // stored in instrument if old format
+    // check for duplicate notes
+    private boolean duplicateNoteCheck;
+    // stored in instrument if old format
+    private short[] volumeEnvelopeNodes;    
     // new format
-    private byte newNoteAction;             // command on note
-    private byte duplicateCheckType;        // duplication check
-    private byte duplicateCheckAction;      // action on duplication
-    private int fadeOut;                    // note fade out
-    private byte pitchPanSeparation;        // sepperation
-    private byte pitchPanCentre;            // centre of pitch pan
-    private short globalVolume;             // global vomume
-    private short defaultPan;               // default pan
+    // command on note
+    private byte newNoteAction;
+    // duplication check
+    private byte duplicateCheckType;
+    // action on duplication
+    private byte duplicateCheckAction;
+    // note fade out
+    private int fadeOut;
+    // sepperation
+    private byte pitchPanSeparation;
+    // centre of pitch pan
+    private byte pitchPanCentre;
+    // global vomume
+    private short globalVolume;
+    // default pan
+    private short defaultPan;               
     private byte panValue;
     private boolean panning;
-    private byte randomVolumeVariation;     // percentage
-    private byte randomPanningVariation;    // percentage
-    private int trackerVersion;             // only used in instrument files
-    private byte numberOfSamples;           // samples used in instrument
-    private String instrumentName;          // 26 characters including null
-    private short initialFilterCutoff;      // filter cuttoff;
-    private short initialFilterResonance;   // resonance
-    private short midiChannel;              // MIDI channel to use
-    private short midiProgram;              // MIDI instrument to use
-    private int midiBank;                   // --------
-    private short[][] noteSampleKeyboardTable;      // stores sample mapping
-    private EnvelopeLayout volumeEnvelope;  // stores volume envelope
-    private EnvelopeLayout panEnvelope;     // stores pan envelope
-    private EnvelopeLayout pitchFilterEnvelope; // stores pitch/filter envelope
+    // percentage
+    private byte randomVolumeVariation;
+    // percentage
+    private byte randomPanningVariation;
+    // only used in instrument files    
+    private int trackerVersion;
+    // samples used in instrument
+    private byte numberOfSamples;
+    // 26 characters including null
+    private String instrumentName;
+    // filter cuttoff
+    private short initialFilterCutoff;
+    // resonance
+    private short initialFilterResonance;
+    // MIDI channel to use
+    private short midiChannel;
+    // MIDI instrument to use
+    private short midiProgram;
+    // --------
+    private int midiBank;
+    // stores sample mapping
+    private short[][] noteSampleKeyboardTable;
+    // stores volume envelope
+    private EnvelopeLayout volumeEnvelope;
+    // stores pan envelope
+    private EnvelopeLayout panEnvelope;
+    // stores pitch/filter envelope
+    private EnvelopeLayout pitchFilterEnvelope; 
 
     // constructor
     public ITInstrument(String fileName, long offsetToInstrument,
