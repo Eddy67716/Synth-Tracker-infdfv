@@ -305,7 +305,6 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
     @Override
     public void setSampleName(String sampleName) {
         this.sampleName = sampleName;
-        this.dosFileName = IOMethods.setStringToNullLength(sampleName, 12);
     }
 
     @Override
@@ -315,7 +314,7 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
 
     @Override
     public void setC5Speed(int c5Speed) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        this.c5Speed = c5Speed;
     }
 
     @Override
@@ -370,27 +369,27 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
 
     @Override
     public void setPingPongSustainLooped(boolean pingPongSustainLooped) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        this.pingPongSustainLooped = pingPongSustainLooped;
     }
 
     @Override
     public void setLoopBeginning(long loopBeginning) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        this.loopBeginning = loopBeginning;
     }
 
     @Override
     public void setLoopEnd(long loopEnd) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        this.loopEnd = loopEnd;
     }
 
     @Override
     public void setSustainLoopBeginning(long sustainLoopBeginning) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        this.sustainLoopBeginning = sustainLoopBeginning;
     }
 
     @Override
     public void setSustainLoopEnd(long sustainLoopEnd) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        this.sustainLoopEnd = sustainLoopEnd;
     }
 
     @Override
@@ -405,22 +404,22 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
 
     @Override
     public void setVibratoSpeed(double vibratoSpeed) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        this.vibratoSpeed = (byte)vibratoSpeed;
     }
 
     @Override
     public void setFullVibratoDepth(double vibratoDepth) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        this.vibratoDepth = (byte)vibratoDepth;
     }
 
     @Override
     public void setVibratoWaveform(byte vibratoWaveform) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        this.vibratoWaveform = vibratoWaveform;
     }
 
     @Override
     public void setVibratoDelay(double vibratoDelay) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        this.vibratoRate = (short)vibratoDelay;
     }
 
     // read method
