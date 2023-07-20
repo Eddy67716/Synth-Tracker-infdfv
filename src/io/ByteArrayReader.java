@@ -48,6 +48,23 @@ public class ByteArrayReader implements IReadable {
     /**
      * The 3-args constructor for this object.
      *
+     * @param fileName Name of file to read
+     * @param littleEndian Reads Little-endian if true
+     * @param readBytes the array of bytes to read from
+     * @throws java.io.IOException
+     */
+    public ByteArrayReader(String fileName, boolean littleEndian,
+            byte[] readBytes) throws IOException {
+        this.byteArray = readBytes;
+        this.littleEndian = littleEndian;
+        filePosition = 0;
+        trailingBits = 0;
+        this.fileName = fileName;
+    }
+    
+    /**
+     * The 2-args constructor for this object.
+     *
      * @param readBytes the array of bytes to read from
      * @param littleEndian Reads Little-endian if true
      * @throws java.io.IOException
@@ -236,36 +253,30 @@ public class ByteArrayReader implements IReadable {
         bitOffset = (byte) (bits % 8);
 
         // deal with bit offsetted values
-        if (bitOffset != 0 || trailingBits != 0) {
+        if (trailingBits != 0) {
 
-            if (trailingBits != 0) {
+            if (trailingBits < 8) {
 
-                if (trailingBits < 8) {
+                if ((bitOffset > trailingBits)
+                        || (trailingBits > 0 && trailingBits + bits > 8
+                        && bitOffset != trailingBits)) {
 
-                    if ((bitOffset > trailingBits)
-                            || (trailingBits > 0 && trailingBits + bits > 8
-                            && bitOffset != trailingBits)) {
-
-                        // byte overflows the trailing bits
-                        byteOverflowing = true;
-                        leadingBits = trailingBits;
-                        if (bitOffset > leadingBits) {
-                            bytesToExtract++;
-                        }
-                    } else {
-                        // use to extract a few bits from extra bits
-                        trailingBits -= bitOffset;
-                        trailingBitsProcessed = true;
-                        if (trailingBits == 0) {
-                            byteAlign = true;
-                        }
+                    // byte overflows the trailing bits
+                    byteOverflowing = true;
+                    leadingBits = trailingBits;
+                    if (bitOffset > leadingBits) {
+                        bytesToExtract++;
                     }
+                } else {
+                    // use to extract a few bits from extra bits
+                    trailingBits -= bitOffset;
+                    trailingBitsProcessed = true;
+                    byteAlign = (trailingBits == 0);
                 }
-
-            } else {
-                trailingBits = (byte) (8 - bitOffset);
-                bytesToExtract++;
             }
+        } else if (bitOffset != 0) {
+            trailingBits = (byte) (8 - bitOffset);
+            bytesToExtract++;
         }
 
         // extract bytes
@@ -277,7 +288,7 @@ public class ByteArrayReader implements IReadable {
             // the bits read (used in little endian bit reading)
             byte readBits = 0;
 
-            // read value in little endian
+            // read value in big endian
             for (int i = 0; i < readBytes.length; i++) {
 
                 // deal with a byte align
@@ -888,7 +899,6 @@ public class ByteArrayReader implements IReadable {
 
         return value;
     }
-
     
     public boolean isInBounds() {
         boolean beforeLength = filePosition < byteArray.length;

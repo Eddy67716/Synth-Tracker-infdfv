@@ -6,6 +6,7 @@ package ui.view.samples;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -17,6 +18,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.ChangeListener;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.DEF_FONT;
 import static ui.UIProperties.DEF_INSETS;
@@ -85,8 +87,6 @@ public class VibratoOptions extends JPanel {
     public JComboBox getVibWaveformComboBox() {
         return vibWaveformComboBox;
     }
-    
-    
     
     private void init() {
         
@@ -240,5 +240,26 @@ public class VibratoOptions extends JPanel {
         voc.gridwidth = GridBagConstraints.REMAINDER;
         voc.gridheight = GridBagConstraints.REMAINDER;
         add(new JPanel(), voc);
+    }
+    
+    // events and listeners
+    public void addVibSpeedSpinnerChangeListener(
+            ChangeListener changePerformed) {
+        vibSpeedSpinner.addChangeListener(changePerformed);
+    }
+    
+    public void addVibDepthSpinnerChangeListener(
+            ChangeListener changePerformed) {
+        vibDepthSpinner.addChangeListener(changePerformed);
+    }
+    
+    public void addVibDelaySpinnerChangeListener(
+            ChangeListener changePerformed) {
+        vibDelaySpinner.addChangeListener(changePerformed);
+    }
+    
+    public void addVibWaveformComboBoxActionListenr(
+            ActionListener actionPerformed) {
+        this.vibWaveformComboBox.addActionListener(actionPerformed);
     }
 }

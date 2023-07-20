@@ -87,8 +87,7 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
     private byte vibratoSpeed;
     // depth of vibrato
     private byte vibratoDepth;
-    // 0 is sine, 1 is falling 
-    // sawtooth, 2 is square and 3 is random
+    // 0 is sine, 1 is falling sawtooth, 2 is square and 3 is random
     private byte vibratoWaveform;
     // rate that vibrato increases at begining
     private short vibratoRate;
@@ -390,7 +389,7 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
     }
 
     @Override
-    public void setSustainLoopEndlong(long sustainLoopEnd) {
+    public void setSustainLoopEnd(long sustainLoopEnd) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
@@ -405,7 +404,7 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
     }
 
     @Override
-    public void setFullVibratoSpeed(double vibratoSpeed) {
+    public void setVibratoSpeed(double vibratoSpeed) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 

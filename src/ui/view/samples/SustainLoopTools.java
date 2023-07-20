@@ -6,6 +6,7 @@ package ui.view.samples;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -15,6 +16,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.ChangeListener;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.C5_SPINNER_SIZE;
 import static ui.UIProperties.DEF_FONT;
@@ -25,11 +27,11 @@ import static ui.UIProperties.DEF_INSETS;
  * @author Edward Jenkins
  */
 public class SustainLoopTools extends JPanel {
-    
+
     // constants
     private static final String[] LOOP_OPTIONS
             = {"Off", "Forward", "Ping-Pong"};
-    
+
     // instance variables
     private int modType;
     private GridBagLayout susLoopToolsLayout;
@@ -43,13 +45,13 @@ public class SustainLoopTools extends JPanel {
     private JLabel susLoopEndTitleLabel;
     private JSpinner susLoopEndSpinner;
     private SpinnerModel susLoopEndSpinnerModel;
-    
+
     // constructor
     public SustainLoopTools(int modType) {
         this.modType = modType;
         init();
     }
-    
+
     // getters
     public JComboBox getSusLoopComboBox() {
         return susLoopComboBox;
@@ -62,9 +64,9 @@ public class SustainLoopTools extends JPanel {
     public JSpinner getSusLoopEndSpinner() {
         return susLoopEndSpinner;
     }
-    
+
     private void init() {
-        
+
         // set the layout
         susLoopToolsLayout = new GridBagLayout();
         setLayout(susLoopToolsLayout);
@@ -153,5 +155,21 @@ public class SustainLoopTools extends JPanel {
         slc.gridheight = GridBagConstraints.REMAINDER;
 
         add(new JPanel(), slc);
+    }
+
+    // events and listeners
+    public void addSusLoopComboBoxActionListener(
+            ActionListener actionPerformed) {
+        susLoopComboBox.addActionListener(actionPerformed);
+    }
+
+    public void addSusLoopStartSpinnerChangeListener(
+            ChangeListener changePerformed) {
+        susLoopStartSpinner.addChangeListener(changePerformed);
+    }
+
+    public void addSusLoopEndSpinnerChangeListener(
+            ChangeListener changePerformed) {
+        susLoopEndSpinner.addChangeListener(changePerformed);
     }
 }

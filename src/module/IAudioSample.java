@@ -142,7 +142,7 @@ public interface IAudioSample extends ISavableFile {
     public void setSustainLoopBeginning(long sustainLoopBeginning);
     
     // set sustain loop end
-    public void setSustainLoopEndlong(long sustainLoopEnd);
+    public void setSustainLoopEnd(long sustainLoopEnd);
     
     // set the left channel data
     public void setLData(double[] lData);
@@ -151,7 +151,7 @@ public interface IAudioSample extends ISavableFile {
     public void setRData(double[] rData);
     
     // set vibrato speed
-    public void setFullVibratoSpeed(double vibratoSpeed);
+    public void setVibratoSpeed(double vibratoSpeed);
     
     // set vibrato depth
     public void setFullVibratoDepth(double vibratoDepth);

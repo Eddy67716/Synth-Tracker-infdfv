@@ -629,7 +629,7 @@ public class WaveFile extends WaveSpecs implements IAudioSample {
     }
 
     @Override
-    public void setSustainLoopEndlong(long sustainLoopEnd) {
+    public void setSustainLoopEnd(long sustainLoopEnd) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
@@ -644,7 +644,7 @@ public class WaveFile extends WaveSpecs implements IAudioSample {
     }
 
     @Override
-    public void setFullVibratoSpeed(double vibratoSpeed) {
+    public void setVibratoSpeed(double vibratoSpeed) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 

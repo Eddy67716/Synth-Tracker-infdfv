@@ -81,6 +81,12 @@ public class EnvelopeCanvas extends JPanel {
     }
 
     private void setEnvelopePoints(int lowest, int highest) {
+        
+        // deal with negative bounds for pan and pitch envelopes
+        if (lowest < 0) {
+            highest += Math.abs(lowest);
+            lowest -= lowest;
+        }
 
         envelopeXPoints = new double[envelopeValues.length];
         envelopeYPoints = new double[envelopeValues.length];
@@ -94,8 +100,9 @@ public class EnvelopeCanvas extends JPanel {
                 envelopeXPoints[i] = (double) envelopeValues[i].getTickNumber()
                         / lastTick;
 
-                envelopeYPoints[i] = 1 - ((double) envelopeValues[i].getNodeValue()
-                        + Math.abs(lowest)) / (highest + Math.abs(lowest));
+                envelopeYPoints[i] = 1 - ((double) envelopeValues[i]
+                        .getNodeValue() + Math.abs(lowest)) / (highest 
+                        + Math.abs(lowest));
             }
         }
     }

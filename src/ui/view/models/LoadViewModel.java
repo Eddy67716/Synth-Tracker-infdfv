@@ -78,6 +78,7 @@ public class LoadViewModel {
         fileChooser.setSize(500, 400);
         fileChooser.setFileFilter(modFilter);
 
+        // select a file
         choice = fileChooser.showOpenDialog(fileChooser);
         if (fileChooser.getSelectedFile() == null) {
             return "";

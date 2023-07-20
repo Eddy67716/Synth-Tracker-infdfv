@@ -14,26 +14,30 @@ import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
 import module.IAudioSample;
+import ui.view.models.ControllerViewModel;
 
 /**
  *
  * @author Edward Jenkins
  */
-public class TabController {
+public class TabController implements IUndoable {
 
     // instance variables
     private TabUI tabUI;
     private LoadViewModel loadVM;
+    private ControllerViewModel tabControllers;
     private String[] sampleNames;
     private String[] instrumentNames;
     private String[] patternNames;
 
     // constructor
-    public TabController(TabUI tabUI, LoadViewModel loadVM) {
+    public TabController(TabUI tabUI, LoadViewModel loadVM, 
+            ControllerViewModel tabControllers) {
 
         // set tabUI and actionListeners
         this.tabUI = tabUI;
         this.loadVM = loadVM;
+        this.tabControllers = tabControllers;
         this.tabUI.addPatternToggleActionListener(e -> expandPatterns());
         this.tabUI.addSampleToggleActionListener(e -> expandSamples());
         this.tabUI.addInstrumentToggleActionListener(e -> expandInstruments());
@@ -127,5 +131,15 @@ public class TabController {
         // set spinner value to selected index value
         tabUI.getInstrumentUI().getInstrumentSelectSpinner()
                 .setValue(selectedIndex + 1);
+    }
+    
+    @Override
+    public void undo() {
+        tabControllers.undo(tabUI.getModDataInterface().getSelectedIndex());
+    }
+    
+    @Override
+    public void redo() {
+        tabControllers.redo(tabUI.getModDataInterface().getSelectedIndex());
     }
 }

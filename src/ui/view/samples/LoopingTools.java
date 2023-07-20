@@ -6,6 +6,7 @@ package ui.view.samples;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -15,6 +16,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.ChangeListener;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.C5_SPINNER_SIZE;
 import static ui.UIProperties.DEF_FONT;
@@ -156,5 +158,15 @@ public class LoopingTools extends JPanel {
     }
     
     // events and listeners
+    public void addLoopComboBoxActionListener(ActionListener actionPerformed) {
+        loopComboBox.addActionListener(actionPerformed);
+    }
     
+    public void addLoopStartSpinnerChangeListener(ChangeListener changePerformed) {
+        loopStartSpinner.addChangeListener(changePerformed);
+    }
+    
+    public void addLoopEndSpinnerChangeListener(ChangeListener changePerformed) {
+        loopEndSpinner.addChangeListener(changePerformed);
+    }
 }

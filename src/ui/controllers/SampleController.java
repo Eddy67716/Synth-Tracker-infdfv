@@ -16,49 +16,110 @@ import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.io.File;
 import java.util.List;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JSlider;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import module.IAudioSample;
 import javax.swing.SwingUtilities;
+import javax.swing.undo.UndoManager;
+import ui.controllers.undo.UndoableCheckBoxChange;
+import ui.controllers.undo.UndoableComboBoxChange;
+import ui.controllers.undo.UndoableSliderChange;
+import ui.controllers.undo.UndoableSpinnerChange;
+import ui.view.samples.LoopingTools;
 import ui.view.samples.SampleDetails;
 import ui.view.samples.SampleSoundOptions;
+import ui.view.samples.SamplingTools;
+import ui.view.samples.SustainLoopTools;
+import ui.view.samples.VibratoOptions;
 
 /**
  *
  * @author Edward Jenkins
  */
-public class SampleController {
+public class SampleController extends GenericController {
 
     // instance variables
     private SampleUI sampleUI;
     private EditSampleViewModel editSampleVM;
     private LoadViewModel loadVM;
     private IAudioSample selectedSample;
+    private UndoManager[] sampleManagers;
+    private String oldSampleName;
+    private String oldFileName;
+    private int defaultVolumeOldValue;
+    private int globalVolumeOldValue;
+    private int panOldValue;
+    private int loopOldIndex;
+    private int loopStartOldValue;
+    private int loopEndOldValue;
+    private int sustainLoopOldIndex;
+    private int susLoopStartOldValue;
+    private int susLoopEndOldValue;
+    private int oldC5Speed;
+    private int oldTransposeIndex;
+    private int oldVibratoWaveform;
+    private int oldVibratoSpeed;
+    private int oldVibratoDepth;
+    private int oldVibratoDelay;
 
     // constructor
     public SampleController(SampleUI sampleUI, LoadViewModel loadVM) {
+        super();
         this.sampleUI = sampleUI;
-        
+        this.loadVM = loadVM;
+
+        // initialise undo managers
+        sampleManagers = new UndoManager[loadVM.getSamples().size()];
+        for (int i = 0; i < sampleManagers.length; i++) {
+            sampleManagers[i] = new UndoManager();
+        }
+
         // set sample details lisiteners
         SampleDetails sd = this.sampleUI.getTools().getSampleDetails();
         sd.addSampleNameFieldActionListener(e -> sampleNameOnChange());
         sd.addFileNameFieldActionListener(e -> fileNameOnChange());
-        
+
         // set sound options listeners
         SampleSoundOptions so = this.sampleUI.getTools().getSoundOptions();
-        so.addDefVolumeValChangeListener(e
-                        -> defaultVolumeSpinnerOnChange());
-        so.addDefVolumeSliderChangeListener(e
-                        -> defaultVolumeSliderOnChange());
-        so.addGlobVolumeValChangeListener(e
-                        -> globalVolumeSpinnerOnChange());
-        so.addGlobVolumeSliderChangeListener(e
-                        -> globalVolumeSliderOnChange());
-        so.addPaningActionListener(e
-                        -> panOnChange());
-        so.addDefPanValChangeListener(e
-                        -> defaultPanningSpinnerOnChange());
-        so.addDefPanSliderChangeListener(e
-                        -> defaultPanningSliderOnChange());
+        so.addDefVolumeValChangeListener(e -> defaultVolumeSpinnerOnChange());
+        so.addDefVolumeSliderChangeListener(e -> defaultVolumeSliderOnChange());
+        so.addGlobVolumeValChangeListener(e -> globalVolumeSpinnerOnChange());
+        so.addGlobVolumeSliderChangeListener(e -> globalVolumeSliderOnChange());
+        so.addPaningActionListener(e -> panOnChange());
+        so.addDefPanValChangeListener(e -> defaultPanningSpinnerOnChange());
+        so.addDefPanSliderChangeListener(e -> defaultPanningSliderOnChange());
+
+        // set loop otions listeners
+        LoopingTools lt = sampleUI.getTools().getLoopingTools();
+        lt.addLoopComboBoxActionListener(e -> loopComboBoxOnChange());
+        lt.addLoopStartSpinnerChangeListener(e -> loopStartSpinnerOnChange());
+        lt.addLoopEndSpinnerChangeListener(e -> loopEndSpinnerOnChange());
+
+        // set sustain loop otions listeners
+        SustainLoopTools slt = sampleUI.getTools().getSusLoopTools();
+        slt.addSusLoopComboBoxActionListener(e -> susLoopComboBoxOnChange());
+        slt.addSusLoopStartSpinnerChangeListener(e
+                -> susLoopStartSpinnerOnChange());
+        slt.addSusLoopEndSpinnerChangeListener(e
+                -> susLoopEndSpinnerOnChange());
+
+        // set vibrato options listeners
+        VibratoOptions vo = sampleUI.getTools().getVibratoOptions();
+        vo.addVibSpeedSpinnerChangeListener(e -> vibratoSpeedOnChange());
+        vo.addVibDepthSpinnerChangeListener(e -> vibratoDepthOnChange());
+        vo.addVibDelaySpinnerChangeListener(e -> vibratoDelayOnChange());
+        vo.addVibWaveformComboBoxActionListenr(e -> vibratoWaveformOnChange());
+
+        // set sample options listeners
+        SamplingTools st = sampleUI.getTools().getSamplingTools();
+        st.addC5SampleRateSpinnerChangeEvent(
+                e -> c5SampleRateSpinnerOnChange());
+        st.addSampleTransposeComboBox(e -> sampleTransposeComboBoxOnChange());
+
         this.sampleUI.addSampleSelectSpinnerChangeListener(
                 e -> sampleOnChange());
         // set drop target
@@ -83,95 +144,618 @@ public class SampleController {
     }
 
     // controller methods
-    
     // sample details
     private void sampleNameOnChange() {
-        
-        selectedSample.setSampleName(sampleUI.getTools().getSampleDetails()
-                .getSampleNameField().getText());
+
+        JTextField sampleNameField = sampleUI.getTools().getSampleDetails()
+                .getSampleNameField();
+
+        String sampleNameText = sampleNameField.getText();
+
+        if (isRecordingUndos()) {
+            //sampleNameText.
+        }
+
+        if (isAlteringModels()) {
+            selectedSample.setSampleName(sampleNameText);
+        }
     }
 
     private void fileNameOnChange() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-    
-    // sound options
-    public void defaultVolumeSliderOnChange() {
-        int value = sampleUI.getTools().getSoundOptions()
-                        .getDefaultVolumeSlider().getValue();
-        sampleUI.getTools().getSoundOptions().getDefaultVolumeValue()
-                .setValue(value);
-        selectedSample.setDefaultVolume((short)value);
+
+        String sampleNameText = sampleUI.getTools().getSampleDetails()
+                .getFileNameField().getText();
+
+        if (isAlteringModels()) {
+
+            selectedSample.setDOSFileName(sampleNameText.substring(0, 12));
+        }
     }
 
+    // sound options
     public void defaultVolumeSpinnerOnChange() {
-        int value = (int)sampleUI.getTools().getSoundOptions()
-                        .getDefaultVolumeValue().getValue();
+
+        JSpinner defaultVolumeSpinner = sampleUI.getTools().getSoundOptions()
+                .getDefaultVolumeValue();
+
+        int value = (int) defaultVolumeSpinner.getValue();
+
+        // alter the slider linked to this spinner
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
         sampleUI.getTools().getSoundOptions().getDefaultVolumeSlider()
                 .setValue(value);
-        selectedSample.setDefaultVolume((short)value);
+        setRecordingUndos(recordUndoState);
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(defaultVolumeSpinner,
+                            defaultVolumeOldValue);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            defaultVolumeOldValue = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update sample default volume value
+            selectedSample.setDefaultVolume((byte) value);
+        }
     }
 
-    public void globalVolumeSliderOnChange() {
-        int value = sampleUI.getTools().getSoundOptions()
-                        .getGlobalVolumeSlider().getValue();
-        sampleUI.getTools().getSoundOptions().getGlobalVolumeValue()
+    public void defaultVolumeSliderOnChange() {
+
+        JSlider defaultVolumeSlider = sampleUI.getTools().getSoundOptions()
+                .getDefaultVolumeSlider();
+
+        int value = defaultVolumeSlider.getValue();
+
+        // alter the spinner linked to this slider
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
+        sampleUI.getTools().getSoundOptions().getDefaultVolumeValue()
                 .setValue(value);
-        selectedSample.setGlobalVolume((byte)value);
+        setRecordingUndos(recordUndoState);
+
+        if (!defaultVolumeSlider.getValueIsAdjusting()) {
+
+            if (isRecordingUndos()) {
+                // undo event
+                UndoableSliderChange sliderChange
+                        = new UndoableSliderChange(defaultVolumeSlider,
+                                defaultVolumeOldValue);
+
+                getCurrentUndoManager().addEdit(sliderChange);
+
+                defaultVolumeOldValue = value;
+            }
+
+            if (isAlteringModels()) {
+
+                // update sample default volume value
+                selectedSample.setDefaultVolume((byte) value);
+            }
+        }
     }
 
     public void globalVolumeSpinnerOnChange() {
-        int value = (int) sampleUI.getTools().getSoundOptions()
-                        .getGlobalVolumeValue().getValue();
+
+        JSpinner globalVolumeSpinner = sampleUI.getTools().getSoundOptions()
+                .getGlobalVolumeValue();
+
+        int value = (int) globalVolumeSpinner.getValue();
+
+        // alter the slider linked to this spinner
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
         sampleUI.getTools().getSoundOptions().getGlobalVolumeSlider()
                 .setValue(value);
-        selectedSample.setGlobalVolume((byte)value);
+        setRecordingUndos(recordUndoState);
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(globalVolumeSpinner,
+                            globalVolumeOldValue);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            globalVolumeOldValue = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update sample global volume value
+            selectedSample.setGlobalVolume((byte) value);
+        }
+    }
+
+    public void globalVolumeSliderOnChange() {
+
+        JSlider globalVolumeSlider = sampleUI.getTools().getSoundOptions()
+                .getGlobalVolumeSlider();
+
+        int value = globalVolumeSlider.getValue();
+
+        // alter the spinner linked to this slider
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
+        sampleUI.getTools().getSoundOptions().getGlobalVolumeValue()
+                .setValue(value);
+        setRecordingUndos(recordUndoState);
+
+        if (!globalVolumeSlider.getValueIsAdjusting()) {
+
+            if (isRecordingUndos()) {
+                // undo event
+                UndoableSliderChange sliderChange
+                        = new UndoableSliderChange(globalVolumeSlider,
+                                globalVolumeOldValue);
+
+                getCurrentUndoManager().addEdit(sliderChange);
+
+                globalVolumeOldValue = value;
+            }
+
+            if (isAlteringModels()) {
+
+                // update sample global volume value
+                selectedSample.setGlobalVolume((byte) value);
+            }
+        }
     }
 
     public void panOnChange() {
-        boolean isSelected = sampleUI.getTools().getSoundOptions().getPanning()
-                        .isSelected();
+
+        JCheckBox panning = sampleUI.getTools().getSoundOptions()
+                .getPanning();
+
+        boolean isSelected = panning.isSelected();
+
         sampleUI.getTools().getSoundOptions().getDefaultPanningSlider()
                 .setEnabled(isSelected);
         sampleUI.getTools().getSoundOptions().getDefaultPanningValue()
                 .setEnabled(isSelected);
-        selectedSample.setPanning(isSelected);
-    }
 
-    public void defaultPanningSliderOnChange() {
-        int value = sampleUI.getTools().getSoundOptions()
-                        .getDefaultPanningSlider().getValue();
-        sampleUI.getTools().getSoundOptions().getDefaultPanningValue()
-                .setValue(value);
-        selectedSample.setPanValue((byte)value);
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableCheckBoxChange checkBoxChange
+                    = new UndoableCheckBoxChange(panning);
+
+            getCurrentUndoManager().addEdit(checkBoxChange);
+        }
+
+        if (isAlteringModels()) {
+
+            // update sample panning
+            selectedSample.setPanning(isSelected);
+        }
     }
 
     public void defaultPanningSpinnerOnChange() {
-        int value = (int) sampleUI.getTools().getSoundOptions()
-                        .getDefaultPanningValue().getValue();
+        JSpinner defaultPanningSpinner = sampleUI.getTools().getSoundOptions()
+                .getDefaultPanningValue();
+
+        int value = (int) defaultPanningSpinner.getValue();
+
+        // alter the slider linked to this spinner
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
         sampleUI.getTools().getSoundOptions().getDefaultPanningSlider()
                 .setValue(value);
-        selectedSample.setPanValue((byte)value);
+        setRecordingUndos(recordUndoState);
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(defaultPanningSpinner,
+                            panOldValue);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            panOldValue = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update sample pan value
+            selectedSample.setPanValue((byte) value);
+        }
+    }
+
+    public void defaultPanningSliderOnChange() {
+        JSlider defaultPanningSlider = sampleUI.getTools().getSoundOptions()
+                .getDefaultPanningSlider();
+
+        int value = defaultPanningSlider.getValue();
+
+        // alter the spinner linked to this slider
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
+        sampleUI.getTools().getSoundOptions().getDefaultPanningValue()
+                .setValue(value);
+        setRecordingUndos(recordUndoState);
+
+        if (!defaultPanningSlider.getValueIsAdjusting()) {
+
+            if (isRecordingUndos()) {
+                // undo event
+                UndoableSliderChange sliderChange
+                        = new UndoableSliderChange(defaultPanningSlider,
+                                panOldValue);
+
+                getCurrentUndoManager().addEdit(sliderChange);
+
+                panOldValue = value;
+            }
+
+            if (isAlteringModels()) {
+
+                // update sample pan value
+                selectedSample.setPanValue((byte) value);
+            }
+        }
+    }
+
+    // loop tools
+    public void loopComboBoxOnChange() {
+
+        JComboBox loopComboBox = sampleUI.getTools()
+                .getLoopingTools().getLoopComboBox();
+
+        int index = loopComboBox.getSelectedIndex();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableComboBoxChange comboBoxChange
+                    = new UndoableComboBoxChange(loopComboBox, loopOldIndex);
+
+            // append event to manager
+            getCurrentUndoManager().addEdit(comboBoxChange);
+
+            loopOldIndex = index;
+        }
+
+        if (isAlteringModels()) {
+
+            // alter sample
+            switch (index) {
+                case 1:
+                    selectedSample.setLooped(true);
+                    selectedSample.setPingPongLooped(false);
+                    break;
+                case 2:
+                    selectedSample.setLooped(false);
+                    selectedSample.setPingPongLooped(true);
+                default:
+                    selectedSample.setLooped(false);
+                    selectedSample.setPingPongLooped(false);
+                    break;
+            }
+        }
+    }
+
+    public void loopStartSpinnerOnChange() {
+
+        JSpinner loopStartSpinner = sampleUI.getTools().getLoopingTools()
+                .getLoopStartSpinner();
+
+        int value = (int) loopStartSpinner.getValue();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(loopStartSpinner,
+                            loopStartOldValue);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            loopStartOldValue = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update sample pan value
+            selectedSample.setLoopBeginning(value);
+        }
+    }
+
+    public void loopEndSpinnerOnChange() {
+
+        JSpinner loopEndSpinner = sampleUI.getTools().getLoopingTools()
+                .getLoopEndSpinner();
+
+        int value = (int) loopEndSpinner.getValue();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(loopEndSpinner,
+                            loopEndOldValue);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            loopEndOldValue = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update sample pan value
+            selectedSample.setLoopEnd(value);
+        }
+    }
+
+    // sustain loop tools
+    public void susLoopComboBoxOnChange() {
+
+        JComboBox susLoopComboBox = sampleUI.getTools()
+                .getSusLoopTools().getSusLoopComboBox();
+
+        int index = susLoopComboBox.getSelectedIndex();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableComboBoxChange comboBoxChange
+                    = new UndoableComboBoxChange(susLoopComboBox,
+                            sustainLoopOldIndex);
+
+            // append event to manager
+            getCurrentUndoManager().addEdit(comboBoxChange);
+
+            sustainLoopOldIndex = index;
+        }
+
+        if (isAlteringModels()) {
+
+            // alter sample
+            switch (index) {
+                case 1:
+                    selectedSample.setSustainLooped(true);
+                    selectedSample.setPingPongSustainLooped(false);
+                    break;
+                case 2:
+                    selectedSample.setSustainLooped(false);
+                    selectedSample.setPingPongSustainLooped(true);
+                default:
+                    selectedSample.setSustainLooped(false);
+                    selectedSample.setPingPongSustainLooped(false);
+                    break;
+            }
+        }
+    }
+
+    public void susLoopStartSpinnerOnChange() {
+
+        JSpinner susLoopStartSpinner = sampleUI.getTools().getSusLoopTools()
+                .getSusLoopStartSpinner();
+
+        int value = (int) susLoopStartSpinner.getValue();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(susLoopStartSpinner,
+                            susLoopStartOldValue);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            susLoopStartOldValue = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update sample pan value
+            selectedSample.setSustainLoopBeginning(value);
+        }
+    }
+
+    public void susLoopEndSpinnerOnChange() {
+
+        JSpinner susLoopEndSpinner = sampleUI.getTools().getSusLoopTools()
+                .getSusLoopEndSpinner();
+
+        int value = (int) susLoopEndSpinner.getValue();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(susLoopEndSpinner,
+                            susLoopEndOldValue);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            susLoopEndOldValue = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update sample pan value
+            selectedSample.setSustainLoopEnd(value);
+        }
+    }
+
+    // vibrato options
+    public void vibratoSpeedOnChange() {
+
+        JSpinner vibSpeedSpinner = sampleUI.getTools().getVibratoOptions()
+                .getVibSpeedSpinner();
+
+        int value = (int) vibSpeedSpinner.getValue();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(vibSpeedSpinner,
+                            oldVibratoSpeed);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            oldVibratoSpeed = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update sample pan value
+            selectedSample.setVibratoSpeed(value);
+        }
+    }
+
+    public void vibratoDepthOnChange() {
+
+        JSpinner vibDepthSpinner = sampleUI.getTools().getVibratoOptions()
+                .getVibSpeedSpinner();
+
+        int value = (int) vibDepthSpinner.getValue();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(vibDepthSpinner,
+                            oldVibratoDepth);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            oldVibratoDepth = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update sample pan value
+            selectedSample.setFullVibratoDepth(value);
+        }
+    }
+
+    public void vibratoDelayOnChange() {
+
+        JSpinner vibDelaySpinner = sampleUI.getTools().getVibratoOptions()
+                .getVibSpeedSpinner();
+
+        int value = (int) vibDelaySpinner.getValue();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(vibDelaySpinner,
+                            oldVibratoDelay);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            oldVibratoDelay = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update sample pan value
+            selectedSample.setVibratoDelay(value);
+        }
+    }
+
+    public void vibratoWaveformOnChange() {
+
+        JComboBox vibWaveformComboBox = sampleUI.getTools()
+                .getVibratoOptions().getVibWaveformComboBox();
+
+        int index = vibWaveformComboBox.getSelectedIndex();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableComboBoxChange comboBoxChange
+                    = new UndoableComboBoxChange(vibWaveformComboBox,
+                            oldVibratoWaveform);
+
+            // append event to manager
+            getCurrentUndoManager().addEdit(comboBoxChange);
+
+            oldVibratoWaveform = index;
+        }
+
+        if (isAlteringModels()) {
+
+            selectedSample.setVibratoWaveform((byte)index);
+        }
+    }
+
+    // sampling tools
+    public void c5SampleRateSpinnerOnChange() {
+
+        JSpinner c5SampleRateSpinner = sampleUI.getTools().getSamplingTools()
+                .getC5SampleRateSpinner();
+
+        int value = (int) c5SampleRateSpinner.getValue();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(c5SampleRateSpinner,
+                            oldC5Speed);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            oldC5Speed = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update sample pan value
+            selectedSample.setC5Speed(value);
+        }
+    }
+
+    public void sampleTransposeComboBoxOnChange() {
+
+        JComboBox sampleTransposeComboBox = sampleUI.getTools()
+                .getSamplingTools().getSampleTransposeComboBox();
+
+        int index = sampleTransposeComboBox.getSelectedIndex();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableComboBoxChange comboBoxChange
+                    = new UndoableComboBoxChange(sampleTransposeComboBox,
+                            oldTransposeIndex);
+
+            // append event to manager
+            getCurrentUndoManager().addEdit(comboBoxChange);
+
+            oldTransposeIndex = index;
+        }
+
+        if (isAlteringModels()) {
+
+            //TODO
+        }
     }
 
     public void sampleOnChange() {
 
         int modType = sampleUI.getTools().getModType();
-        
+
+        // set recording undos and alterations to false for a sample change
+        setRecordingUndos(false);
+        setAlteringModels(false);
+
         // loop code
-        if ((int) sampleUI.getSampleSelectSpinner().getValue() == 
-                loadVM.getSamples().size() + 1) {
+        if ((int) sampleUI.getSampleSelectSpinner().getValue()
+                == loadVM.getSamples().size() + 1) {
             sampleUI.getSampleSelectSpinner().setValue(1);
         } else if ((int) sampleUI.getSampleSelectSpinner().getValue() == 0) {
             sampleUI.getSampleSelectSpinner().setValue(loadVM.getSamples()
                     .size());
         }
 
+        // get selected instrument value
+        int value = (int) sampleUI.getSampleSelectSpinner().getValue()
+                - 1;
+
         // get sample
-        sampleUI.setSelectedSample(
-                (int) sampleUI.getSampleSelectSpinner().getValue() - 1);
+        sampleUI.setSelectedSample(value);
         selectedSample = loadVM.getSamples()
                 .get(sampleUI.getSelectedSample());
+
+        // set current undoManager
+        setCurrentUndoManager(sampleManagers[value]);
 
         // sample name
         sampleUI.getTools().getSampleDetails()
@@ -206,14 +790,20 @@ public class SampleController {
                 .getSampleLengthLabel().setText(outputString);
 
         // default volume
+        // set old value
+        defaultVolumeOldValue = selectedSample.getDefaultVolume();
+
         sampleUI.getTools().getSoundOptions()
-                .getDefaultVolumeSlider().setValue(selectedSample.getDefaultVolume());
+                .getDefaultVolumeSlider().setValue(defaultVolumeOldValue);
 
         defaultVolumeSliderOnChange();
 
         // global volume
+        // set old value
+        globalVolumeOldValue = selectedSample.getGlobalVolume();
+
         sampleUI.getTools().getSoundOptions()
-                .getGlobalVolumeSlider().setValue(selectedSample.getGlobalVolume());
+                .getGlobalVolumeSlider().setValue(globalVolumeOldValue);
 
         globalVolumeSliderOnChange();
 
@@ -224,92 +814,123 @@ public class SampleController {
         panOnChange();
 
         // default panning
+        // set old value
+        panOldValue = selectedSample.getPanValue();
+
         sampleUI.getTools().getSoundOptions()
-                .getDefaultPanningSlider().setValue(selectedSample.getPanValue());
+                .getDefaultPanningSlider().setValue(panOldValue);
 
         defaultPanningSliderOnChange();
 
         // loop
+        loopOldIndex = 0;
+
         if (selectedSample.isLooped()) {
 
-            sampleUI.getTools().getLoopingTools().getLoopComboBox()
-                    .setSelectedIndex(1);
+            loopOldIndex = 1;
         } else if (selectedSample.isPingPongLooped()) {
 
-            sampleUI.getTools().getLoopingTools().getLoopComboBox()
-                    .setSelectedIndex(2);
-        } else {
-
-            sampleUI.getTools().getLoopingTools().getLoopComboBox()
-                    .setSelectedIndex(0);
+            loopOldIndex = 2;
         }
 
+        sampleUI.getTools().getLoopingTools().getLoopComboBox()
+                .setSelectedIndex(loopOldIndex);
+
         // loop start
+        // set old value
+        loopStartOldValue = (int) selectedSample.getLoopBeginning();
+
         SpinnerNumberModel loopStartModel
-                = new SpinnerNumberModel(selectedSample.getLoopBeginning(), 0,
+                = new SpinnerNumberModel(loopStartOldValue, 0,
                         selectedSample.getSampleLength(), 1);
 
         sampleUI.getTools().getLoopingTools().getLoopStartSpinner()
                 .setModel(loopStartModel);
 
         // loop end
+        // set old value
+        loopEndOldValue = (int) selectedSample.getLoopEnd();
+
         SpinnerNumberModel loopEndModel
-                = new SpinnerNumberModel(selectedSample.getLoopEnd(), 0,
+                = new SpinnerNumberModel(loopEndOldValue, 0,
                         selectedSample.getSampleLength(), 1);
 
         sampleUI.getTools().getLoopingTools().getLoopEndSpinner()
                 .setModel(loopEndModel);
 
         // sustainloop
+        sustainLoopOldIndex = 0;
+
         if (selectedSample.isSustainLooped()) {
 
-            sampleUI.getTools().getSusLoopTools().getSusLoopComboBox()
-                    .setSelectedIndex(1);
+            sustainLoopOldIndex = 1;
         } else if (selectedSample.isPingPongLooped()) {
 
-            sampleUI.getTools().getSusLoopTools().getSusLoopComboBox()
-                    .setSelectedIndex(2);
-        } else {
-
-            sampleUI.getTools().getSusLoopTools().getSusLoopComboBox()
-                    .setSelectedIndex(0);
+            sustainLoopOldIndex = 2;
         }
 
+        sampleUI.getTools().getSusLoopTools().getSusLoopComboBox()
+                .setSelectedIndex(sustainLoopOldIndex);
+
         // sustain loop start
+        susLoopStartOldValue = (int) selectedSample
+                .getSustainLoopBeginning();
+
         SpinnerNumberModel susLoopStartModel
-                = new SpinnerNumberModel(selectedSample.getSustainLoopBeginning(), 0,
+                = new SpinnerNumberModel(susLoopStartOldValue, 0,
                         selectedSample.getSampleLength(), 1);
 
         sampleUI.getTools().getSusLoopTools().getSusLoopStartSpinner()
                 .setModel(susLoopStartModel);
 
         // sustain loop end
+        susLoopEndOldValue = (int) selectedSample
+                .getSustainLoopEnd();
+
         SpinnerNumberModel susLoopEndModel
-                = new SpinnerNumberModel(selectedSample.getSustainLoopEnd(), 0,
+                = new SpinnerNumberModel(susLoopEndOldValue, 0,
                         selectedSample.getSampleLength(), 1);
 
         sampleUI.getTools().getSusLoopTools().getSusLoopEndSpinner()
                 .setModel(susLoopEndModel);
 
         // Middle C speed
+        // set old value
+        oldC5Speed = selectedSample.getC5Speed();
+
         sampleUI.getTools().getSamplingTools().getC5SampleRateSpinner()
-                .setValue(selectedSample.getC5Speed());
+                .setValue(oldC5Speed);
         
-        // vibratio speed
+        oldTransposeIndex = sampleUI.getTools().getSamplingTools()
+                .getSampleTransposeComboBox().getSelectedIndex();
+
+        // vibrato speed
+        // set old value
+        oldVibratoSpeed = (int) selectedSample.getFullVibratoSpeed();
+
         sampleUI.getTools().getVibratoOptions().getVibSpeedSpinner()
-                .setValue(selectedSample.getFullVibratoSpeed());
-        
+                .setValue(oldVibratoSpeed);
+
         // vibrato depth
+        // set old value
+        oldVibratoDepth = (int) selectedSample.getFullVibratoDepth();
+
         sampleUI.getTools().getVibratoOptions().getVibDepthSpinner()
-                .setValue(selectedSample.getFullVibratoDepth());
-        
+                .setValue(oldVibratoDepth);
+
         // vibrato delay
+        // set old value
+        oldVibratoDelay = (int) selectedSample.getVibratoDelay();
+
         sampleUI.getTools().getVibratoOptions().getVibDelaySpinner()
-                .setValue(selectedSample.getVibratoDelay());
-        
+                .setValue(oldVibratoDelay);
+
         // vibrato waveform
+        // set old value
+        oldVibratoWaveform = selectedSample.getVibratoWaveform();
+
         sampleUI.getTools().getVibratoOptions().getVibWaveformComboBox()
-                .setSelectedIndex(selectedSample.getVibratoWaveform());
+                .setSelectedIndex(oldVibratoWaveform);
 
         // sample data
         SwingUtilities.invokeLater(() -> {
@@ -317,7 +938,7 @@ public class SampleController {
 
                 // stereo samples
                 sampleUI.getSampleWindow().getCanvas()
-                        .setStereoSamples(selectedSample.getLData(), 
+                        .setStereoSamples(selectedSample.getLData(),
                                 selectedSample.getRData());
             } else {
 
@@ -327,6 +948,9 @@ public class SampleController {
             }
         });
 
+        // set record undo back to true
+        setRecordingUndos(true);
+        setAlteringModels(true);
     }
 
     public void loadSample(File file) {

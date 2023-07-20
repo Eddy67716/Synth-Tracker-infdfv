@@ -22,18 +22,26 @@ public class SampleDecompressor extends SampleCompressSpec {
     private int topBit;
     private int i;
     private int blockIndex;
+    private boolean allowingTypeD;
     private ByteArrayReader bar;
 
     // getter
     public long[] getDecompressedData() {
         return decompressedData;
     }
+    
+    // all args constructor
+    public SampleDecompressor(byte bitrate, boolean floating,
+            boolean doubleDelta, int dataSize, boolean allowingTypeD) {
+        super(bitrate, floating, doubleDelta);
+        this.allowingTypeD = allowingTypeD;
+        decompressedData = new long[dataSize];
+    }
 
     // constructor
     public SampleDecompressor(byte bitrate, boolean floating,
             boolean doubleDelta, int dataSize) {
-        super(bitrate, floating, doubleDelta);
-        decompressedData = new long[dataSize];
+        this(bitrate, floating, doubleDelta, dataSize, false);
     }
 
     public boolean decompress(IReadable r) throws IOException {
@@ -56,9 +64,12 @@ public class SampleDecompressor extends SampleCompressSpec {
 
                 try {
                     if (currentBitWidth > getBitRate() + 1) {
+                        // invalid bitrate error
                         throw (new IllegalArgumentException("Bitrate "
                                 + currentBitWidth + " is bigger"
                                 + " than " + (getBitRate() + 1) + "!"));
+                    } else if (currentBitWidth == 1 && allowingTypeD) {
+                        typeD();
                     } else if (currentBitWidth < 7) {
                         typeA();
                     } else if (currentBitWidth < getBitRate() + 1) {
@@ -167,8 +178,30 @@ public class SampleDecompressor extends SampleCompressSpec {
     }
 
     // constant value
-    public void typeD() {
+    public void typeD() throws IOException {
 
+        // get leading bit
+        if (bar.getArbitraryBitValue((byte) currentBitWidth, false) == 0) {
+            
+            // use type A if bit is zero
+            typeA();
+        } else {
+            
+            // use type D if 1;
+            
+            // how many bits the length hold (1-16)
+            byte bitsForConstantWidth 
+                    = (byte)(bar.getArbitraryBitValue((byte)4, false) + 1);
+            
+            // how long value is held for
+            long holdLength 
+                    = bar.getArbitraryBitValue(bitsForConstantWidth, false);
+            
+            // add all constant values to collection for decoding
+            for (int holdIndex = 0; holdIndex < holdLength; holdIndex++) {
+                decodeToAppendValue(0);
+            }
+        }
     }
 
     // update width
@@ -183,6 +216,7 @@ public class SampleDecompressor extends SampleCompressSpec {
 
     // decode delta data and append to file
     public void decodeToAppendValue(long value) {
+        //System.out.println(value);
         val1 += value;
         val2 += val1;
         decompressedData[i] = (isDoubleDelta()) ? val2 : val1;

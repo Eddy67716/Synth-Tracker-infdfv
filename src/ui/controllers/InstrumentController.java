@@ -4,11 +4,20 @@
  */
 package ui.controllers;
 
+import java.awt.Toolkit;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.SwingUtilities;
+import javax.swing.undo.UndoManager;
 import module.IAudioSample;
 import module.IInstrument;
 import static sound.midi.MidiTables.MIDI_PROGRAM_LIST;
+import ui.controllers.undo.UndoableCheckBoxChange;
+import ui.controllers.undo.UndoableComboBoxChange;
+import ui.controllers.undo.UndoableSliderChange;
+import ui.controllers.undo.UndoableSpinnerChange;
 import ui.view.instruments.EnvelopeWindow;
 import ui.view.instruments.FilterOptions;
 import ui.view.instruments.InstrumentSoundOptions;
@@ -23,17 +32,44 @@ import ui.view.instruments.SustainOptions;
  *
  * @author Edward Jenkins
  */
-public class InstrumentController {
+public class InstrumentController extends GenericController {
 
     // instance variables
     private InstrumentUI instrumentUI;
     private EditInstrumentViewModel editInstrumentVM;
     private LoadViewModel loadVM;
     private IInstrument selectedInstrument;
+    private UndoManager[] instrumentManagers;
+    private int fadeoutOldValue;
+    private int nnaComboBoxOldValue;
+    private int dntComboBoxOldValue;
+    private int dnaComboBoxOldValue;
+    private int globalVolOldValue;
+    private int panOldValue;
+    private int pitchPanSeperationOldValue;
+    private int pitchPanCentreOldValue;
+    private int randomVolumeOldValue;
+    private int randomPanOldValue;
+    private int randomCutoffOldValue;
+    private int randomRezOldValue;
+    private int filterCutoffOldValue;
+    private int filterRezOldValue;
+    private int midiProgramOldValue;
+    private int midiChannelOldValue;
+    private int midiBankOldValue;
 
     // constructor
     public InstrumentController(InstrumentUI instrumentUI, LoadViewModel lvm) {
+        super();
         this.instrumentUI = instrumentUI;
+        this.loadVM = lvm;
+
+        // initialise undo managers
+        instrumentManagers = new UndoManager[loadVM.getInstruments().size()];
+        for (int i = 0; i < instrumentManagers.length; i++) {
+            instrumentManagers[i] = new UndoManager();
+        }
+
         instrumentUI.addInstrumentSelectSpinnerChangeListener(
                 e -> instrumentOnChange());
 
@@ -79,45 +115,186 @@ public class InstrumentController {
         EnvelopeWindow ew = instrumentUI.getEnvelopeWindow();
         ew.addEnvelopeTypeComboBoxActionListener(e -> envelopeOnChange());
 
-        this.loadVM = lvm;
         instrumentOnChange();
     }
 
     // sustain option events
     public void fadeOutOnChange() {
-        selectedInstrument.setFadeOut((int) instrumentUI.getTools()
-                .getSustainOptions().getFadeOutSpinner().getValue() / 32);
+
+        JSpinner fadeOutSpinner = instrumentUI.getTools().getSustainOptions()
+                .getFadeOutSpinner();
+
+        // commit edit
+        try {
+
+            // makes sure it's a number divided by 32
+            if ((int) fadeOutSpinner.getValue() % 32 != 0) {
+                int modulus = (int) fadeOutSpinner.getValue() % 32;
+                int currentValue = (int) fadeOutSpinner.getValue();
+                // round to the closes number
+                if (modulus > 16) {
+                    fadeOutSpinner.setValue(currentValue - modulus + 32);
+                } else {
+                    fadeOutSpinner.setValue(currentValue - modulus);
+                }
+                // return because rest of code has been run in a recursion
+                return;
+            }
+
+            fadeOutSpinner.commitEdit();
+
+            int storeValue = (int) fadeOutSpinner.getValue() / 32;
+
+            if (isRecordingUndos()) {
+                // undo event
+                UndoableSpinnerChange spinnerChange
+                        = new UndoableSpinnerChange(fadeOutSpinner,
+                                fadeoutOldValue);
+
+                // append event to manager
+                getCurrentUndoManager().addEdit(spinnerChange);
+            }
+
+            if (isAlteringModels()) {
+
+                // update instrument fade value
+                selectedInstrument.setFadeOut(storeValue);
+            }
+
+            fadeoutOldValue = (int) fadeOutSpinner.getValue();
+
+        } catch (java.text.ParseException e) {
+
+            // play an error sound
+            playErrorSound();
+
+            fadeOutSpinner.setValue(fadeoutOldValue);
+        }
     }
 
     public void newNoteActionPerform() {
-        selectedInstrument.setNewNoteAction((byte) instrumentUI.getTools()
-                .getSustainOptions().getNewNoteActionComboBox()
-                .getSelectedIndex());
+
+        JComboBox newNoteActionComboBox = instrumentUI.getTools()
+                .getSustainOptions().getNewNoteActionComboBox();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableComboBoxChange comboBoxChange
+                    = new UndoableComboBoxChange(newNoteActionComboBox,
+                            nnaComboBoxOldValue);
+
+            // append event to manager
+            getCurrentUndoManager().addEdit(comboBoxChange);
+        }
+
+        if (isAlteringModels()) {
+
+            // alter instrument
+            selectedInstrument.setNewNoteAction((byte) newNoteActionComboBox
+                    .getSelectedIndex());
+        }
+
+        nnaComboBoxOldValue = newNoteActionComboBox.getSelectedIndex();
     }
 
     public void dupNoteTypeActionPerform() {
-        selectedInstrument.setDuplicateCheckType((byte) instrumentUI.getTools()
-                .getSustainOptions().getDupNoteTypeComboBox()
-                .getSelectedIndex());
+        JComboBox dupNoteTypeComboBox = instrumentUI.getTools()
+                .getSustainOptions().getDupNoteTypeComboBox();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableComboBoxChange comboBoxChange
+                    = new UndoableComboBoxChange(dupNoteTypeComboBox,
+                            dntComboBoxOldValue);
+
+            // append event to manager
+            getCurrentUndoManager().addEdit(comboBoxChange);
+        }
+
+        if (isAlteringModels()) {
+
+            // alter instrument
+            selectedInstrument.setDuplicateCheckType(
+                    (byte) dupNoteTypeComboBox.getSelectedIndex());
+        }
+
+        dntComboBoxOldValue = dupNoteTypeComboBox.getSelectedIndex();
     }
 
     public void dupNoteActionPerform() {
-        selectedInstrument.setDuplicateCheckAction((byte) instrumentUI.getTools()
-                .getSustainOptions().getDupNoteActionComboBox()
-                .getSelectedIndex());
+        JComboBox dupNoteActionComboBox = instrumentUI.getTools()
+                .getSustainOptions().getDupNoteTypeComboBox();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableComboBoxChange comboBoxChange
+                    = new UndoableComboBoxChange(dupNoteActionComboBox,
+                            dnaComboBoxOldValue);
+
+            // append event to manager
+            getCurrentUndoManager().addEdit(comboBoxChange);
+        }
+
+        if (isAlteringModels()) {
+
+            // alter instrument
+            selectedInstrument.setDuplicateCheckAction(
+                    (byte) dupNoteActionComboBox.getSelectedIndex());
+        }
+
+        dnaComboBoxOldValue = dupNoteActionComboBox.getSelectedIndex();
     }
 
-    // midi opption events
+    // midi option events
     public void midiChannelOnChange() {
-        selectedInstrument.setMidiChannel((short) ((int) instrumentUI.getTools()
-                .getMidiOptions().getMidiChannelSpinner().getValue()));
+
+        JSpinner midiChannelSpinner = instrumentUI.getTools()
+                .getMidiOptions().getMidiChannelSpinner();
+
+        int value = (int) midiChannelSpinner.getValue();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(midiChannelSpinner,
+                            midiChannelOldValue);
+
+            // append event to manager
+            getCurrentUndoManager().addEdit(spinnerChange);
+        }
+
+        if (isAlteringModels()) {
+
+            // update instrument global volume value
+            selectedInstrument.setMidiChannel((short) value);
+        }
+
+        midiChannelOldValue = value;
     }
 
     public void midiProgramOnChange() {
         JSpinner instrumentSpinner = instrumentUI.getTools()
                 .getMidiOptions().getMidiInstrumentSpinner();
 
-        selectedInstrument.setMidiProgram((short) ((int) instrumentSpinner.getValue()));
+        int value = (int) instrumentSpinner.getValue();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(instrumentSpinner,
+                            midiProgramOldValue);
+
+            // append event to manager
+            getCurrentUndoManager().addEdit(spinnerChange);
+        }
+
+        if (isAlteringModels()) {
+
+            // update instrument global volume value
+            selectedInstrument.setMidiProgram((short) ((int) instrumentSpinner.getValue()));
+        }
+
+        midiProgramOldValue = value;
 
         // update tool tip text to appropriate instrument
         instrumentSpinner.setToolTipText(
@@ -125,129 +302,511 @@ public class InstrumentController {
     }
 
     public void midiBankOnChange() {
-        selectedInstrument.setMidiBank((short) ((int) instrumentUI.getTools()
-                .getMidiOptions().getMidiBankSpinner().getValue()));
+        JSpinner midiBankSpinner = instrumentUI.getTools()
+                .getMidiOptions().getMidiBankSpinner();
+
+        int value = (int) midiBankSpinner.getValue();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(midiBankSpinner,
+                            midiBankOldValue);
+
+            // append event to manager
+            getCurrentUndoManager().addEdit(spinnerChange);
+        }
+
+        if (isAlteringModels()) {
+
+            // update instrument global volume value
+            selectedInstrument.setMidiBank((short) value);
+        }
+
+        midiBankOldValue = value;
     }
 
     // sound options events
     public void globalVolumeSpinnerOnChange() {
-        int value = (int) instrumentUI.getTools().getSoundOptions()
-                .getGlobalVolumeValue().getValue();
+
+        JSpinner globalVolumeSpinner = instrumentUI.getTools().getSoundOptions()
+                .getGlobalVolumeValue();
+
+        int value = (int) globalVolumeSpinner.getValue();
+
+        // alter the slider linked to this spinner
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
         instrumentUI.getTools().getSoundOptions().getGlobalVolumeSlider()
                 .setValue(value);
-        selectedInstrument.setGlobalVolume((byte) value);
+        setRecordingUndos(recordUndoState);
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(globalVolumeSpinner,
+                            globalVolOldValue);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            globalVolOldValue = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update instrument global volume value
+            selectedInstrument.setGlobalVolume((byte) value);
+        }
     }
 
     public void globalVolumeSliderOnChange() {
-        int value = instrumentUI.getTools().getSoundOptions()
-                .getGlobalVolumeSlider().getValue();
+
+        JSlider globalVolumeSlider = instrumentUI.getTools().getSoundOptions()
+                .getGlobalVolumeSlider();
+
+        int value = globalVolumeSlider.getValue();
+
+        // alter the spinner linked to this slider
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
         instrumentUI.getTools().getSoundOptions().getGlobalVolumeValue()
                 .setValue(value);
-        selectedInstrument.setGlobalVolume((byte) value);
+        setRecordingUndos(recordUndoState);
+
+        if (!globalVolumeSlider.getValueIsAdjusting()) {
+
+            if (isRecordingUndos()) {
+                // undo event
+                UndoableSliderChange sliderChange
+                        = new UndoableSliderChange(globalVolumeSlider,
+                                globalVolOldValue);
+
+                getCurrentUndoManager().addEdit(sliderChange);
+
+                globalVolOldValue = value;
+            }
+
+            if (isAlteringModels()) {
+
+                // update instrument global volume value
+                selectedInstrument.setGlobalVolume((byte) value);
+            }
+        }
     }
 
     public void panOnChange() {
-        boolean isSelected = instrumentUI.getTools().getSoundOptions().getPanning()
-                .isSelected();
+
+        JCheckBox panning = instrumentUI.getTools().getSoundOptions()
+                .getPanning();
+
+        boolean isSelected = panning.isSelected();
+
         instrumentUI.getTools().getSoundOptions().getDefaultPanningSlider()
                 .setEnabled(isSelected);
         instrumentUI.getTools().getSoundOptions().getDefaultPanningValue()
                 .setEnabled(isSelected);
-        selectedInstrument.setPanning(isSelected);
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableCheckBoxChange checkBoxChange
+                    = new UndoableCheckBoxChange(panning);
+
+            getCurrentUndoManager().addEdit(checkBoxChange);
+        }
+
+        if (isAlteringModels()) {
+
+            // update instrument panning value
+            selectedInstrument.setPanning(isSelected);
+        }
     }
 
     public void defaultPanningSpinnerOnChange() {
-        int value = (int) instrumentUI.getTools().getSoundOptions()
-                .getDefaultPanningValue().getValue();
+
+        JSpinner defaultPanningSpinner = instrumentUI.getTools().getSoundOptions()
+                .getDefaultPanningValue();
+
+        int value = (int) defaultPanningSpinner.getValue();
+
+        // alter the slider linked to this spinner
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
         instrumentUI.getTools().getSoundOptions().getDefaultPanningSlider()
                 .setValue(value);
-        selectedInstrument.setPanValue((byte) value);
+        setRecordingUndos(recordUndoState);
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(defaultPanningSpinner,
+                            panOldValue);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            panOldValue = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update instrument global volume value
+            selectedInstrument.setPanValue((byte) value);
+        }
     }
 
     public void defaultPanningSliderOnChange() {
-        int value = instrumentUI.getTools().getSoundOptions()
-                .getDefaultPanningSlider().getValue();
+        JSlider defaultPanningSlider = instrumentUI.getTools().getSoundOptions()
+                .getDefaultPanningSlider();
+
+        int value = defaultPanningSlider.getValue();
+
+        // alter the spinner linked to this slider
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
         instrumentUI.getTools().getSoundOptions().getDefaultPanningValue()
                 .setValue(value);
-        selectedInstrument.setPanValue((byte) value);
+        setRecordingUndos(recordUndoState);
+
+        if (!defaultPanningSlider.getValueIsAdjusting()) {
+
+            if (isRecordingUndos()) {
+                // undo event
+                UndoableSliderChange sliderChange
+                        = new UndoableSliderChange(defaultPanningSlider,
+                                panOldValue);
+
+                getCurrentUndoManager().addEdit(sliderChange);
+
+                panOldValue = value;
+            }
+
+            if (isAlteringModels()) {
+
+                // update instrument global volume value
+                selectedInstrument.setPanValue((byte) value);
+            }
+        }
     }
 
     public void pitchPanOnChange() {
-        int value = (int) instrumentUI.getTools().getSoundOptions()
-                .getPitchPanSeparationSpinner().getValue();
+
+        JSpinner pitchPanSpinner = instrumentUI.getTools().getSoundOptions()
+                .getPitchPanSeparationSpinner();
+
+        int value = (int) pitchPanSpinner.getValue();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(pitchPanSpinner,
+                            pitchPanSeperationOldValue);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            pitchPanSeperationOldValue = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update instrument global volume value
+            selectedInstrument.setPitchPanSeparation((byte) value);
+        }
+
         selectedInstrument.setPitchPanSeparation((byte) value);
     }
 
     public void pitchPanCentreOnChange() {
-        byte value = (byte) instrumentUI.getTools().getSoundOptions()
-                .getPitchPanCentreNoteComboBox().getSelectedIndex();
-        selectedInstrument.setPitchPanCentre(value);
+
+        JComboBox pitchPanCentreComboBox = instrumentUI.getTools()
+                .getSoundOptions().getPitchPanCentreNoteComboBox();
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableComboBoxChange comboBoxChange
+                    = new UndoableComboBoxChange(pitchPanCentreComboBox,
+                            pitchPanCentreOldValue);
+
+            // append event to manager
+            getCurrentUndoManager().addEdit(comboBoxChange);
+
+            // update old value to current one
+            dnaComboBoxOldValue = pitchPanCentreComboBox.getSelectedIndex();
+        }
+
+        if (isAlteringModels()) {
+
+            // alter instrument
+            selectedInstrument.setPitchPanCentre((byte) pitchPanCentreComboBox
+                    .getSelectedIndex());
+        }
     }
 
     // filter events
     public void cutoffSpinnerOnChange() {
-        int value = (int) instrumentUI.getTools().getFilterOptions()
-                .getFilterCutoffSpinner().getValue();
+
+        JSpinner cutoffSpinner = instrumentUI.getTools().getFilterOptions()
+                .getFilterCutoffSpinner();
+
+        int value = (int) cutoffSpinner.getValue();
+
+        // alter the slider linked to this spinner
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
         instrumentUI.getTools().getFilterOptions().getFilterCutoffSlider()
                 .setValue(value);
-        selectedInstrument.setInitialFilterCutoff((short) value);
+        setRecordingUndos(recordUndoState);
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(cutoffSpinner,
+                            filterCutoffOldValue);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            filterCutoffOldValue = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update instrument global volume value
+            selectedInstrument.setInitialFilterCutoff((short) value);
+        }
     }
 
     public void cutoffSliderOnChange() {
-        int value = instrumentUI.getTools().getFilterOptions()
-                .getFilterCutoffSlider().getValue();
+
+        JSlider cutoffSlider = instrumentUI.getTools()
+                .getFilterOptions().getFilterCutoffSlider();
+
+        int value = cutoffSlider.getValue();
+
+        // alter the spinner linked to this slider
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
         instrumentUI.getTools().getFilterOptions().getFilterCutoffSpinner()
                 .setValue(value);
-        selectedInstrument.setInitialFilterCutoff((short) value);
+        setRecordingUndos(recordUndoState);
+
+        if (!cutoffSlider.getValueIsAdjusting()) {
+
+            if (isRecordingUndos()) {
+                // undo event
+                UndoableSliderChange sliderChange
+                        = new UndoableSliderChange(cutoffSlider,
+                                filterCutoffOldValue);
+
+                getCurrentUndoManager().addEdit(sliderChange);
+
+                filterCutoffOldValue = value;
+            }
+
+            if (isAlteringModels()) {
+
+                // update instrument initial filter cutoff value
+                selectedInstrument.setInitialFilterCutoff((short) value);
+            }
+        }
     }
 
     public void resonanceSpinnerOnChange() {
-        int value = (int) instrumentUI.getTools().getFilterOptions()
-                .getFilterResonanceSpinner().getValue();
+
+        JSpinner rezSpinner = instrumentUI.getTools().getFilterOptions()
+                .getFilterResonanceSpinner();
+
+        int value = (int) rezSpinner.getValue();
+
+        // alter the slider linked to this spinner
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
         instrumentUI.getTools().getFilterOptions().getFilterResonanceSlider()
                 .setValue(value);
-        selectedInstrument.setInitialFilterResonance((short) value);
+        setRecordingUndos(recordUndoState);
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(rezSpinner,
+                            filterRezOldValue);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            filterRezOldValue = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update instrument initial filter resonance value
+            selectedInstrument.setInitialFilterResonance((short) value);
+        }
     }
 
     public void resonanceSliderOnChange() {
-        int value = instrumentUI.getTools().getFilterOptions()
-                .getFilterResonanceSlider().getValue();
+
+        JSlider rezSlider = instrumentUI.getTools().getFilterOptions()
+                .getFilterResonanceSlider();
+
+        int value = rezSlider.getValue();
+
+        // alter the spinner linked to this slider
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
         instrumentUI.getTools().getFilterOptions().getFilterResonanceSpinner()
                 .setValue(value);
-        selectedInstrument.setInitialFilterResonance((short) value);
+        setRecordingUndos(recordUndoState);
+
+        if (!rezSlider.getValueIsAdjusting()) {
+
+            if (isRecordingUndos()) {
+                // undo event
+                UndoableSliderChange sliderChange
+                        = new UndoableSliderChange(rezSlider,
+                                filterRezOldValue);
+
+                getCurrentUndoManager().addEdit(sliderChange);
+
+                filterRezOldValue = value;
+            }
+
+            if (isAlteringModels()) {
+
+                // update instrument initial filter resonance value
+                selectedInstrument.setInitialFilterResonance((short) value);
+            }
+        }
     }
 
     // random variation events
     public void randomVolumeSpinnerOnChange() {
-        int value = (int) instrumentUI.getTools().getRandomOffsets()
-                .getRandomVolumeSpinner().getValue();
+
+        JSpinner randomVolSpinner = instrumentUI.getTools().getRandomOffsets()
+                .getRandomVolumeSpinner();
+
+        int value = (int) randomVolSpinner.getValue();
+
+        // alter the slider linked to this spinner
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
         instrumentUI.getTools().getRandomOffsets().getRandomVolumeSlider()
                 .setValue(value);
-        selectedInstrument.setRandomVolumeVariation((byte) value);
+        setRecordingUndos(recordUndoState);
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(randomVolSpinner,
+                            randomVolumeOldValue);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            randomVolumeOldValue = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update instrument random volume value
+            selectedInstrument.setRandomVolumeVariation((byte) value);
+        }
     }
 
     public void randomVolumeSliderOnChange() {
-        int value = instrumentUI.getTools().getRandomOffsets()
-                .getRandomVolumeSlider().getValue();
+
+        JSlider randomVolSlider = instrumentUI.getTools().getRandomOffsets()
+                .getRandomVolumeSlider();
+
+        int value = randomVolSlider.getValue();
+
+        // alter the spinner linked to this slider
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
         instrumentUI.getTools().getRandomOffsets().getRandomVolumeSpinner()
                 .setValue(value);
-        selectedInstrument.setRandomVolumeVariation((byte) value);
+        setRecordingUndos(recordUndoState);
+
+        if (!randomVolSlider.getValueIsAdjusting()) {
+
+            if (isRecordingUndos()) {
+                // undo event
+                UndoableSliderChange sliderChange
+                        = new UndoableSliderChange(randomVolSlider,
+                                randomVolumeOldValue);
+
+                getCurrentUndoManager().addEdit(sliderChange);
+
+                randomVolumeOldValue = value;
+            }
+
+            if (isAlteringModels()) {
+
+                // update instrument random volume value
+                selectedInstrument.setRandomVolumeVariation((byte) value);
+            }
+        }
     }
 
     public void randomPanningSpinnerOnChange() {
-        int value = (int) instrumentUI.getTools().getRandomOffsets()
-                .getRandomPanningSpinner().getValue();
+
+        JSpinner randomPanSpinner = instrumentUI.getTools().getRandomOffsets()
+                .getRandomPanningSpinner();
+
+        int value = (int) randomPanSpinner.getValue();
+
+        // alter the slider linked to this spinner
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
         instrumentUI.getTools().getRandomOffsets().getRandomPanningSlider()
                 .setValue(value);
-        selectedInstrument.setRandomPanningVariation((byte) value);
+        setRecordingUndos(recordUndoState);
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableSpinnerChange spinnerChange
+                    = new UndoableSpinnerChange(randomPanSpinner,
+                            randomPanOldValue);
+
+            getCurrentUndoManager().addEdit(spinnerChange);
+
+            randomPanOldValue = value;
+        }
+
+        if (isAlteringModels()) {
+
+            // update instrument random panning value
+            selectedInstrument.setRandomPanningVariation((byte) value);
+        }
     }
 
     public void randomPanningSliderOnChange() {
-        int value = instrumentUI.getTools().getRandomOffsets()
-                .getRandomPanningSlider().getValue();
+        JSlider randomPanSlider = instrumentUI.getTools().getRandomOffsets()
+                .getRandomPanningSlider();
+
+        int value = randomPanSlider.getValue();
+
+        // alter the spinner linked to this slider
+        boolean recordUndoState = isRecordingUndos();
+        setRecordingUndos(false);
         instrumentUI.getTools().getRandomOffsets().getRandomPanningSpinner()
                 .setValue(value);
-        selectedInstrument.setRandomPanningVariation((byte) value);
+        setRecordingUndos(recordUndoState);
+
+        if (!randomPanSlider.getValueIsAdjusting()) {
+
+            if (isRecordingUndos()) {
+                // undo event
+                UndoableSliderChange sliderChange
+                        = new UndoableSliderChange(randomPanSlider,
+                                randomPanOldValue);
+
+                getCurrentUndoManager().addEdit(sliderChange);
+
+                randomPanOldValue = value;
+            }
+
+            if (isAlteringModels()) {
+
+                // update instrument random pan value
+                selectedInstrument.setRandomPanningVariation((byte) value);
+            }
+        }
     }
 
     public void envelopeOnChange() {
@@ -284,6 +843,10 @@ public class InstrumentController {
 
         int modType = instrumentUI.getTools().getModType();
 
+        // set recording undos and alterations to false for an instrument change
+        setRecordingUndos(false);
+        setAlteringModels(false);
+
         if ((int) instrumentUI.getInstrumentSelectSpinner().getValue()
                 == loadVM.getInstruments().size() + 1) {
             instrumentUI.getInstrumentSelectSpinner().setValue(1);
@@ -293,11 +856,17 @@ public class InstrumentController {
                     .setValue(loadVM.getInstruments().size());
         }
 
+        // get selected instrument value
+        int value = (int) instrumentUI.getInstrumentSelectSpinner().getValue()
+                - 1;
+
         // get instrument
-        instrumentUI.setSelectedInstrument(
-                (int) instrumentUI.getInstrumentSelectSpinner().getValue() - 1);
+        instrumentUI.setSelectedInstrument(value);
         selectedInstrument = loadVM.getInstruments().get(instrumentUI
                 .getSelectedInstrument());
+
+        // set current undoManager
+        setCurrentUndoManager(instrumentManagers[value]);
 
         // instrument name
         instrumentUI.getTools().getInstrumentDetails().getInstrumentNameField()
@@ -309,25 +878,40 @@ public class InstrumentController {
                     .getFileNameField().setText(selectedInstrument.getDosFileName());
         }
 
+        // set old value (needed in case of undo)
+        fadeoutOldValue = selectedInstrument.getFadeOut() * 32;
+
         // fade out
         instrumentUI.getTools().getSustainOptions().getFadeOutSpinner()
-                .setValue(selectedInstrument.getFadeOut() * 32);
+                .setValue(fadeoutOldValue);
+
+        // set old value for combo box
+        nnaComboBoxOldValue = selectedInstrument.getNewNoteAction();
 
         // NNA
         instrumentUI.getTools().getSustainOptions().getNewNoteActionComboBox()
-                .setSelectedIndex(selectedInstrument.getNewNoteAction());
+                .setSelectedIndex(nnaComboBoxOldValue);
+
+        // set old value for combo box
+        dntComboBoxOldValue = selectedInstrument.getNewNoteAction();
 
         // duplicate note type
         instrumentUI.getTools().getSustainOptions().getDupNoteTypeComboBox()
-                .setSelectedIndex(selectedInstrument.getDuplicateCheckType());
+                .setSelectedIndex(dntComboBoxOldValue);
+
+        // set old value for combo box
+        dnaComboBoxOldValue = selectedInstrument.getNewNoteAction();
 
         // duplicate note action
         instrumentUI.getTools().getSustainOptions().getDupNoteActionComboBox()
-                .setSelectedIndex(selectedInstrument.getDuplicateCheckAction());
+                .setSelectedIndex(dnaComboBoxOldValue);
+
+        // set old value (needed in case of undo)
+        midiChannelOldValue = selectedInstrument.getMidiChannel();
 
         // MIDI channel
         instrumentUI.getTools().getMidiOptions().getMidiChannelSpinner()
-                .setValue((int) selectedInstrument.getMidiChannel());
+                .setValue(midiChannelOldValue);
 
         // MIDI program
         JSpinner instrumentSpinner
@@ -340,20 +924,29 @@ public class InstrumentController {
             instrumentSpinner.setValue(128);
         }
 
+        // set old value (needed in case of undo)
+        midiProgramOldValue = (int) instrumentSpinner.getValue();
+
         // update tool tip text to appropriate instrument
         instrumentSpinner.setToolTipText(
                 MIDI_PROGRAM_LIST[(int) instrumentSpinner.getValue()]);
 
         // MIDI bank
+        // set old value (needed in case of undo)
+        midiBankOldValue = selectedInstrument.getMidiBank();
+
         instrumentUI.getTools().getMidiOptions().getMidiBankSpinner()
-                .setValue((int) selectedInstrument.getMidiBank());
+                .setValue(midiBankOldValue);
 
         // global volume
+        // set old value (needed in case of undo)
+        globalVolOldValue = selectedInstrument.getGlobalVolume();
+
         instrumentUI.getTools().getSoundOptions().getGlobalVolumeSlider()
-                .setValue(selectedInstrument.getGlobalVolume());
+                .setValue(globalVolOldValue);
 
         instrumentUI.getTools().getSoundOptions().getGlobalVolumeValue()
-                .setValue((int) selectedInstrument.getGlobalVolume());
+                .setValue(globalVolOldValue);
 
         // default paning
         instrumentUI.getTools().getSoundOptions().getPanning()
@@ -362,49 +955,69 @@ public class InstrumentController {
         panOnChange();
 
         // default pan value
+        // set old value (needed in case of undo)
+        panOldValue = selectedInstrument.getPanValue();
+
         instrumentUI.getTools().getSoundOptions().getDefaultPanningSlider()
-                .setValue(selectedInstrument.getPanValue());
+                .setValue(panOldValue);
 
         instrumentUI.getTools().getSoundOptions().getDefaultPanningValue()
-                .setValue((int) selectedInstrument.getPanValue());
+                .setValue(panOldValue);
+
+        // set old value (needed in case of undo)
+        pitchPanSeperationOldValue = selectedInstrument.getPitchPanSeparation();
 
         // pitch pan separation
         instrumentUI.getTools().getSoundOptions().getPitchPanSeparationSpinner()
-                .setValue((int) selectedInstrument.getPitchPanSeparation());
+                .setValue(pitchPanSeperationOldValue);
 
         // pitch pan centre
+        // set old value (needed in case of undo)
+        pitchPanCentreOldValue = selectedInstrument.getPitchPanCentre();
+
         instrumentUI.getTools().getSoundOptions()
-                .getPitchPanCentreNoteComboBox().setSelectedIndex(
-                        selectedInstrument.getPitchPanCentre()
-                );
+                .getPitchPanCentreNoteComboBox()
+                .setSelectedIndex(pitchPanCentreOldValue);
 
         // filter cutoff
+        // set old value (needed in case of undo)
+        filterCutoffOldValue = selectedInstrument.getInitialFilterCutoff();
+
         instrumentUI.getTools().getFilterOptions().getFilterCutoffSpinner()
-                .setValue((int) selectedInstrument.getInitialFilterCutoff());
+                .setValue(filterCutoffOldValue);
 
         instrumentUI.getTools().getFilterOptions().getFilterCutoffSlider()
-                .setValue((int) selectedInstrument.getInitialFilterCutoff());
+                .setValue(filterCutoffOldValue);
 
         // filter resoance
+        // set old value (needed in case of undo)
+        filterRezOldValue = selectedInstrument.getInitialFilterResonance();
+
         instrumentUI.getTools().getFilterOptions().getFilterResonanceSpinner()
-                .setValue((int) selectedInstrument.getInitialFilterResonance());
+                .setValue(filterRezOldValue);
 
         instrumentUI.getTools().getFilterOptions().getFilterResonanceSlider()
-                .setValue((int) selectedInstrument.getInitialFilterResonance());
+                .setValue(filterRezOldValue);
 
         // random volume
+        // set old value (needed in case of undo)
+        randomVolumeOldValue = selectedInstrument.getRandomVolumeVariation();
+
         instrumentUI.getTools().getRandomOffsets().getRandomVolumeSpinner()
-                .setValue((int) selectedInstrument.getRandomVolumeVariation());
+                .setValue(randomVolumeOldValue);
 
         instrumentUI.getTools().getRandomOffsets().getRandomVolumeSlider()
-                .setValue((int) selectedInstrument.getRandomVolumeVariation());
+                .setValue(randomVolumeOldValue);
 
         // random panning
+        // set old value (needed in case of undo)
+        randomPanOldValue = selectedInstrument.getRandomPanningVariation();
+
         instrumentUI.getTools().getRandomOffsets().getRandomPanningSpinner()
-                .setValue((int) selectedInstrument.getRandomPanningVariation());
+                .setValue(randomPanOldValue);
 
         instrumentUI.getTools().getRandomOffsets().getRandomPanningSlider()
-                .setValue((int) selectedInstrument.getRandomPanningVariation());
+                .setValue(randomPanOldValue);
 
         // note map
         instrumentUI.getTools().getNoteMapView()
@@ -415,12 +1028,16 @@ public class InstrumentController {
         // combo box
         instrumentUI.getEnvelopeWindow()
                 .getEnvelopeTypeComboBox().setSelectedIndex(0);
-        
+
         // envelope data
         SwingUtilities.invokeLater(() -> {
             instrumentUI.getEnvelopeWindow().getCanvas()
                     .setEnvelopeData(selectedInstrument
                             .getVolumeEnvelopePoints(), 0, 64);
         });
+
+        // set record undo back to true
+        setRecordingUndos(true);
+        setAlteringModels(true);
     }
 }

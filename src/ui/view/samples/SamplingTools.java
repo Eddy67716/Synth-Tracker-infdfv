@@ -7,6 +7,7 @@ package ui.view.samples;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
@@ -17,6 +18,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.ChangeListener;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.C5_SPINNER_SIZE;
 import static ui.UIProperties.DEF_FONT;
@@ -63,6 +65,10 @@ public class SamplingTools extends JPanel {
     // getters
     public JSpinner getC5SampleRateSpinner() {
         return c5SampleRateSpinner;
+    }
+
+    public JComboBox getSampleTransposeComboBox() {
+        return sampleTransposeComboBox;
     }
     
     private void init() {
@@ -192,5 +198,15 @@ public class SamplingTools extends JPanel {
         stc.gridwidth = GridBagConstraints.REMAINDER;
         stc.gridheight = GridBagConstraints.REMAINDER;
         add(new JPanel(), stc); 
+    }
+    
+    // events and listeners
+    public void addC5SampleRateSpinnerChangeEvent(
+            ChangeListener changePerformed) {
+        c5SampleRateSpinner.addChangeListener(changePerformed);
+    }   
+    
+    public void addSampleTransposeComboBox(ActionListener actionPerformed) {
+        sampleTransposeComboBox.addActionListener(actionPerformed);
     }
 }

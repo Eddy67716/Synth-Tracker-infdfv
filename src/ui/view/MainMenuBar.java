@@ -24,9 +24,14 @@ public class MainMenuBar extends JMenuBar {
     private JMenu viewMenu;
     private JMenu optionsMenu;
     private JMenu helpMenu;
+    // file
     private JMenuItem newFile;
     private JMenuItem openFile;
     private JMenuItem saveFile;
+    // edit
+    private JMenuItem undo;
+    private JMenuItem redo;
+    // options
     private JMenuItem settings;
 
     // constructor
@@ -40,6 +45,8 @@ public class MainMenuBar extends JMenuBar {
         newFile = new JMenuItem();
         openFile = new JMenuItem();
         saveFile = new JMenuItem();
+        undo = new JMenuItem();
+        redo = new JMenuItem();
         settings = new JMenuItem();
         
         this.controller = controller;
@@ -49,6 +56,7 @@ public class MainMenuBar extends JMenuBar {
     private void init() {
         fileMenu.setText("File");
 
+        // new file
         newFile.setAccelerator(javax.swing.KeyStroke.getKeyStroke(
                 java.awt.event.KeyEvent.VK_N,
                 java.awt.event.InputEvent.CTRL_DOWN_MASK));
@@ -58,6 +66,7 @@ public class MainMenuBar extends JMenuBar {
         newFile.addActionListener(e -> controller.newFile());
         fileMenu.add(newFile);
 
+        // open file
         openFile.setAccelerator(javax.swing.KeyStroke.getKeyStroke(
                 java.awt.event.KeyEvent.VK_O,
                 java.awt.event.InputEvent.CTRL_DOWN_MASK));
@@ -67,6 +76,7 @@ public class MainMenuBar extends JMenuBar {
         openFile.addActionListener(e -> controller.loadFile());
         fileMenu.add(openFile);
 
+        // save file
         saveFile.setAccelerator(javax.swing.KeyStroke.getKeyStroke(
                 java.awt.event.KeyEvent.VK_S,
                 java.awt.event.InputEvent.CTRL_DOWN_MASK));
@@ -79,6 +89,28 @@ public class MainMenuBar extends JMenuBar {
         add(fileMenu);
 
         editMenu.setText("Edit");
+        
+        // undo
+        undo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(
+                java.awt.event.KeyEvent.VK_Z,
+                java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        undo.setIcon(new javax.swing.ImageIcon(getClass()
+                .getResource("/ui/assets/Undo.png")));
+        undo.setText("Undo");
+        undo.addActionListener(e -> controller.undo());
+        editMenu.add(undo);
+        
+        // redo
+        redo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(
+                java.awt.event.KeyEvent.VK_Z,
+                java.awt.event.InputEvent.SHIFT_DOWN_MASK |
+                java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        redo.setIcon(new javax.swing.ImageIcon(getClass()
+                .getResource("/ui/assets/Redo.png")));
+        redo.setText("Redo");
+        redo.addActionListener(e -> controller.redo());
+        editMenu.add(redo);
+        
         add(editMenu);
 
         viewMenu.setText("View");

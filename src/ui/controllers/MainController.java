@@ -28,16 +28,17 @@ import module.IAudioSample;
 import module.IInstrument;
 import ui.view.SettingsUI;
 import ui.view.instruments.InstrumentUI;
+import ui.view.models.ControllerViewModel;
 
 /**
  *
  * @author Edward Jenkins
  */
-public class MainController {
+public class MainController implements IUndoable {
     
     // instance variables
     private MainUI mainUI;
-    private MainController mainController;
+    private List<TabController> tabControllers;
     private List<LoadViewModel> loadVMs;
     
     // constructor
@@ -52,6 +53,7 @@ public class MainController {
         this.mainUI.addStopActionListener(e -> stop());
         
         loadVMs = new ArrayList<>();
+        tabControllers = new ArrayList<>();
     }
     
     // getters
@@ -98,9 +100,14 @@ public class MainController {
             // add valid file to tab pane
             loadVMs.add(loadVM);
             
+            // set the tab controller view model
+            ControllerViewModel tabControllerViewModel 
+                    = new ControllerViewModel();
+            
             // set up TabUI
             TabUI openedTab = new TabUI();
-            TabController controller = new TabController(openedTab, loadVM);
+            TabController controller = new TabController(openedTab, loadVM, 
+                tabControllerViewModel);
             
             mainUI.getOpenedFilesTab().add(fileName, openedTab);
             
@@ -130,6 +137,8 @@ public class MainController {
             
             closeButton.addActionListener(e -> this.closeTab(fileName));
             
+            
+            
             // set up detailsUI
             
             // set up sampleUI
@@ -143,6 +152,9 @@ public class MainController {
             // sampleController
             SampleController sampleController = 
                     new SampleController(sampleUI, loadVM);
+            
+            // add sample controller to view model
+            tabControllerViewModel.setSampleController(sampleController);
             
             // add the sampleUI
             openedTab.addSampleInterface(sampleUI);
@@ -162,11 +174,16 @@ public class MainController {
             InstrumentController instrumentController
                     = new InstrumentController(instrumentUI, loadVM);
             
+            // add instrument controller to view model
+            tabControllerViewModel
+                    .setInstrumentController(instrumentController);
+            
             // set up patternsUI
             
             // set up playChartUI
             
-            
+            // add value tab controller to list
+            tabControllers.add(controller);
             
         } catch (Exception e) {
             JFrame errorFrame = new JFrame();
@@ -189,14 +206,27 @@ public class MainController {
         
     }
     
+    @Override
+    public void undo() {
+        tabControllers.get(mainUI.getOpenedFilesTab().getSelectedIndex())
+                .undo();
+    }
+    
+    @Override
+    public void redo() {
+        tabControllers.get(mainUI.getOpenedFilesTab().getSelectedIndex())
+                .redo();
+    }
+    
     public void closeTab(String fileName) {
         
         int index = mainUI.getOpenedFilesTab().indexOfTab(fileName);
         
         if (index >= 0) {
             
-            // get rid of module tab and associated module file 
+            // get rid of module tab, controller and associated module file 
             loadVMs.remove(index);
+            tabControllers.remove(index);
             mainUI.getOpenedFilesTab().remove(index);
             
             // delete unreferenced files

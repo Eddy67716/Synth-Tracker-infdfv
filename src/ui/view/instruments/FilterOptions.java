@@ -47,10 +47,12 @@ public class FilterOptions extends JPanel {
     private GridBagConstraints foc;
     private Border filterOptionsBorder;
     private JLabel filterCutoffLabel;
+    private JCheckBox filterCheckBox;
     private JSpinner filterCutoffSpinner;               // it and str
     private SpinnerModel filterCutoffSpinnerModel;
     private JSlider filterCutoffSlider;
     private JLabel filterResonanceLabel;
+    private JCheckBox resonanceCheckBox;
     private JSpinner filterResonanceSpinner;            // it and str
     private SpinnerModel filterResonanceSpinnerModel;
     private JSlider filterResonanceSlider;
@@ -118,6 +120,12 @@ public class FilterOptions extends JPanel {
         foc.gridx = 0;
         foc.gridy = 0;
         add(filterCutoffLabel, foc);
+        
+        // set the filter check boxk
+        filterCheckBox = new JCheckBox();
+        foc.gridx = 1;
+        foc.gridy = 0;
+        add(filterCheckBox, foc);
 
         // set filter cuttoff spinner model
         filterCutoffSpinnerModel = (modType == 6)
@@ -127,15 +135,13 @@ public class FilterOptions extends JPanel {
         // set the filter cuttoff value spinner
         filterCutoffSpinner = new JSpinner(filterCutoffSpinnerModel);
         filterCutoffSpinner.setPreferredSize(VALUE_SPINNER_SIZE);
-        foc.gridx = 1;
-        foc.gridy = 0;
+        foc.gridx = 2;
         add(filterCutoffSpinner, foc);
 
         // set the filter cuttoff slider
         filterCutoffSlider= (modType == 6) ? new JSlider(0, 255, 255)
                 : new JSlider(0, 127, 127);
-        foc.gridx = 2;
-        foc.gridy = 0;
+        foc.gridx = 3;
         foc.weightx = 1.0;
         foc.gridwidth = GridBagConstraints.REMAINDER;
         add(filterCutoffSlider, foc);
@@ -149,6 +155,11 @@ public class FilterOptions extends JPanel {
         foc.weightx = 0.0;
         foc.gridwidth = 0;
         add(filterResonanceLabel, foc);
+        
+        // set the filter check boxk
+        filterCheckBox = new JCheckBox();
+        foc.gridx = 1;
+        add(filterCheckBox, foc);
 
         // set filter resonance spinner model
         filterResonanceSpinnerModel = new SpinnerNumberModel(127, 0, 127, 1);
@@ -156,12 +167,12 @@ public class FilterOptions extends JPanel {
         // set the filter resonance value spinner
         filterResonanceSpinner = new JSpinner(filterResonanceSpinnerModel);
         filterResonanceSpinner.setPreferredSize(VALUE_SPINNER_SIZE);
-        foc.gridx = 1;
+        foc.gridx = 2;
         add(filterResonanceSpinner, foc);
 
         // set the filter resonance slider
         filterResonanceSlider = new JSlider(0, 127, 127);
-        foc.gridx = 2;
+        foc.gridx = 3;
         foc.weightx = 1.0;
         foc.gridwidth = GridBagConstraints.REMAINDER;
         add(filterResonanceSlider, foc);
@@ -216,12 +227,20 @@ public class FilterOptions extends JPanel {
     }
 
     // events
+    public void addFilterCheckBoxChangeListner(ChangeListener changePerformed) {
+        filterCheckBox.addChangeListener(changePerformed);
+    }
+    
     public void addFilterCutoffSpinnerChangeListener(ChangeListener changePerformed) {
         filterCutoffSpinner.addChangeListener(changePerformed);
     }
     
     public void addFilterCutoffSliderChangeListener(ChangeListener changePerformed) {
         filterCutoffSlider.addChangeListener(changePerformed);
+    }
+    
+    public void addResonanceCheckBoxChangeListner(ChangeListener changePerformed) {
+        resonanceCheckBox.addChangeListener(changePerformed);
     }
     
     public void addFilterResSpinnerChangeListener(ChangeListener changePerformed) {
