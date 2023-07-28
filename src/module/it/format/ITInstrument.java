@@ -98,6 +98,8 @@ public class ITInstrument implements IInstrument{
     private EnvelopeLayout panEnvelope;
     // stores pitch/filter envelope
     private EnvelopeLayout pitchFilterEnvelope; 
+    // dummy bytes for new format(7 if between 2.0 and 2.14p2 and 8 if otherwise)
+    private byte[] dummyBytes;
 
     // constructor
     public ITInstrument(String fileName, long offsetToInstrument,
@@ -575,31 +577,34 @@ public class ITInstrument implements IInstrument{
                     pitchFilterEnvelopeRead;
             
             // volume
-            volumeEnvelope = new EnvelopeLayout(reader);
+            volumeEnvelope = new EnvelopeLayout();
             
-            volumeEnvelopeRead = volumeEnvelope.readEnvelope();
+            volumeEnvelopeRead = volumeEnvelope.read(reader);
             
             if (!volumeEnvelopeRead) {
                 throw new IOException("Volume envelope error");
             }
             
             // pan
-            panEnvelope = new EnvelopeLayout(reader);
+            panEnvelope = new EnvelopeLayout();
             
-            panEnvelopeRead = panEnvelope.readEnvelope();
+            panEnvelopeRead = panEnvelope.read(reader);
             
             if (!panEnvelopeRead) {
                 throw new IOException("Pan envelope error");
             }
             
             // pitch filter
-            pitchFilterEnvelope = new EnvelopeLayout(reader);
+            pitchFilterEnvelope = new EnvelopeLayout();
             
-            pitchFilterEnvelopeRead = pitchFilterEnvelope.readEnvelope();
+            pitchFilterEnvelopeRead = pitchFilterEnvelope.read(reader);
             
             if (!pitchFilterEnvelopeRead) {
                 throw new IOException("Pitch filter envelope error");
             }
+            
+            // dummy bytes
+            dummyBytes = reader.getBytes(4);
         }
 
         return success;

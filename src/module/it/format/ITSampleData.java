@@ -6,6 +6,7 @@
 package module.it.format;
 
 import io.IReadable;
+import io.IWritable;
 import sound.effects.BitLimiter;
 import io.Reader;
 import java.io.DataInputStream;
@@ -26,10 +27,12 @@ public class ITSampleData {
     private long samplePointer;
     private long sampleLength;
     private boolean stereo;
-    private boolean compresssed;
+    private boolean compressed;
     private boolean delta;
+    private byte[] lCompressedData;
     private byte[] l8BitData;
     private short[] l16BitData;
+    private byte[] rCompressedData;
     private byte[] r8BitData;
     private short[] r16BitData;
 
@@ -43,7 +46,7 @@ public class ITSampleData {
         this.stereo = stereo;
         this.sampleLength = sampleLength;
         this.samplePointer = samplePointer;
-        this.compresssed = compresssed;
+        this.compressed = compresssed;
         this.delta = delta;
 
         // initialise arrays
@@ -76,7 +79,7 @@ public class ITSampleData {
         this.sixteenBit = sixteenBit;
         this.stereo = stereo;
         this.sampleLength = sampleLength;
-        this.compresssed = compresssed;
+        this.compressed = compresssed;
         this.delta = delta;
 
         if (sixteenBit) {
@@ -131,7 +134,7 @@ public class ITSampleData {
 
             // mono loop
             // compresssed
-            if (compresssed) {
+            if (compressed) {
 
                 SampleDecompressor sd
                         = new SampleDecompressor(
@@ -173,7 +176,7 @@ public class ITSampleData {
             if (stereo) {
 
                 // compresssed
-                if (compresssed) {
+                if (compressed) {
 
                     SampleDecompressor sd
                             = new SampleDecompressor(
@@ -218,20 +221,76 @@ public class ITSampleData {
         return success;
     }
 
+    // write
+    public boolean write(IWritable writer) throws IOException {
+
+        boolean success = true;
+
+        if (compressed) {
+
+            //TODO
+        } else {
+
+            // write left/mono samples
+            for (int i = 0; i < sampleLength; i++) {
+
+                // 16-bit
+                if (sixteenBit) {
+                    writer.writeShort(l16BitData[i]);
+                } // 8-bit
+                else {
+                    writer.writeByte(l8BitData[i]);
+                }
+            }
+        }
+
+        if (stereo) {
+
+            if (compressed) {
+
+            } else {
+
+                // write r samples
+                for (int i = 0; i < sampleLength; i++) {
+
+                    // 16-bit
+                    if (sixteenBit) {
+                        writer.writeShort(r16BitData[i]);
+                    } // 8-bit
+                    else {
+                        writer.writeByte(r8BitData[i]);
+                    }
+                }
+            }
+        }
+
+        return success;
+    }
+
     // length
     public int length() {
         int length = 0;
 
-        if (sixteenBit) {
+        if (compressed) {
 
-            length = l16BitData.length * 2;
+            length = lCompressedData.length;
+
+            if (stereo) {
+                length += rCompressedData.length;
+            }
+
         } else {
+            if (sixteenBit) {
 
-            length = l8BitData.length;
-        }
+                length = l16BitData.length * 2;
+            } else {
 
-        if (stereo) {
-            length *= 2;
+                length = l8BitData.length;
+            }
+
+            if (stereo) {
+                length *= 2;
+            }
         }
 
         return length;

@@ -392,6 +392,10 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
         this.sustainLoopEnd = sustainLoopEnd;
     }
 
+    public void setSamplePointer(long samplePointer) {
+        this.samplePointer = samplePointer;
+    }
+
     @Override
     public void setLData(double[] lData) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
@@ -443,6 +447,28 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
         // success boolean
         boolean success = true;
 
+        readHeader(r);
+
+        // sample data
+        sampleData = new ITSampleData(fileName, signed, sixteenBit,
+                samplePointer, stereo, length, compressed, delta);
+
+        boolean dataRead = sampleData.read(r);
+
+        // check that sample read
+        if (!dataRead) {
+            throw new IOException("Sample Data failed to be read. ");
+        }
+        
+        return dataRead;
+    }
+    
+    public boolean readHeader(IReadable r) throws IOException, 
+            IllegalArgumentException {
+        
+        // success boolean
+        boolean success = true;
+        
         // sample header
         testHeader = r.getByteString(4);
 
@@ -542,25 +568,14 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
         vibratoWaveform = r.getByte();
 
         // sample cache
-        sampleCache = new ITSampleCache(r);
+        sampleCache = new ITSampleCache();
 
-        boolean cacheDataRead = sampleCache.read();
+        boolean cacheDataRead = sampleCache.read(r);
         if (!cacheDataRead) {
             throw new IOException("Sample cache data failed to be read. ");
         }
-
-        // sample data
-        sampleData = new ITSampleData(fileName, signed, sixteenBit,
-                samplePointer, stereo, length, compressed, delta);
-
-        boolean dataRead = sampleData.read(r);
-
-        // check that sample read
-        if (!dataRead) {
-            throw new IOException("Sample Data failed to be read. ");
-        }
         
-        return dataRead;
+        return success;
     }
 
     // write method
@@ -570,8 +585,122 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
     }
     
     @Override
-    public boolean write(IWritable wm) throws IOException {
+    public boolean write(IWritable w) throws IOException {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+    
+    public boolean writeHeader(IWritable w) throws IOException {
+        
+        // success boolean
+        boolean success = true;
+        
+        // sample header
+        w.writeByteString(SAMPLE_HEADER);
+
+        // dos filename
+        w.writeByteString(dosFileName);
+
+        // skip one byte
+        w.writeByte((byte)0);
+
+        // global volume
+        w.writeByte(globalVolume);
+        
+        // set flags
+        flags = 0;
+        
+        // sample associated with header
+        flags |= (sampleAssociatedWithHeader) ? 0b1 : 0;
+
+        // 8/16 bit
+        flags |= (sixteenBit) ? 0b10 : 0;
+
+        // stereo or mono
+        flags |= (stereo) ? 0b100 : 0;
+
+        // compresssion
+        flags |= (compressed) ? 0b1000 : 0;
+
+        // loop
+        flags |= (looped) ? 0b10000 : 0;
+
+        // sustain loop
+        flags |= (sustainLooped) ? 0b100000 : 0;
+
+        // ping poing loop
+        flags |= (pingPongLooped) ? 0b1000000 : 0;
+
+        // sustain ping pong loop
+        flags |= (pingPongSustainLooped) ? 0b10000000 : 0;
+
+        // flags
+        w.writeByte((byte)flags);
+
+        // default volume
+        w.writeByte(defaultVolume);
+
+        // sample name
+        w.writeByteString(sampleName);
+
+        // convert
+        convertFlags = 0;
+
+        // signed
+        signed = (convertFlags & 1) == 1;
+
+        // delta values
+        delta = (convertFlags & 4) == 4;
+        
+        // convert
+        w.writeShort(convertFlags);
+
+        // default pan
+        panValue = (panning) ? (byte)(defaultPan | 0b10000000) : defaultPan;
+        
+        w.writeByte(panValue);
+
+        // sample length
+        w.writeInt((int)length);
+
+        // loop begining point
+        w.writeInt((int)loopBeginning);
+
+        // loop end point
+        w.writeInt((int)loopEnd);
+
+        // middle c speed
+        w.writeInt(c5Speed);
+
+        // sustain loop begining point
+        w.writeInt((int)sustainLoopBeginning);
+
+        // sustain loop end point
+        w.writeInt((int)sustainLoopEnd);
+
+        // sample pointer
+        w.writeInt((int)samplePointer);
+
+        // vibrato speed
+        w.writeByte(vibratoSpeed);
+
+        // vibrato depth
+        w.writeByte(vibratoDepth);
+
+        // vibrato rate
+        w.writeByte((byte)vibratoRate);
+
+        // vibrato vibratoWaveform
+        w.writeByte(vibratoWaveform);
+
+        // sample cache
+        sampleCache = new ITSampleCache();
+
+        boolean cacheDataRead = sampleCache.write(w);
+        if (!cacheDataRead) {
+            throw new IOException("Sample cache data failed to be read. ");
+        }
+        
+        return success;
     }
 
     // to string

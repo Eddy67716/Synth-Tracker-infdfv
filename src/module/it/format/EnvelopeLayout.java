@@ -1,6 +1,8 @@
 package module.it.format;
 
 import io.IReadable;
+import io.ISavableFile;
+import io.IWritable;
 import io.Reader;
 import java.io.DataInputStream;
 import java.io.FileNotFoundException;
@@ -13,30 +15,39 @@ import java.io.IOException;
  */
 class EnvelopeLayout {
     
+    // constants
+    public static final byte ENVELOPE_LENGTH = 81;
+    public static final byte NODE_LENGTH = 3;
+    
     // instance variables
-    byte[] convertedBytes;              // used in obtaining littleEndian data
-    IReadable reader;                   // used in converting littleEndian data
-    private short flags;                // flags for envelope
-    private boolean envelopeOn;         // use envelope
-    private boolean loopOn;             // use loop
-    private boolean sustainLoopOn;      // use sustain loop
-    private boolean envelopeCarryOn;    // carries envelope onto new note (MPT only)
-    private boolean pitchSetAsFilter;   // use filter
-    private short nodePointCount;       // nodes
-    private short loopBeginning;        // position of loop start
-    private short loopEnd;              // position of 
-    private short sustainLoopBeginning; // position of sustain loop start
-    private short sustainLoopEnd;       // position of sustain loop end
-    private NodePoint[] nodePoints;     // node points
+    // flags for envelope
+    private short flags;
+    // use envelope
+    private boolean envelopeOn;
+    // use loop
+    private boolean loopOn;
+    // use sustain loop
+    private boolean sustainLoopOn;
+    // carries envelope onto new note (MPT only)
+    private boolean envelopeCarryOn;
+    // use filter    
+    private boolean pitchSetAsFilter;
+    // nodes
+    private short nodePointCount;
+    // position of loop start
+    private short loopBeginning; 
+    // position of loop end
+    private short loopEnd;
+    // position of sustain loop start
+    private short sustainLoopBeginning;
+    // position of sustain loop end
+    private short sustainLoopEnd;
+    // node points
+    private NodePoint[] nodePoints;     
     
     // constructor
-    public EnvelopeLayout(IReadable r) {
-        this.reader = r;
-    }
-    
-    // getters
-    public IReadable getReader() {
-        return reader;
+    public EnvelopeLayout() {
+        
     }
 
     public boolean isEnvelopeOn() {
@@ -84,7 +95,8 @@ class EnvelopeLayout {
     }
     
     // read method
-    public boolean readEnvelope() throws IOException, FileNotFoundException {
+    public boolean read(IReadable reader) 
+            throws IOException, FileNotFoundException {
         
         // flags
         flags = reader.getUByteAsShort();
@@ -124,9 +136,10 @@ class EnvelopeLayout {
         
         byte nodeValue;
         short tickNumber;
+        int i;
         
         // loop to obtain node points
-        for (int i = 0; i < nodePointCount; i++) {
+        for (i = 0; i < nodePointCount; i++) {
             
             // node value
             nodeValue = reader.getByte();
@@ -138,8 +151,77 @@ class EnvelopeLayout {
             nodePoints[i] = new NodePoint(nodeValue, tickNumber);
         }
         
-        // skip one byte
+        // skip the end
+        int emptyNodes = 25 - i;
+        
+        reader.skipBytes(emptyNodes * NODE_LENGTH);
+        
+        // skip last trailing byte
         reader.getByte();
+        
+        return true;
+    }
+    
+    public boolean write(IWritable writer) 
+            throws IOException, FileNotFoundException {
+        
+        // flags
+        flags = 0;
+        
+        // is envelope on
+        flags |= (envelopeOn) ? 0b1 : 0;
+        
+        // is envelope on
+        flags |= (loopOn) ? 0b10 : 0;
+        
+        // is sustain loop on
+        flags |= (sustainLoopOn) ? 0b100 : 0;
+        
+        // is carry envelope on (used in Open MPT files)
+        flags |= (envelopeCarryOn) ? 0b1000 : 0;
+        
+        // use filter envelope
+        flags |= (pitchSetAsFilter) ? 0b10000000 : 0;
+        
+        // write the flags
+        writer.writeByte((byte)flags);
+        
+        // number of loop points
+        writer.writeByte((byte)nodePointCount);
+        
+        // loop begining
+        writer.writeByte((byte)loopBeginning);
+        
+        // loop end
+        writer.writeByte((byte)loopEnd);
+        
+        // sustain loop beginning
+        writer.writeByte((byte)sustainLoopBeginning);
+        
+        // sustain loop end
+        writer.writeByte((byte)sustainLoopEnd);
+        
+        int i = 0;
+        
+        // loop to write node points
+        for (NodePoint nodePoint : nodePoints) {
+            
+            // node value
+            writer.writeByte(nodePoint.getNodeValue());
+            
+            // tick number
+            writer.writeShort(nodePoint.getTickNumber());
+            
+            i++;
+        }
+        
+        // zero fill the end
+        int emptyNodes = 25 - i;
+        
+        writer.skipBytes(emptyNodes * NODE_LENGTH);
+        
+        // skip last trailing byte
+        writer.skipBytes(1);
         
         return true;
     }

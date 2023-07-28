@@ -114,6 +114,21 @@ public class ITFile implements IModuleFile {
 
     @Override
     public boolean write() throws IOException {
+        
+        // update all counts and set offsets
+        updateFileDetails();
+        
+        // write header
+        
+        // write instruments
+        
+        // write sample headers
+        
+        // write patterns
+        
+        // write sample data
+        
+        
         return false;
     }
 
@@ -340,5 +355,41 @@ public class ITFile implements IModuleFile {
     @Override
     public byte getChannelsCount() {
         return totalNumberOfChannels;
+    }
+    
+    public void updateFileDetails() {
+        
+        // set offsets for everything
+        int offset = header.length();
+        
+        // instruments
+        for (int i = 0; i < instruments.size(); i++) {
+            header.getOffsetOfInstruments()[i] = offset;
+            
+            offset += instruments.get(i).length();
+        }
+        
+        // sample headers
+        for (int i = 0; i < sampleHeaders.size(); i++) {
+            header.getOffsetOfSampleHeaders()[i] = offset;
+            
+            offset += sampleHeaders.get(i).length();
+        }
+        
+        // patterns
+        for (int i = 0; i < patterns.size(); i++) {
+            header.getOffsetOfPatterns()[i] = offset;
+            
+            offset += patterns.get(i).length();
+        }
+        
+        // sample data
+        for (int i = 0; i < sampleHeaders.size(); i++) {
+            ITSampleHeader sampleHeader = sampleHeaders.get(i);
+            
+            sampleHeader.setSamplePointer(offset);
+            
+            offset += sampleHeader.getSampleData().length();
+        }
     }
 }

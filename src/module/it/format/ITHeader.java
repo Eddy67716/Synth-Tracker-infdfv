@@ -6,17 +6,19 @@
 package module.it.format;
 
 import io.IReadable;
+import io.IWritable;
 import io.Reader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import module.EditHistoryTime;
 
 /**
  *
  * @author Edward Jenkins
  */
-public class ITHeader {
+public class ITHeader extends EditHistoryTime {
 
     // constants
     // The IT head tag
@@ -30,14 +32,11 @@ public class ITHeader {
     // length of each edit history    
     public static final byte EDIT_HISTORY_LENGTH = 8;
     // length of MIDI macros
-    public static final short MIDI_MACROS_LENGTH = 4896; 
-    
+    public static final short MIDI_MACROS_LENGTH = 4896;
 
     // instance variables
     // name of file
     private String fileName;
-    // reader
-    private IReadable reader;
     // used to check the header is valid
     private String testHeader;
     // Name of song, can't be more tha 26 characters
@@ -62,8 +61,8 @@ public class ITHeader {
      * samples; bit 3: Slides, 1 = Linear slides, 0 = Amiga slides; bit 4:
      * Effects, 1 = old effects, 0 = IT effects; bit 5: 1 = like effect G's
      * memory with effects E and F; bit 6: 1 = use MIDI patch controller; bit 7:
-     * 1 = request embedded MIDI configuration
-     * In Open MPT bit 15 is extended filter range;
+     * 1 = request embedded MIDI configuration In Open MPT bit 15 is extended
+     * filter range;
      */
     private int flags;
     private boolean stereo;
@@ -78,7 +77,7 @@ public class ITHeader {
     /**
      * bit 0: 1 = Song message attached bit 1: Embedded edit history 2: Embedded
      * pattern hilight 3: Midi Configuration embedded bits 4-15 reserved
-     * 
+     *
      */
     private int special;
     private boolean songMessageAttached;
@@ -124,9 +123,9 @@ public class ITHeader {
     // message
     private String songMessage;
     // used to check for edit history
-    private int editHistoryParapointer;
+    private int editHistoryCount;
     // stores all the edit history dates
-    private EditHistoryInfo[] editHistory;
+    private EditHistoryEvent[] editHistoryEvents;
     // stores MIDI macros
     private MidiMacros midiMacros;
     // test for pattern or channel names
@@ -138,10 +137,11 @@ public class ITHeader {
     // length of channel names
     private long channelNameLength;
     // channel names
-    private ChannelNames channelNames;      
+    private ChannelNames channelNames;
 
     // constructor
     public ITHeader(String fileName) {
+        super();
         this.fileName = fileName;
         interpretModPlugMade = false;
     }
@@ -303,12 +303,12 @@ public class ITHeader {
         return offsetOfPatterns;
     }
 
-    public int getEditHistoryParapointer() {
-        return editHistoryParapointer;
+    public int getEditHistoryCount() {
+        return editHistoryCount;
     }
 
-    public EditHistoryInfo[] getEditHistory() {
-        return editHistory;
+    public EditHistoryEvent[] getEditHistoryEvents() {
+        return editHistoryEvents;
     }
 
     public String getSongMessage() {
@@ -343,11 +343,125 @@ public class ITHeader {
         return channelNames;
     }
 
+    // setters
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public void setSongName(String songName) {
+        this.songName = songName;
+    }
+
+    public void setPatternHilight(short[] patternHilight) {
+        this.patternHilight = patternHilight;
+    }
+
+    public void setInstrumentNum(int instrumentNum) {
+        this.instrumentNum = instrumentNum;
+    }
+
+    public void setSampleNum(int sampleNum) {
+        this.sampleNum = sampleNum;
+    }
+
+    public void setCreatedWithTracker(int createdWithTracker) {
+        this.createdWithTracker = createdWithTracker;
+    }
+
+    public void setCompatibleWithTracker(int compatibleWithTracker) {
+        this.compatibleWithTracker = compatibleWithTracker;
+    }
+
+    public void setStereo(boolean stereo) {
+        this.stereo = stereo;
+    }
+
+    public void setMix(boolean mix) {
+        this.mix = mix;
+    }
+
+    public void setInstrumental(boolean instrumental) {
+        this.instrumental = instrumental;
+    }
+
+    public void setLinearSlides(boolean linearSlides) {
+        this.linearSlides = linearSlides;
+    }
+
+    public void setgLinkedWithEFMemory(boolean gLinkedWithEFMemory) {
+        this.gLinkedWithEFMemory = gLinkedWithEFMemory;
+    }
+
+    public void setEmbeddedMidiConfiguration(boolean embeddedMidiConfiguration) {
+        this.embeddedMidiConfiguration = embeddedMidiConfiguration;
+    }
+
+    public void setFilterRangeExtended(boolean filterRangeExtended) {
+        this.filterRangeExtended = filterRangeExtended;
+    }
+
+    public void setSongMessageAttached(boolean songMessageAttached) {
+        this.songMessageAttached = songMessageAttached;
+    }
+
+    public void setEditHistoryEmbedded(boolean editHistoryEmbedded) {
+        this.editHistoryEmbedded = editHistoryEmbedded;
+    }
+
+    public void setHilightEmbedded(boolean hilightEmbedded) {
+        this.hilightEmbedded = hilightEmbedded;
+    }
+
+    public void setGlobalVolume(short globalVolume) {
+        this.globalVolume = globalVolume;
+    }
+
+    public void setMixVolume(short mixVolume) {
+        this.mixVolume = mixVolume;
+    }
+
+    public void setInitialSpeed(short initialSpeed) {
+        this.initialSpeed = initialSpeed;
+    }
+
+    public void setInitialTempo(short initialTempo) {
+        this.initialTempo = initialTempo;
+    }
+
+    public void setHeaderReserved(String headerReserved) {
+        this.headerReserved = headerReserved;
+    }
+
+    public void setOrders(short[] orders) {
+        this.orders = orders;
+    }
+
+    public void setOffsetOfInstruments(long[] offsetOfInstruments) {
+        this.offsetOfInstruments = offsetOfInstruments;
+    }
+
+    public void setOffsetOfSampleHeaders(long[] offsetOfSampleHeaders) {
+        this.offsetOfSampleHeaders = offsetOfSampleHeaders;
+    }
+
+    public void setOffsetOfPatterns(long[] offsetOfPatterns) {
+        this.offsetOfPatterns = offsetOfPatterns;
+    }
+
+    public void setSongMessage(String songMessage) {
+        this.songMessage = songMessage;
+    }
+
+    public void setEditHistoryEvents(EditHistoryEvent[] editHistoryEvents) {
+        this.editHistoryEvents = editHistoryEvents;
+    }
+
     // read method
     public boolean read() throws IOException, IllegalArgumentException {
 
         // read methods
-        reader = new Reader(fileName, true); // IT format is in Little Endian
+        Reader reader
+                = new Reader(fileName, true); // IT format is in Little Endian
 
         // success boolean
         boolean success = true;
@@ -361,7 +475,7 @@ public class ITHeader {
 
         // song name
         songName = reader.getByteString(26);
-        
+
         // pattern highligt
         patternHilight = new short[2];
         patternHilight[0] = reader.getUByteAsShort();
@@ -412,7 +526,7 @@ public class ITHeader {
 
         // request embedded MIDI configruation
         embeddedMidiConfiguration = ((flags >>> 7) & 1) == 1;
-        
+
         // extended filter range
         filterRangeExtended = ((flags >>> 15) & 1) == 1;
 
@@ -640,19 +754,19 @@ public class ITHeader {
         if (editHistoryEmbedded) {
 
             // read first parapointer
-            editHistoryParapointer = reader.getUShortAsInt();
+            editHistoryCount = reader.getUShortAsInt();
 
-            if (reader.available() >= editHistoryParapointer * 8
-                    && (reader.getFilePosition() + editHistoryParapointer 
+            if (reader.available() >= editHistoryCount * 8
+                    && (reader.getFilePosition() + editHistoryCount
                     * 8 <= minPointer)) {
 
                 int fatDate, fatTime;
                 long runTime;
 
-                editHistory = new EditHistoryInfo[editHistoryParapointer];
+                editHistoryEvents = new EditHistoryEvent[editHistoryCount];
 
                 // extract history
-                for (int i = 0; i < editHistory.length; i++) {
+                for (int i = 0; i < editHistoryEvents.length; i++) {
                     // fat date
                     fatDate = reader.getUShortAsInt();
 
@@ -662,11 +776,11 @@ public class ITHeader {
                     // run time
                     runTime = reader.getUIntAsLong();
 
-                    editHistory[i]
-                            = new EditHistoryInfo(fatDate, fatTime, runTime);
+                    editHistoryEvents[i]
+                            = new EditHistoryEvent(fatDate, fatTime, runTime);
                 }
 
-                if (possiblyUnmo3 && editHistoryParapointer == 0) {
+                if (possiblyUnmo3 && editHistoryCount == 0) {
                     if (editHistoryEmbedded) {
                         possibleCreationSoftware = "UNMO3 <= 2.4.0.1";
                     } else {
@@ -681,7 +795,7 @@ public class ITHeader {
 
             // read first to check it is 0
             if (reader.getShort() == 0) {
-                editHistoryParapointer = 0;
+                editHistoryCount = 0;
                 possibleCreationSoftware = "UNMO3 <= 2.4";
             } else {
                 reader.setFilePosition(reader.getFilePosition() - 2);
@@ -785,15 +899,14 @@ public class ITHeader {
 
         // check for plugin information
         //TODO
-        
         // read the message
         if (songMessageAttached) {
-            
+
             reader.setFilePosition(messageOffset);
 
             // message
             songMessage = reader.getByteString(messageLength);
-            
+
             if (songMessage.contains("CR")) {
                 songMessage = songMessage.replaceAll("CR", "\n");
             } else if (songMessage.contains("LF")) {
@@ -805,57 +918,277 @@ public class ITHeader {
         // successfully read header
         return success;
     }
-    
-    public int getPreMessageLength() {
+
+    // write method
+    public boolean write(IWritable writer) throws IOException {
+
+        // success boolean
+        boolean success = true;
+
+        // header code
+        writer.writeByteString(HEADER_CODE);
+
+        // song name
+        writer.writeByteString(songName);
+
+        // pattern highligt
+        writer.writeByte((byte) patternHilight[0]);
+        writer.writeByte((byte) patternHilight[1]);
+
+        // order number
+        writer.writeShort((short) orderNum);
+
+        // instrument number
+        writer.writeShort((short) instrumentNum);
+
+        // sample number
+        writer.writeShort((short) sampleNum);
+
+        // pattern number
+        writer.writeShort((short) patternNum);
+
+        // created with tracker
+        createdWithTracker = 0x3000;
+
+        writer.writeShort((short) createdWithTracker);
+
+        // compatible with tracker
+        writer.writeShort((short) compatibleWithTracker);
+
+        // flags
+        flags = 0;
+
+        // set flag values
+        // stereo or mono
+        flags |= (stereo) ? 0b1 : 0;
+
+        // mix
+        flags |= (mix) ? 0b10 : 0;
+
+        // instruments
+        flags |= (instrumental) ? 0b100 : 0;
+
+        // linear slides
+        flags |= (linearSlides) ? 0b1000 : 0;
+
+        // old effects
+        flags |= (oldEffects) ? 0b10000 : 0;
+
+        // link effect G to E and F
+        flags |= (gLinkedWithEFMemory) ? 0b100000 : 0;
+
+        // midi pitch controller
+        flags |= (midiPitchControlled) ? 0b1000000 : 0;
+
+        // request embedded MIDI configruation
+        flags |= (embeddedMidiConfiguration) ? 0b10000000 : 0;
+
+        // extended filter range
+        flags |= (filterRangeExtended) ? 0x8000 : 0;
+
+        // write flags
+        writer.writeShort((short) flags);
+
+        // special
+        special = 0;
+
+        // set special values
+        // song message
+        special |= (songMessageAttached) ? 0b1 : 0;
+
+        // edit history embedded
+        special |= (editHistoryEmbedded) ? 0b10 : 0;
+
+        // hilight embedded
+        special |= (hilightEmbedded) ? 0b100 : 0;
+
+        // midi configuration embedded
+        special |= (midiConfigurationEmbedded) ? 0b1000 : 0;
+
+        // write special
+        writer.writeShort((short) special);
+
+        // global volume
+        writer.writeByte((byte) globalVolume);
+
+        // mix volume
+        writer.writeByte((byte) mixVolume);
+
+        // initial speed
+        writer.writeByte((byte) initialSpeed);
+
+        // initial tempo
+        writer.writeByte((byte) initialTempo);
+
+        // pan seperation
+        writer.writeByte((byte) panSeperation);
+
+        // pitch wheel depth
+        writer.writeByte((byte) pitchWheelDepth);
+
+        // message length
+        writer.writeShort((short) messageLength);
+
+        // message offset
+        writer.writeInt((int) messageOffset);
+
+        // read 4 reserved bytes as a string
+        writer.writeByteString(headerReserved);
+
+        // write channel pan bytes
+        for (int i = 0; i < channelPan.length; i++) {
+
+            // write byte
+            writer.writeByte((byte) channelPan[i]);
+        }
+
+        // write channel pan bytes
+        for (int i = 0; i < channelVolume.length; i++) {
+
+            // write byte
+            writer.writeByte((byte) channelVolume[i]);
+        }
+
+        // write order bytes
+        for (int i = 0; i < orders.length; i++) {
+
+            // write byte
+            writer.writeByte((byte) orders[i]);
+        }
+
+        // write instrument offsets
+        for (int i = 0; i < offsetOfInstruments.length; i++) {
+
+            // write bytes
+            writer.writeInt((int) offsetOfInstruments[i]);
+        }
+
+        // write sample offsets
+        for (int i = 0; i < offsetOfSampleHeaders.length; i++) {
+
+            // write bytes
+            writer.writeInt((int) offsetOfSampleHeaders[i]);
+        }
+
+        // write pattern offsets
+        for (int i = 0; i < offsetOfPatterns.length; i++) {
+
+            // write bytes
+            writer.writeInt((int) offsetOfPatterns[i]);
+        }
+
+        // write edit histories
+        if (editHistoryEmbedded) {
+
+            // write the amount of edit history events
+            writer.writeShort((short) editHistoryCount);
+
+            // write the events
+            for (EditHistoryEvent event : editHistoryEvents) {
+
+                // fat date
+                writer.writeShort((short) event.getFatDate());
+
+                // fat time
+                writer.writeShort((short) event.getFatTime());
+
+                // run time
+                writer.writeInt((int) event.getRunTime());
+            }
+        }
         
+        // write midi macros
+        if (embeddedMidiConfiguration || midiConfigurationEmbedded) {
+            
+        }
+
+        return success;
+    }
+
+    public int getPreMessageLength() {
+
         // known length
         int length = KNOWN_HEADER_LENGTH;
-        
+
         // order count
         length += this.orderNum;
-        
+
         // instrument offset lengths
         length += instrumentNum * 4;
-        
+
         // sample offset lengths
         length += sampleNum * 4;
-        
+
         // pattern number
         length += patternNum * 4;
-        
+
         // edit histories
-        if (this.editHistory != null) {
-            length += 2 + (editHistory.length * 8);
+        if (this.editHistoryEvents != null) {
+            length += 2 + (editHistoryEvents.length * 8);
         }
-        
+
         // MIDI macros
-        if (embeddedMidiConfiguration || midiConfigurationEmbedded) { 
+        if (embeddedMidiConfiguration || midiConfigurationEmbedded) {
             length += MIDI_MACROS_LENGTH;
         }
-        
+
         // pattern naems
         if (this.patternNames != null) {
             length += 8 + patternNames.getPatternNameStuff().length;
         }
-        
+
         // channel names
         if (this.channelNames != null) {
             length += 8 + channelNames.getChannelNames().length;
         }
-        
+
         // plugins
         // TODO
-        
         return length;
     }
-    
+
     public int length() {
-        
+
         int length = getPreMessageLength();
-        
+
         length += messageLength;
-        
+
         return length;
+    }
+
+    public void buildNewEditHistory() {
+
+        // build a new edit history based on the time elapsed between
+        // creation and saving
+        // get edit time in nanoseconds
+        long editTime = System.nanoTime() - getNsTime();
+
+        // convert to seconds
+        double secondEditTime = editTime * 0.000000001;
+
+        // convert to DOS timer ticks
+        long dosTicks = (long) Math.round(secondEditTime * 18.2);
+
+        // create new edit history
+        EditHistoryEvent latestEdit = new EditHistoryEvent(
+                this.getDateTime(), dosTicks);
+
+        // build a new array for the extra event
+        EditHistoryEvent[] events
+                = new EditHistoryEvent[editHistoryEvents.length + 1];
+
+        System.arraycopy(editHistoryEvents, 0, events, 0,
+                editHistoryEvents.length);
+
+        events[events.length - 1] = latestEdit;
+
+        editHistoryEvents = events;
+
+        // get rid of temp array
+        events = null;
+
+        editHistoryCount = editHistoryEvents.length;
+
     }
 
     // To String
@@ -1060,8 +1393,8 @@ public class ITHeader {
 
         // editHistory
         aStringBuilder.append("\nEdit History: ");
-        if (editHistory != null) {
-            for (EditHistoryInfo history : this.editHistory) {
+        if (editHistoryEvents != null) {
+            for (EditHistoryEvent history : this.editHistoryEvents) {
                 aStringBuilder.append("\n");
                 aStringBuilder.append(history);
             }
