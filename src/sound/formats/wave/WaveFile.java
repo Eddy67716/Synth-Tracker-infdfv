@@ -454,6 +454,11 @@ public class WaveFile extends WaveSpecs implements IAudioSample {
     }
 
     @Override
+    public boolean isCompressed() {
+        return false;
+    }
+
+    @Override
     public boolean isStereo() {
         return (getWChannels() >= 2);
     }

@@ -30,6 +30,9 @@ public interface IAudioSample extends ISavableFile {
     // get signness of the sample
     public boolean isSigned();
     
+    // check if compressed
+    public boolean isCompressed();
+    
     // check if stereo
     public boolean isStereo();
     

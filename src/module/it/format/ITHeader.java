@@ -1173,22 +1173,29 @@ public class ITHeader extends EditHistoryTime {
         EditHistoryEvent latestEdit = new EditHistoryEvent(
                 this.getDateTime(), dosTicks);
 
-        // build a new array for the extra event
+        // build a temp array for the extra event
         EditHistoryEvent[] events
                 = new EditHistoryEvent[editHistoryEvents.length + 1];
 
         System.arraycopy(editHistoryEvents, 0, events, 0,
                 editHistoryEvents.length);
 
+        // append new edit history
         events[events.length - 1] = latestEdit;
 
+        // set to temp array
         editHistoryEvents = events;
 
-        // get rid of temp array
-        events = null;
-
+        // update count
         editHistoryCount = editHistoryEvents.length;
-
+        
+        // update the message offset
+        updateMessageOffset();
+    }
+    
+    public void updateMessageOffset() {
+        
+        messageOffset = getPreMessageLength();
     }
 
     // To String

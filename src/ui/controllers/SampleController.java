@@ -770,7 +770,12 @@ public class SampleController extends GenericController {
         // format
         String outputString;
 
-        outputString = (selectedSample.isSigned()) ? "Signed " : "Unsigned ";
+        if (selectedSample.isCompressed()) {
+            outputString = "Compr..";
+        } else {
+            outputString = (selectedSample.isSigned()) ? "Signed " 
+                    : "Unsigned ";
+        }
 
         outputString += selectedSample.getBitRate() + "-bit";
 

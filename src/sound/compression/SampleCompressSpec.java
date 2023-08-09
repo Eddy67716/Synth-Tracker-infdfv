@@ -9,41 +9,73 @@ package sound.compression;
  * @author Edward Jenkins
  */
 public abstract class SampleCompressSpec {
-
+    
     // constants
     public static final int BLOCK_SIZE = 0x8000;
 
     // instance variables
     private byte bitRate;
+    // a parameter
     private byte aBitWidth;
+    // b parameters
+    // half the bitrate - 1
     private byte bValue;
+    // (-)half the bitrate
     private byte bNegativeValue;
+    // is a floating point number
     private boolean floating;
+    // is double delta encoded
     private boolean doubleDelta;
+    // bounds for compression type
+    private long minimumBitValue;
+    private long maximumBitValue;
+    // the endieness to encode or data with
+    private boolean littleEndian;
+    // current bit width
+    private int currentBitWidth;
+    // the top bit of the curent bit width
+    private int topBit;
 
     // constructor
     public SampleCompressSpec(byte bitRate, boolean floating,
-            boolean doubleDelta) {
+            boolean doubleDelta, boolean littleEndian) {
         this.bitRate = bitRate;
+        this.littleEndian = littleEndian;
         switch (bitRate) {
+            case 4:
+                bValue = 1;
+                aBitWidth = 2;
+                minimumBitValue = -8;
+                maximumBitValue = 7;
             case 8:
                 bValue = 0b11;
                 aBitWidth = 3;
+                minimumBitValue = Byte.MIN_VALUE;
+                maximumBitValue = Byte.MAX_VALUE;
                 break;
             case 16:
                 bValue = 0b111;
                 aBitWidth = 4;
+                minimumBitValue = Short.MIN_VALUE;
+                maximumBitValue = Short.MAX_VALUE;
                 break;
             case 24:
                 bValue = 0b1011;
                 aBitWidth = 5;
+                minimumBitValue = 0xffffffffff800000L;
+                maximumBitValue = 0xffffff;
+                break;
             case 32:
                 bValue = 0b1111;
                 aBitWidth = 5;
+                minimumBitValue = Integer.MIN_VALUE;
+                maximumBitValue = Integer.MAX_VALUE;
                 break;
             case 64:
                 bValue = 0b11111;
                 aBitWidth = 6;
+                minimumBitValue = Long.MIN_VALUE;
+                maximumBitValue = Long.MAX_VALUE;
                 break;
         }
         bNegativeValue = (byte) (~bValue);
@@ -74,6 +106,26 @@ public abstract class SampleCompressSpec {
 
     public boolean isDoubleDelta() {
         return doubleDelta;
+    }
+
+    public long getMinimumBitValue() {
+        return minimumBitValue;
+    }
+
+    public long getMaximumBitValue() {
+        return maximumBitValue;
+    }
+
+    public boolean isLittleEndian() {
+        return littleEndian;
+    }
+
+    public int getCurrentBitWidth() {
+        return currentBitWidth;
+    }
+
+    public int getTopBit() {
+        return topBit;
     }
 
     // setters
@@ -109,6 +161,11 @@ public abstract class SampleCompressSpec {
 
     public void setDoubleDelta(boolean doubleDelta) {
         this.doubleDelta = doubleDelta;
+    }
+
+    public void setCurrentBitWidth(int currentBitWidth) {
+        this.currentBitWidth = currentBitWidth;
+        topBit = 1 << (currentBitWidth - 1);
     }
     
     // calculate minimum bitrate to store sample
@@ -147,4 +204,5 @@ public abstract class SampleCompressSpec {
 
         return i;
     }
+    
 }

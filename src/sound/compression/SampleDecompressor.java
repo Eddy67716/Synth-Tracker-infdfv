@@ -18,8 +18,6 @@ public class SampleDecompressor extends SampleCompressSpec {
     private long[] decompressedData;
     private long val1;
     private long val2;
-    private int currentBitWidth;
-    private int topBit;
     private int i;
     private int blockIndex;
     private boolean allowingTypeD;
@@ -32,16 +30,17 @@ public class SampleDecompressor extends SampleCompressSpec {
     
     // all args constructor
     public SampleDecompressor(byte bitrate, boolean floating,
-            boolean doubleDelta, int dataSize, boolean allowingTypeD) {
-        super(bitrate, floating, doubleDelta);
+            boolean doubleDelta, int dataSize, boolean littleEndian, 
+            boolean allowingTypeD) {
+        super(bitrate, floating, doubleDelta, littleEndian);
         this.allowingTypeD = allowingTypeD;
         decompressedData = new long[dataSize];
     }
 
     // constructor
     public SampleDecompressor(byte bitrate, boolean floating,
-            boolean doubleDelta, int dataSize) {
-        this(bitrate, floating, doubleDelta, dataSize, false);
+            boolean doubleDelta, int dataSize, boolean littleEndian) {
+        this(bitrate, floating, doubleDelta, dataSize, littleEndian, false);
     }
 
     public boolean decompress(IReadable r) throws IOException {
@@ -53,26 +52,26 @@ public class SampleDecompressor extends SampleCompressSpec {
 
             // get compressedBlockLength
             int compressedBlockLength = r.getUShortAsInt();
-            bar = new ByteArrayReader(r.getBytes(compressedBlockLength), true);
+            bar = new ByteArrayReader(r.getBytes(compressedBlockLength), 
+                    isLittleEndian());
             // initialsie or reset the delta values
             val1 = val2 = 0;
-            currentBitWidth = getBitRate() + 1;
-            topBit = 1 << (currentBitWidth - 1);
+            setCurrentBitWidth(getBitRate() + 1);
             blockIndex = 0;
 
             while (bar.isInBounds() && i < decompressedData.length) {
 
                 try {
-                    if (currentBitWidth > getBitRate() + 1) {
+                    if (getCurrentBitWidth() > getBitRate() + 1) {
                         // invalid bitrate error
                         throw (new IllegalArgumentException("Bitrate "
-                                + currentBitWidth + " is bigger"
+                                + getCurrentBitWidth() + " is bigger"
                                 + " than " + (getBitRate() + 1) + "!"));
-                    } else if (currentBitWidth == 1 && allowingTypeD) {
+                    } else if (getCurrentBitWidth() == 1 && allowingTypeD) {
                         typeD();
-                    } else if (currentBitWidth < 7) {
+                    } else if (getCurrentBitWidth() < 7) {
                         typeA();
-                    } else if (currentBitWidth < getBitRate() + 1) {
+                    } else if (getCurrentBitWidth() < getBitRate() + 1) {
                         typeB();
                     } else {
                         typeC();
@@ -92,7 +91,7 @@ public class SampleDecompressor extends SampleCompressSpec {
 
         // get value
         long value
-                = bar.getArbitraryBitValue((byte) currentBitWidth, true);
+                = bar.getArbitraryBitValue((byte) getCurrentBitWidth(), true);
 
         long unsignedValue = value;
 
@@ -100,12 +99,12 @@ public class SampleDecompressor extends SampleCompressSpec {
         if (unsignedValue >>> 63 == 1) {
 
             // bitshift backwards and forwards to set value to unsigned
-            unsignedValue <<= (64 - currentBitWidth);
-            unsignedValue >>>= (64 - currentBitWidth);
+            unsignedValue <<= (64 - getCurrentBitWidth());
+            unsignedValue >>>= (64 - getCurrentBitWidth());
         }
 
         // check if value is new bitrate value
-        if (unsignedValue == topBit) {
+        if (unsignedValue == getTopBit()) {
 
             // get new bitwidth
             byte bits = getaBitWidth();
@@ -123,7 +122,7 @@ public class SampleDecompressor extends SampleCompressSpec {
 
         // get value
         long value
-                = bar.getArbitraryBitValue((byte) currentBitWidth, true);
+                = bar.getArbitraryBitValue((byte) getCurrentBitWidth(), true);
 
         long unsignedValue = value;
 
@@ -131,15 +130,15 @@ public class SampleDecompressor extends SampleCompressSpec {
         if (unsignedValue >>> 63 == 1) {
 
             // bitshift backwards and forwards to set value to unsigned
-            unsignedValue <<= (64 - currentBitWidth);
-            unsignedValue >>>= (64 - currentBitWidth);
+            unsignedValue <<= (64 - getCurrentBitWidth());
+            unsignedValue >>>= (64 - getCurrentBitWidth());
         }
 
         // check if value is new bitrate value
-        if (unsignedValue - topBit >= getbNegativeValue()
-                && unsignedValue - topBit <= getbValue()) {
+        if (unsignedValue - getTopBit() >= getbNegativeValue()
+                && unsignedValue - getTopBit() <= getbValue()) {
             
-            updateWidth((int)unsignedValue - topBit - getbNegativeValue());
+            updateWidth((int)unsignedValue - getTopBit() - getbNegativeValue());
         } else {
 
             // add value to samples
@@ -152,7 +151,7 @@ public class SampleDecompressor extends SampleCompressSpec {
 
         // get value
         long value
-                = bar.getArbitraryBitValue((byte) currentBitWidth, true);
+                = bar.getArbitraryBitValue((byte) getCurrentBitWidth(), true);
 
         long unsignedValue = value;
 
@@ -160,17 +159,25 @@ public class SampleDecompressor extends SampleCompressSpec {
         if (unsignedValue >>> 63 == 1) {
 
             // bitshift backwards and forwards to set value to unsigned
-            unsignedValue <<= (64 - currentBitWidth);
-            unsignedValue >>>= (64 - currentBitWidth);
+            unsignedValue <<= (64 - getCurrentBitWidth());
+            unsignedValue >>>= (64 - getCurrentBitWidth());
         }
 
         // check if value is new bitrate value
-        if ((unsignedValue & topBit) >= 1) {
+        if ((unsignedValue & getTopBit()) >= 1) {
 
             // get new bitwidth
-            currentBitWidth = (int) ((unsignedValue & 0xff) + 1);
-            topBit = 1 << (currentBitWidth - 1);
+            setCurrentBitWidth((int) ((unsignedValue & 0xff) + 1));
         } else {
+
+            // bitshift to make value signed again
+            int bits = getBitRate();
+            
+            // set value to negative if seconde highest bit is 1
+            if (value >>> (bits - 1) == 1 && blockIndex == 0) {
+                value <<= (64 - bits);
+                value >>= (64 - bits);
+            }
 
             // add value to samples
             decodeToAppendValue(value);
@@ -181,7 +188,7 @@ public class SampleDecompressor extends SampleCompressSpec {
     public void typeD() throws IOException {
 
         // get leading bit
-        if (bar.getArbitraryBitValue((byte) currentBitWidth, false) == 0) {
+        if (bar.getArbitraryBitValue((byte) getCurrentBitWidth(), false) == 0) {
             
             // use type A if bit is zero
             typeA();
@@ -207,16 +214,15 @@ public class SampleDecompressor extends SampleCompressSpec {
     // update width
     public void updateWidth(int newWidth) {
         newWidth++;
-        if (newWidth >= currentBitWidth) {
+        if (newWidth >= getCurrentBitWidth()) {
             newWidth++;
         }
-        currentBitWidth = newWidth;
-        topBit = 1 << (currentBitWidth - 1);
+        setCurrentBitWidth(newWidth);
     }
 
     // decode delta data and append to file
     public void decodeToAppendValue(long value) {
-        //System.out.println(value);
+        //System.out.println(value + " " + getCurrentBitWidth());
         val1 += value;
         val2 += val1;
         decompressedData[i] = (isDoubleDelta()) ? val2 : val1;

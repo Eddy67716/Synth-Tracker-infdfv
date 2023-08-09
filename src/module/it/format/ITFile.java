@@ -359,6 +359,9 @@ public class ITFile implements IModuleFile {
     
     public void updateFileDetails() {
         
+        // update header edit history
+        header.buildNewEditHistory();
+        
         // set offsets for everything
         int offset = header.length();
         

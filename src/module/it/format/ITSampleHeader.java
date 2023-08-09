@@ -170,6 +170,7 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
         return stereo;
     }
 
+    @Override
     public boolean isCompressed() {
         return compressed;
     }

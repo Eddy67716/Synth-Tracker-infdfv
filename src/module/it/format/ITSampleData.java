@@ -139,7 +139,7 @@ public class ITSampleData {
                 SampleDecompressor sd
                         = new SampleDecompressor(
                                 (byte) ((sixteenBit) ? 16 : 8), false, delta,
-                                (int) sampleLength);
+                                (int) sampleLength, true);
 
                 boolean compressed = sd.decompress(reader);
 
@@ -181,7 +181,7 @@ public class ITSampleData {
                     SampleDecompressor sd
                             = new SampleDecompressor(
                                     (byte) ((sixteenBit) ? 16 : 8), false, delta,
-                                    (int) sampleLength);
+                                    (int) sampleLength, true);
 
                     boolean compressed = sd.decompress(reader);
 

@@ -111,7 +111,7 @@ public class ITPattern implements IPattern {
         length = reader.getUShortAsInt();
 
         // check length
-        if (length > 64000) {
+        if (length > 0xffff) {
             throw new IllegalArgumentException("Length can be no more than 64 "
                     + "kilobytes. ");
         }
