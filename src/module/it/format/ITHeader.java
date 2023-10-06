@@ -33,6 +33,23 @@ public class ITHeader extends EditHistoryTime {
     public static final byte EDIT_HISTORY_LENGTH = 8;
     // length of MIDI macros
     public static final short MIDI_MACROS_LENGTH = 4896;
+    // synth tracker create
+    public static final short ST_COMPATIBLE = 0x3000;
+    // flags
+    public static final int STEREO_FLAG = 0b1;
+    public static final int MIX_FLAG = 0b10;
+    public static final int INSTRUMENTAL_FLAG = 0b100;
+    public static final int LINEAR_SLIDE_FLAG = 0b1000;
+    public static final int OLD_EFFECTS_FLAG = 0b10000;
+    public static final int GEF_LINK_FLAG = 0b100000;
+    public static final int MIDI_CONTROLLER_FLAG = 0b1000000;
+    public static final int EMBEDDED_MIDI_CONFIG_FLAG = 0b10000000;
+    public static final int EXTENDED_FILTER_FLAG = 0b100000000;
+    // special flags
+    public static final int SONG_MESSAGE_FLAG = 0b1;
+    public static final int EMBEDDED_EDIT_HISTORY_FLAG = 0b10;
+    public static final int EMBEDDED_HILIGHT_FLAG = 0b100;
+    public static final int MIDI_CONFIG_EMBEDDED_FLAG = 0b1000;
 
     // instance variables
     // name of file
@@ -122,6 +139,8 @@ public class ITHeader extends EditHistoryTime {
     private boolean possiblyUnmo3;
     // message
     private String songMessage;
+    // formatted message
+    private String formattedMessage;
     // used to check for edit history
     private int editHistoryCount;
     // stores all the edit history dates
@@ -140,9 +159,8 @@ public class ITHeader extends EditHistoryTime {
     private ChannelNames channelNames;
 
     // constructor
-    public ITHeader(String fileName) {
+    public ITHeader() {
         super();
-        this.fileName = fileName;
         interpretModPlugMade = false;
     }
 
@@ -452,16 +470,20 @@ public class ITHeader extends EditHistoryTime {
         this.songMessage = songMessage;
     }
 
+    public void setFormattedMessage(String formattedMessage) {
+        this.formattedMessage = formattedMessage;
+        if (formattedMessage.contains("\n")) {
+            songMessage = formattedMessage.replaceAll("\n", "CR");
+        }
+    }
+
     public void setEditHistoryEvents(EditHistoryEvent[] editHistoryEvents) {
         this.editHistoryEvents = editHistoryEvents;
     }
 
     // read method
-    public boolean read() throws IOException, IllegalArgumentException {
-
-        // read methods
-        Reader reader
-                = new Reader(fileName, true); // IT format is in Little Endian
+    public boolean read(IReadable reader) throws IOException, 
+            IllegalArgumentException {
 
         // success boolean
         boolean success = true;
@@ -504,47 +526,54 @@ public class ITHeader extends EditHistoryTime {
 
         // set flag values
         // stereo or mono
-        stereo = (flags & 1) == 1;
+        stereo = (flags & STEREO_FLAG) == STEREO_FLAG;
 
         // mix
-        mix = ((flags >>> 1) & 1) == 1;
+        mix = (flags & MIX_FLAG) == MIX_FLAG;
 
         // instruments
-        instrumental = ((flags >>> 2) & 1) == 1;
+        instrumental = (flags & INSTRUMENTAL_FLAG) == INSTRUMENTAL_FLAG;
 
         // linear slides
-        linearSlides = ((flags >>> 3) & 1) == 1;
+        linearSlides = (flags & LINEAR_SLIDE_FLAG) == LINEAR_SLIDE_FLAG;
 
         // old effects
-        oldEffects = ((flags >>> 4) & 1) == 1;
+        oldEffects = (flags & OLD_EFFECTS_FLAG) == OLD_EFFECTS_FLAG;
 
         // link effect G to E and F
-        gLinkedWithEFMemory = ((flags >>> 5) & 1) == 1;
+        gLinkedWithEFMemory = (flags & GEF_LINK_FLAG) == GEF_LINK_FLAG;
 
         // midi pitch controller
-        midiPitchControlled = ((flags >>> 6) & 1) == 1;
+        midiPitchControlled = (flags & MIDI_CONTROLLER_FLAG) 
+                == MIDI_CONTROLLER_FLAG;
 
         // request embedded MIDI configruation
-        embeddedMidiConfiguration = ((flags >>> 7) & 1) == 1;
+        embeddedMidiConfiguration = (flags & EMBEDDED_MIDI_CONFIG_FLAG) 
+                == EMBEDDED_MIDI_CONFIG_FLAG;
 
         // extended filter range
-        filterRangeExtended = ((flags >>> 15) & 1) == 1;
+        filterRangeExtended = (flags & EXTENDED_FILTER_FLAG) 
+                == EXTENDED_FILTER_FLAG;
 
         // special
         special = reader.getUShortAsInt();
 
         // set special values
         // song message
-        songMessageAttached = (special & 1) == 1;
+        songMessageAttached = (special & SONG_MESSAGE_FLAG) 
+                == SONG_MESSAGE_FLAG;
 
         // edit history embedded
-        editHistoryEmbedded = ((special >>> 1) & 1) == 1;
+        editHistoryEmbedded = (special & EMBEDDED_EDIT_HISTORY_FLAG) 
+                == EMBEDDED_EDIT_HISTORY_FLAG;
 
         // hilight embedded
-        hilightEmbedded = ((special >>> 2) & 1) == 1;
+        hilightEmbedded = (special & EMBEDDED_HILIGHT_FLAG) 
+                == EMBEDDED_HILIGHT_FLAG;
 
         // midi configuration embedded
-        midiConfigurationEmbedded = ((special >>> 3) & 1) == 1;
+        midiConfigurationEmbedded = (special & MIDI_CONFIG_EMBEDDED_FLAG) 
+                == MIDI_CONFIG_EMBEDDED_FLAG;
 
         // global volume
         globalVolume = reader.getUByteAsShort();
@@ -908,9 +937,9 @@ public class ITHeader extends EditHistoryTime {
             songMessage = reader.getByteString(messageLength);
 
             if (songMessage.contains("CR")) {
-                songMessage = songMessage.replaceAll("CR", "\n");
+                formattedMessage = songMessage.replaceAll("CR", "\n");
             } else if (songMessage.contains("LF")) {
-                songMessage = songMessage.replaceAll("LF", "\n");
+                formattedMessage = songMessage.replaceAll("LF", "\n");
                 possibleCreationSoftware = "ChibiTracker";
             }
         }
@@ -948,7 +977,7 @@ public class ITHeader extends EditHistoryTime {
         writer.writeShort((short) patternNum);
 
         // created with tracker
-        createdWithTracker = 0x3000;
+        createdWithTracker = ST_COMPATIBLE;
 
         writer.writeShort((short) createdWithTracker);
 
@@ -1096,12 +1125,93 @@ public class ITHeader extends EditHistoryTime {
                 writer.writeInt((int) event.getRunTime());
             }
         }
-        
+
         // write midi macros
         if (embeddedMidiConfiguration || midiConfigurationEmbedded) {
-            
+
+            // read MIDI macros
+            String[] global, parametric, fixed;
+
+            // read global macros
+            global = midiMacros.getGlobalMacros();
+
+            for (String globalSingle : global) {
+
+                // append string
+                writer.writeByteString(globalSingle);
+            }
+
+            // read global macros
+            parametric = midiMacros.getParametricMacros();
+
+            for (String parametricSingle : parametric) {
+
+                // append string
+                writer.writeByteString(parametricSingle);
+            }
+
+            // read global macros
+            fixed = midiMacros.getFixedMacros();
+
+            for (String fixedSingle : fixed) {
+
+                // append string
+                writer.writeByteString(fixedSingle);
+            }
         }
 
+        // check for pattern names
+        if (patternNames != null) {
+
+            // write pattern code
+            writer.writeByteString(PATTERN_NAME_CODE);
+
+            // write length
+            patternNameLength = patternNames.getPatternNameStuff().length
+                    * 32;
+
+            writer.writeInt((int) patternNameLength);
+
+            // write strings
+            for (String patternNameString
+                    : patternNames.getPatternNameStuff()) {
+
+                // extract channel name
+                writer.writeByteString(patternNameString);
+            }
+        }
+
+        // check for channel names
+        if (channelNames != null) {
+
+            // write channel code
+            writer.writeByteString(CHANNEL_NAME_CODE);
+
+            // write length
+            channelNameLength = channelNames.getChannelNames().length
+                    * 20;
+
+            writer.writeInt((int) channelNameLength);
+
+            // write strings
+            for (String channelNameString
+                    : channelNames.getChannelNames()) {
+
+                // extract channel name
+                writer.writeByteString(channelNameString);
+            }
+        }
+
+        // write plugin information
+        //TODO
+        
+        // write the message
+        if (songMessageAttached) {
+
+            writer.writeByteString(songMessage);
+        }
+
+        // successfully read header
         return success;
     }
 
@@ -1151,6 +1261,11 @@ public class ITHeader extends EditHistoryTime {
 
         int length = getPreMessageLength();
 
+        if (songMessageAttached) {
+
+            this.messageLength = songMessage.length();
+        }
+
         length += messageLength;
 
         return length;
@@ -1188,13 +1303,13 @@ public class ITHeader extends EditHistoryTime {
 
         // update count
         editHistoryCount = editHistoryEvents.length;
-        
+
         // update the message offset
         updateMessageOffset();
     }
-    
+
     public void updateMessageOffset() {
-        
+
         messageOffset = getPreMessageLength();
     }
 

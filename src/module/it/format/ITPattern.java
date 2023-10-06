@@ -5,6 +5,8 @@
  */
 package module.it.format;
 
+import io.IReadable;
+import io.IWritable;
 import module.IPattern;
 import module.it.decoders.NoteRange;
 import static module.it.decoders.effectDecoders.*;
@@ -53,8 +55,7 @@ public class ITPattern implements IPattern {
     private byte[][] previousValues;   
 
     // constructor
-    public ITPattern(String fileName, long offsetToPattern) {
-        this.fileName = fileName;
+    public ITPattern(long offsetToPattern) {
         this.offsetToPattern = offsetToPattern;
         noteRange = new NoteRange();
     }
@@ -91,17 +92,14 @@ public class ITPattern implements IPattern {
     }
 
     // read method
-    public boolean read() throws IOException, FileNotFoundException,
+    public boolean read(IReadable reader) throws IOException, 
             IllegalArgumentException {
 
         // method variables
         boolean success = true;
 
-        // read methods
-        reader = new Reader(fileName, true);
-
         // set to offset
-        reader.skipBytes(offsetToPattern);
+        reader.setFilePosition(offsetToPattern);
 
         if (offsetToPattern == 0) {
             return true;
@@ -119,9 +117,9 @@ public class ITPattern implements IPattern {
         // pattern rows
         rows = reader.getShort();
 
-        if (rows > 200) {
+        if (rows > 255) {
             throw new IllegalArgumentException("Row count can be no more than "
-                    + "200. ");
+                    + "255. ");
         }
 
         // skip four bytes
@@ -136,6 +134,23 @@ public class ITPattern implements IPattern {
         unpack();
 
         return success;
+    }
+    
+    public boolean write(IWritable writer) throws IOException {
+        
+        // write pattern length
+        writer.writeShort((short)length);
+
+        // write pattern rows
+        writer.writeShort(rows);
+
+        // skip four bytes
+        writer.skipBytes(4);
+
+        // write packed data
+        writer.writeBytes(packedData);
+
+        return true;
     }
 
     // length
@@ -399,9 +414,9 @@ public class ITPattern implements IPattern {
             }
         }
 
-        if (dataPacker.size() > 64000) {
+        if (dataPacker.size() > 0xffff) {
 
-            while (dataPacker.size() > 6400) {
+            while (dataPacker.size() > 0xffff) {
                 dataPacker.remove(dataPacker.size() - 1);
             }
 

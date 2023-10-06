@@ -13,6 +13,7 @@ import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import sound.compression.SampleCompressor;
 import sound.compression.SampleDecompressor;
 
 /**
@@ -21,6 +22,9 @@ import sound.compression.SampleDecompressor;
  */
 public class ITSampleData {
 
+    // constants
+    public static final boolean ENDIENESS = true;
+
     // instance variables
     private boolean signed;
     private boolean sixteenBit;
@@ -28,7 +32,7 @@ public class ITSampleData {
     private long sampleLength;
     private boolean stereo;
     private boolean compressed;
-    private boolean delta;
+    private boolean it15Compressed;
     private byte[] lCompressedData;
     private byte[] l8BitData;
     private short[] l16BitData;
@@ -47,7 +51,7 @@ public class ITSampleData {
         this.sampleLength = sampleLength;
         this.samplePointer = samplePointer;
         this.compressed = compresssed;
-        this.delta = delta;
+        this.it15Compressed = delta;
 
         // initialise arrays
         if (sixteenBit) {
@@ -80,7 +84,7 @@ public class ITSampleData {
         this.stereo = stereo;
         this.sampleLength = sampleLength;
         this.compressed = compresssed;
-        this.delta = delta;
+        this.it15Compressed = delta;
 
         if (sixteenBit) {
 
@@ -138,7 +142,7 @@ public class ITSampleData {
 
                 SampleDecompressor sd
                         = new SampleDecompressor(
-                                (byte) ((sixteenBit) ? 16 : 8), false, delta,
+                                (byte) ((sixteenBit) ? 16 : 8), false, it15Compressed,
                                 (int) sampleLength, true);
 
                 boolean compressed = sd.decompress(reader);
@@ -180,7 +184,7 @@ public class ITSampleData {
 
                     SampleDecompressor sd
                             = new SampleDecompressor(
-                                    (byte) ((sixteenBit) ? 16 : 8), false, delta,
+                                    (byte) ((sixteenBit) ? 16 : 8), false, it15Compressed,
                                     (int) sampleLength, true);
 
                     boolean compressed = sd.decompress(reader);
@@ -228,7 +232,13 @@ public class ITSampleData {
 
         if (compressed) {
 
-            //TODO
+            // write left/mono data
+            writer.writeBytes(lCompressedData);
+
+            // write right data if stereo
+            if (stereo) {
+                writer.writeBytes(rCompressedData);
+            }
         } else {
 
             // write left/mono samples
@@ -242,13 +252,8 @@ public class ITSampleData {
                     writer.writeByte(l8BitData[i]);
                 }
             }
-        }
 
-        if (stereo) {
-
-            if (compressed) {
-
-            } else {
+            if (stereo) {
 
                 // write r samples
                 for (int i = 0; i < sampleLength; i++) {
@@ -390,6 +395,67 @@ public class ITSampleData {
         }
 
         return rSampleData;
+    }
+
+    public boolean compressData(boolean it15Compression) throws IOException {
+        this.compressed = true;
+        this.it15Compressed = it15Compression;
+        return compressData();
+    }
+
+    public boolean compressData() throws IOException {
+
+        compress(0);
+
+        if (stereo) {
+            compress(1);
+        }
+
+        return true;
+    }
+
+    private boolean compress(int channel) throws IOException {
+        long[] sampleData = new long[(int) sampleLength];
+
+        byte bitrate = (sixteenBit) ? (byte) 16 : (byte) 8;
+
+        SampleCompressor compressor = new SampleCompressor(bitrate, false,
+                it15Compressed, ENDIENESS);
+
+        switch (channel) {
+            default:
+                switch (bitrate) {
+                    default:
+                        for (int i = 0; i < l8BitData.length; i++) {
+                            sampleData[i] = l8BitData[i];
+                        }
+                        break;
+                    case 16:
+                        for (int i = 0; i < l16BitData.length; i++) {
+                            sampleData[i] = l16BitData[i];
+                        }
+                        break;
+                }
+                lCompressedData = compressor.compress(sampleData);
+                break;
+            case 1:
+                switch (bitrate) {
+                    default:
+                        for (int i = 0; i < r8BitData.length; i++) {
+                            sampleData[i] = r8BitData[i];
+                        }
+                        break;
+                    case 16:
+                        for (int i = 0; i < r16BitData.length; i++) {
+                            sampleData[i] = r16BitData[i];
+                        }
+                        break;
+                }
+                rCompressedData = compressor.compress(sampleData);
+                break;
+        }
+
+        return true;
     }
 
     @Override

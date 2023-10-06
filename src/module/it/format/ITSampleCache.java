@@ -87,7 +87,6 @@ public class ITSampleCache {
         return format;
     }
     
-    
     public boolean read(IReadable reader) throws IOException {
         
         // read fileSize

@@ -97,8 +97,7 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
     private ITSampleData sampleData;
 
     // constructor
-    public ITSampleHeader(String file, long offsetToSampleHeader) {
-        this.fileName = file;
+    public ITSampleHeader(long offsetToSampleHeader) {
         this.offsetToSample = offsetToSampleHeader;
     }
 
@@ -435,9 +434,6 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
         // read methods
         Reader reader = new Reader(fileName, true);
 
-        // set input stream to read at offset
-        reader.skipBytes(offsetToSample);
-
         boolean success = read(reader);
 
         return success;
@@ -447,6 +443,9 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
     public boolean read(IReadable r) throws IOException, FileNotFoundException, IllegalArgumentException {
         // success boolean
         boolean success = true;
+        
+        // set input stream to read at offset
+        r.setFilePosition(offsetToSample);
 
         readHeader(r);
 
@@ -582,12 +581,24 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
     // write method
     @Override
     public boolean write() throws IOException, FileNotFoundException {
-        return false;
+        Writer writer = new Writer(fileName, true);
+        
+        boolean success = write(writer);
+        
+        return success;
     }
     
     @Override
     public boolean write(IWritable w) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        boolean success = true;
+        
+        // write header
+        writeHeader(w);
+        
+        // write data
+        getSampleData().write(w);
+        
+        return success;
     }
     
     public boolean writeHeader(IWritable w) throws IOException {
@@ -697,6 +708,7 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
         sampleCache = new ITSampleCache();
 
         boolean cacheDataRead = sampleCache.write(w);
+        
         if (!cacheDataRead) {
             throw new IOException("Sample cache data failed to be read. ");
         }

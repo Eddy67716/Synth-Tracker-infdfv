@@ -5,6 +5,11 @@
  */
 package module.it.format;
 
+import io.IReadable;
+import io.IWritable;
+import io.RandomReaderWriter;
+import io.Reader;
+import io.Writer;
 import module.IInstrument;
 import module.IModuleFile;
 import module.IPattern;
@@ -50,7 +55,7 @@ public class ITFile implements IModuleFile {
     // stores the start of patterns
     private long[] offsetOfPatterns;
     // total number of channels in file
-    private byte totalNumberOfChannels;         
+    private byte totalNumberOfChannels;
 
     // constructor
     public ITFile(String file) {
@@ -96,181 +101,86 @@ public class ITFile implements IModuleFile {
     @Override
     public boolean read() throws IOException, IllegalArgumentException {
 
-        // read header
-        boolean headerRead = readHeader();
+        // IT format is in Little Endian
+        IReadable reader
+                = new Reader(file, true);
 
-        // read instruments
-        boolean instrumentsRead = readInstruments();
-
-        // read samples
-        boolean samplesRead = readSamples();
-
-        // read patterms
-        boolean patternsRead = readPatterns();
-
-        return (headerRead && instrumentsRead && samplesRead && patternsRead);
-
-    }
-
-    @Override
-    public boolean write() throws IOException {
-        
-        // update all counts and set offsets
-        updateFileDetails();
-        
-        // write header
-        
-        // write instruments
-        
-        // write sample headers
-        
-        // write patterns
-        
-        // write sample data
-        
-        
-        return false;
-    }
-
-    public boolean readHeader() throws IOException, IllegalArgumentException {
-
-        // boolean headerSuccess
-        boolean headerSuccess;
-
-        // boolean value for read
-        boolean read = false;
+        boolean read;
 
         try {
 
-            header = new ITHeader(file);
+            // read header
+            header = new ITHeader();
 
-            read = header.read();
+            read = header.read(reader);
 
-        } catch (IOException e) {
-            throw e;
-        }
+            // read instruments
+            // number of instruments
+            int instrumentNumber = header.getInstrumentNum();
 
-        headerSuccess = read;
+            // instruments
+            instruments = new ArrayList<>();
 
-        return headerSuccess;
-    }
+            // get instrument offsets
+            offsetOfInstruments = header.getOffsetOfInstruments();
 
-    // read Instruments
-    public boolean readInstruments() throws IOException, 
-            IllegalArgumentException {
+            // get instrument format
+            boolean oldFormat;
 
-        // instrument success
-        boolean instrumentSuccess = true;
+            int compatibleWithTracker = header.getCompatibleWithTracker();
 
-        // read
-        boolean read = false;
+            oldFormat = compatibleWithTracker < 0x200;
 
-        // number of instruments
-        int instrumentNumber = header.getInstrumentNum();
-
-        // instruments
-        instruments = new ArrayList<>();
-
-        // get instrument offsets
-        offsetOfInstruments = header.getOffsetOfInstruments();
-
-        // get instrument format
-        boolean oldFormat;
-
-        int compatibleWithTracker = header.getCompatibleWithTracker();
-
-        oldFormat = compatibleWithTracker < 0x200;
-
-        // read instrument and envelopes
-        try {
-
+            // read instrument and envelopes
             // iterate through instruments
             for (int i = 0; i < instrumentNumber; i++) {
 
                 // initialise instrument
-                instruments.add(new ITInstrument(file,
-                        offsetOfInstruments[i], oldFormat));
+                instruments.add(new ITInstrument(offsetOfInstruments[i],
+                        oldFormat));
 
                 // read per instruments
-                read = instruments.get(i).read();
+                read = instruments.get(i).read(reader);
             }
 
-        } catch (IOException e) {
-            throw e;
-        }
+            // read samples
+            // number of samples
+            int sampleNumber = header.getSampleNum();
 
-        return instrumentSuccess;
-    }
+            // samples
+            sampleHeaders = new ArrayList<>();
 
-    // read Samples
-    public boolean readSamples() throws IOException, IllegalArgumentException {
+            // get sample offsets
+            offsetOfSamples = header.getOffsetOfSampleHeaders();
 
-        // sample success
-        boolean sampleSuccess = true;
-
-        // read
-        boolean read = false;
-
-        // number of samples
-        int sampleNumber = header.getSampleNum();
-
-        // samples
-        sampleHeaders = new ArrayList<>();
-
-        // get sample offsets
-        offsetOfSamples = header.getOffsetOfSampleHeaders();
-
-        // read samples
-        try {
-
-            // iterate through samples
+            // interate through samples
             for (int i = 0; i < sampleNumber; i++) {
 
                 // initialise sample
-                sampleHeaders.add(new ITSampleHeader(file,
-                        offsetOfSamples[i]));
+                sampleHeaders.add(new ITSampleHeader(offsetOfSamples[i]));
 
                 // read per samples
-                read = sampleHeaders.get(i).read();
+                read = sampleHeaders.get(i).read(reader);
             }
 
-        } catch (Exception e) {
-            throw e;
-        }
+            // read patterns
+            // nunber of chnannels
+            byte numberOfChannels;
 
-        return sampleSuccess;
-    }
+            // number of patterns
+            int patterneNumber = header.getPatternNum();
 
-    // read Patterns
-    public boolean readPatterns() throws IOException {
+            // patterns
+            patterns = new ArrayList<>();
 
-        // pattern success
-        boolean pattenSuccess = true;
+            // get pattern offsets
+            offsetOfPatterns = header.getOffsetOfPatterns();
 
-        // nunber of chnannels
-        byte numberOfChannels;
-
-        // read
-        boolean read = false;
-
-        // number of patterns
-        int patterneNumber = header.getPatternNum();
-
-        // patterns
-        patterns = new ArrayList<>();
-
-        // get pattern offsets
-        offsetOfPatterns = header.getOffsetOfPatterns();
-
-        // read patterns
-        try {
-
-            // iterate through samples
+            // iterate through patterns
             for (int i = 0; i < patterneNumber; i++) {
 
                 // initialise pattern
-                patterns.add(new ITPattern(file,
-                        offsetOfPatterns[i]));
+                patterns.add(new ITPattern(offsetOfPatterns[i]));
 
                 String patternName = "";
 
@@ -286,7 +196,7 @@ public class ITFile implements IModuleFile {
                 patterns.get(i).setName(patternName);
 
                 // read per pattern
-                read = patterns.get(i).read();
+                read = patterns.get(i).read(reader);
 
                 numberOfChannels = patterns.get(i).getNumberOfChannels();
 
@@ -295,11 +205,46 @@ public class ITFile implements IModuleFile {
                 }
             }
 
-        } catch (IOException e) {
+        } catch (IOException | IllegalArgumentException e) {
             throw e;
         }
 
-        return pattenSuccess;
+        return read;
+    }
+
+    @Override
+    public boolean write() throws IOException {
+
+        // update all counts and set offsets
+        updateFileDetails();
+        
+        // set up the file writer
+        IWritable writer = new Writer(file, true);
+
+        // write header
+        header.write(writer);
+        
+        // write instruments
+        for (ITInstrument instrument: instruments) {
+            instrument.write(writer);
+        }
+        
+        // write sample headers
+        for (ITSampleHeader sampleHeader : sampleHeaders) {
+            sampleHeader.writeHeader(writer);
+        }
+        
+        // write patterns
+        for (ITPattern pattern : patterns) {
+            pattern.write(writer);
+        }
+        
+        // write sample data
+        for (ITSampleHeader sampleHeader : sampleHeaders) {
+            sampleHeader.getSampleData().write(writer);
+        }
+        
+        return true;
     }
 
     // get instruments
@@ -356,42 +301,42 @@ public class ITFile implements IModuleFile {
     public byte getChannelsCount() {
         return totalNumberOfChannels;
     }
-    
+
     public void updateFileDetails() {
-        
+
         // update header edit history
         header.buildNewEditHistory();
-        
+
         // set offsets for everything
         int offset = header.length();
-        
+
         // instruments
         for (int i = 0; i < instruments.size(); i++) {
             header.getOffsetOfInstruments()[i] = offset;
-            
+
             offset += instruments.get(i).length();
         }
-        
+
         // sample headers
         for (int i = 0; i < sampleHeaders.size(); i++) {
             header.getOffsetOfSampleHeaders()[i] = offset;
-            
+
             offset += sampleHeaders.get(i).length();
         }
-        
+
         // patterns
         for (int i = 0; i < patterns.size(); i++) {
             header.getOffsetOfPatterns()[i] = offset;
-            
+
             offset += patterns.get(i).length();
         }
-        
+
         // sample data
         for (int i = 0; i < sampleHeaders.size(); i++) {
             ITSampleHeader sampleHeader = sampleHeaders.get(i);
-            
+
             sampleHeader.setSamplePointer(offset);
-            
+
             offset += sampleHeader.getSampleData().length();
         }
     }

@@ -18,7 +18,6 @@ import javax.swing.JToolBar;
 public class MainMenuBar extends JMenuBar {
 
     // instance variables
-    private MainController controller;
     private JMenu fileMenu;
     private JMenu editMenu;
     private JMenu viewMenu;
@@ -48,12 +47,10 @@ public class MainMenuBar extends JMenuBar {
         undo = new JMenuItem();
         redo = new JMenuItem();
         settings = new JMenuItem();
-        
-        this.controller = controller;
-        init();
+        init(controller);
     }
 
-    private void init() {
+    private void init(MainController controller) {
         fileMenu.setText("File");
 
         // new file

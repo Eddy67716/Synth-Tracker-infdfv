@@ -5,6 +5,9 @@
  */
 package module;
 
+import io.IReadable;
+import io.IWritable;
+import java.io.IOException;
 import module.it.format.NodePoint;
 
 /**
@@ -13,9 +16,12 @@ import module.it.format.NodePoint;
  */
 public interface IInstrument {
     
-    public boolean read() throws Exception;
+    public boolean read() throws IOException, IllegalArgumentException;
     
-    public boolean write() throws Exception;
+    public boolean read(IReadable reader) throws IOException, 
+            IllegalArgumentException; 
+    
+    public boolean write(IWritable writer) throws Exception;
     
     public String getInstrumentName();
     
@@ -51,7 +57,7 @@ public interface IInstrument {
 
     public short getMidiProgram();
 
-    public int getMidiBank();
+    public short getMidiBank();
     
     public short[][] getNoteSampleKeyboardTable();
     
@@ -60,8 +66,6 @@ public interface IInstrument {
     public NodePoint[] getPanEnvelopePoints();
     
     public NodePoint[] getPitchEnvelopePoints();
-    
-    public void setFileName(String fileName);
 
     public void setDosFileName(String dosFileName);
 
@@ -101,6 +105,6 @@ public interface IInstrument {
 
     public void setMidiProgram(short midiProgram);
 
-    public void setMidiBank(int midiBank);
+    public void setMidiBank(short midiBank);
     
 }

@@ -6,12 +6,14 @@
 package module.it.format;
 
 import io.IReadable;
+import io.IWritable;
 import module.IInstrument;
 import io.Reader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 
 /**
  *
@@ -22,9 +24,13 @@ public class ITInstrument implements IInstrument{
     // constants
     public static final String INSTRUMENT_CODE = "IMPI";
     public static final short INSTRUMENT_LENGTH = 554;
+    // flags
+    public static final int VOLUME_ENVELOPE_FLAG = 0b1;
+    public static final int VOLUME_LOOP_FLAG = 0b10;
+    public static final int SUSTAIN_VOLUME_LOOP_FLAG = 0b100;
 
     // instance variables
-    // name of file
+    // the file name for an independant instrument
     private String fileName;
     // where to start reading the file
     private long offsetToInstrument;
@@ -89,7 +95,7 @@ public class ITInstrument implements IInstrument{
     // MIDI instrument to use
     private short midiProgram;
     // --------
-    private int midiBank;
+    private short midiBank;
     // stores sample mapping
     private short[][] noteSampleKeyboardTable;
     // stores volume envelope
@@ -100,11 +106,12 @@ public class ITInstrument implements IInstrument{
     private EnvelopeLayout pitchFilterEnvelope; 
     // dummy bytes for new format(7 if between 2.0 and 2.14p2 and 8 if otherwise)
     private byte[] dummyBytes;
+    // samples
+    private List<ITSampleHeader> samples;
 
     // constructor
-    public ITInstrument(String fileName, long offsetToInstrument,
+    public ITInstrument(long offsetToInstrument,
             boolean oldFormat) {
-        this.fileName = fileName;
         this.offsetToInstrument = offsetToInstrument;
         this.oldFormat = oldFormat;
     }
@@ -113,7 +120,7 @@ public class ITInstrument implements IInstrument{
     public String getFileName() {
         return fileName;
     }
-
+    
     public long getOffsetToInstument() {
         return offsetToInstrument;
     }
@@ -252,7 +259,7 @@ public class ITInstrument implements IInstrument{
     }
 
     @Override
-    public int getMidiBank() {
+    public short getMidiBank() {
         return midiBank;
     }
 
@@ -288,11 +295,10 @@ public class ITInstrument implements IInstrument{
     }
     
     // setters
-    @Override
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
-
+    
     public void setOffsetToInstrument(long offsetToInstrument) {
         this.offsetToInstrument = offsetToInstrument;
     }
@@ -401,17 +407,206 @@ public class ITInstrument implements IInstrument{
     }
 
     @Override
-    public void setMidiBank(int midiBank) {
+    public void setMidiBank(short midiBank) {
         this.midiBank = midiBank;
     }
+    
+    public boolean write(IWritable writer) throws IOException {
 
-    public boolean read() throws IOException {
+        // success boolean
+        boolean success = true;
 
-        // reader
-        IReadable reader = new Reader(fileName, true);
+        // write header code
+        writer.writeByteString(INSTRUMENT_CODE);
+
+        // dos file name
+        writer.writeByteString(dosFileName);
+
+        // skip reserved byte
+        writer.skipBytes(0);
+
+        // figure out the if the format is the old or new one
+        if (oldFormat) {
+
+            // write old instrument
+            // flags
+            flags = 0;
+
+            // use volume envelope
+            flags |= (volumeEnvelopeEnabled) ? VOLUME_ENVELOPE_FLAG : 0;
+
+            // use volume loop
+            flags |= (volumeLoopEnabled) ? VOLUME_LOOP_FLAG : 0;
+
+            // use sustain volume loop
+            flags |= (sustainVolumeLoopEnabled) ? SUSTAIN_VOLUME_LOOP_FLAG 
+                    : 0;
+
+            // volume loop start
+            writer.writeByte((byte)volumeLoopStart);
+
+            // volume loop end
+            writer.writeByte((byte)volumeLoopEnd);
+
+            // sustain loop start
+            writer.writeByte((byte)sustainLoopStart);
+
+            // sustain loop end
+            writer.writeByte((byte)sustainLoopEnd);
+
+            // skip two bytes
+            writer.skipBytes(2);
+
+            // fade out
+            writer.writeShort((short)fadeOut);
+
+            // new note action
+            writer.writeByte(newNoteAction);
+
+            // duplicate note check
+            writer.writeBoolean(duplicateNoteCheck);
+
+            // tracker version
+            writer.writeShort((short)trackerVersion);
+
+            // number of samples
+            writer.writeByte(numberOfSamples);
+
+            // instrument name
+            writer.writeByteString(instrumentName);
+
+            // skip 6 bytes
+            writer.skipBytes(6);
+
+            // note sample keyboard table
+            for (short[] noteSamplePair : noteSampleKeyboardTable) {
+
+                // note
+                for(short noteSampleValue : noteSamplePair) {
+                    writer.writeByte((byte)noteSampleValue);
+                }
+            }
+
+            // volume envelope
+            //TODO
+        } else {
+
+            // write new instrument
+            // new note actions
+            writer.writeByte(newNoteAction);
+
+            // duplicate check type
+            writer.writeByte(duplicateCheckType);
+
+            // duplicate check action
+            writer.writeByte(duplicateCheckAction);
+
+            // fade out
+            writer.writeShort((short)fadeOut);
+
+            // pitch pan separiation
+            writer.writeByte(pitchPanSeparation);
+
+            // pitch pan centre
+            writer.writeByte(pitchPanCentre);
+
+            // global volume
+            writer.writeByte((byte)globalVolume);
+
+            // default pan
+            defaultPan = panValue;
+
+            defaultPan |= (panning) ? 0b10000000 : 0;
+            
+            writer.writeByte((byte)defaultPan);
+
+            // random volume variation
+            writer.writeByte(randomVolumeVariation);
+
+            // random panning variation
+            writer.writeByte(randomPanningVariation);
+
+            // tracker version
+            writer.writeShort((short)trackerVersion);
+
+            // number of samples
+            writer.writeByte(numberOfSamples);
+
+            // skip one byte
+            writer.skipBytes(1);
+
+            // instrument name
+            writer.writeByteString(instrumentName);
+
+            // initial filter cutoff
+            writer.writeByte((byte)initialFilterCutoff);
+
+            // initial filter resonance
+            writer.writeByte((byte)initialFilterResonance);
+
+            // midi channel
+            writer.writeByte((byte)midiChannel);
+
+            // midi program
+            writer.writeByte((byte)midiProgram);
+            
+            if (midiBank == 0) {
+                midiBank = -1;
+            }
+
+            // midi bank
+            writer.writeShort(midiBank);
+
+            // note sample keyboard table
+            for (short[] noteSamplePair : noteSampleKeyboardTable) {
+
+                // note and sample write
+                for(short noteSampleValue : noteSamplePair) {
+                    writer.writeByte((byte)noteSampleValue);
+                }
+            }
+
+            // 3 envelopes volume, pan and pitch/LPF
+            boolean volumeEnvelopeRead, panEnvelopeRead, 
+                    pitchFilterEnvelopeRead;
+            
+            // volume
+            volumeEnvelopeRead = volumeEnvelope.write(writer);
+            
+            if (!volumeEnvelopeRead) {
+                throw new IOException("Volume envelope error");
+            }
+            
+            // pan
+            panEnvelopeRead = panEnvelope.write(writer);
+            
+            if (!panEnvelopeRead) {
+                throw new IOException("Pan envelope error");
+            }
+            
+            // pitch filter
+            pitchFilterEnvelopeRead = pitchFilterEnvelope.write(writer);
+            
+            if (!pitchFilterEnvelopeRead) {
+                throw new IOException("Pitch filter envelope error");
+            }
+            
+            // dummy bytes
+            writer.writeBytes(dummyBytes);
+        }
+
+        return success;
+    }
+    
+    @Override
+    public boolean read() throws IOException, IllegalArgumentException {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public boolean read(IReadable reader) throws IOException {
         
         // set input stream to read at offset
-        reader.skipBytes(offsetToInstrument);
+        reader.setFilePosition(offsetToInstrument);
 
         // success boolean
         boolean success = true;
@@ -437,13 +632,16 @@ public class ITInstrument implements IInstrument{
             flags = reader.getUByteAsShort();
 
             // use volume envelope
-            volumeEnvelopeEnabled = (flags & 1) == 1;
+            volumeEnvelopeEnabled = (flags & VOLUME_ENVELOPE_FLAG) 
+                    == VOLUME_ENVELOPE_FLAG;
 
             // use volume loop
-            volumeLoopEnabled = ((flags >>> 1) & 1) == 1;
+            volumeLoopEnabled = (flags & VOLUME_LOOP_FLAG) 
+                    == VOLUME_LOOP_FLAG;
 
             // use sustain volume loop
-            sustainVolumeLoopEnabled = ((flags >>> 2) & 1) == 1;
+            sustainVolumeLoopEnabled = (flags & SUSTAIN_VOLUME_LOOP_FLAG) 
+                    == SUSTAIN_VOLUME_LOOP_FLAG;
 
             // volume loop start
             volumeLoopStart = reader.getUByteAsShort();
@@ -557,7 +755,11 @@ public class ITInstrument implements IInstrument{
             midiProgram = reader.getUByteAsShort();
 
             // midi bank
-            midiBank = reader.getUShortAsInt();
+            midiBank = reader.getShort();
+            
+            if (midiBank == -1) {
+                midiBank = 0;
+            }
 
             // note sample keyboard table
             noteSampleKeyboardTable = new short[120][2];
@@ -608,10 +810,6 @@ public class ITInstrument implements IInstrument{
         }
 
         return success;
-    }
-    
-    public boolean write() throws Exception {
-        return true;
     }
     
     public int length() {
