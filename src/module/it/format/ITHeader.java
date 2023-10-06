@@ -33,6 +33,10 @@ public class ITHeader extends EditHistoryTime {
     public static final byte EDIT_HISTORY_LENGTH = 8;
     // length of MIDI macros
     public static final short MIDI_MACROS_LENGTH = 4896;
+    // length of pattern names
+    public static final byte PATTERN_NAME_LENGTH = 32;
+    // length of channel names
+    public static final byte CHANNEL_NAME_LENGTH = 20;
     // synth tracker create
     public static final short ST_COMPATIBLE = 0x3000;
     // flags
@@ -482,7 +486,7 @@ public class ITHeader extends EditHistoryTime {
     }
 
     // read method
-    public boolean read(IReadable reader) throws IOException, 
+    public boolean read(IReadable reader) throws IOException,
             IllegalArgumentException {
 
         // success boolean
@@ -544,15 +548,15 @@ public class ITHeader extends EditHistoryTime {
         gLinkedWithEFMemory = (flags & GEF_LINK_FLAG) == GEF_LINK_FLAG;
 
         // midi pitch controller
-        midiPitchControlled = (flags & MIDI_CONTROLLER_FLAG) 
+        midiPitchControlled = (flags & MIDI_CONTROLLER_FLAG)
                 == MIDI_CONTROLLER_FLAG;
 
         // request embedded MIDI configruation
-        embeddedMidiConfiguration = (flags & EMBEDDED_MIDI_CONFIG_FLAG) 
+        embeddedMidiConfiguration = (flags & EMBEDDED_MIDI_CONFIG_FLAG)
                 == EMBEDDED_MIDI_CONFIG_FLAG;
 
         // extended filter range
-        filterRangeExtended = (flags & EXTENDED_FILTER_FLAG) 
+        filterRangeExtended = (flags & EXTENDED_FILTER_FLAG)
                 == EXTENDED_FILTER_FLAG;
 
         // special
@@ -560,19 +564,19 @@ public class ITHeader extends EditHistoryTime {
 
         // set special values
         // song message
-        songMessageAttached = (special & SONG_MESSAGE_FLAG) 
+        songMessageAttached = (special & SONG_MESSAGE_FLAG)
                 == SONG_MESSAGE_FLAG;
 
         // edit history embedded
-        editHistoryEmbedded = (special & EMBEDDED_EDIT_HISTORY_FLAG) 
+        editHistoryEmbedded = (special & EMBEDDED_EDIT_HISTORY_FLAG)
                 == EMBEDDED_EDIT_HISTORY_FLAG;
 
         // hilight embedded
-        hilightEmbedded = (special & EMBEDDED_HILIGHT_FLAG) 
+        hilightEmbedded = (special & EMBEDDED_HILIGHT_FLAG)
                 == EMBEDDED_HILIGHT_FLAG;
 
         // midi configuration embedded
-        midiConfigurationEmbedded = (special & MIDI_CONFIG_EMBEDDED_FLAG) 
+        midiConfigurationEmbedded = (special & MIDI_CONFIG_EMBEDDED_FLAG)
                 == MIDI_CONFIG_EMBEDDED_FLAG;
 
         // global volume
@@ -881,13 +885,15 @@ public class ITHeader extends EditHistoryTime {
 
             // set string array to hold pattern names
             String[] patternNameStrings
-                    = new String[(int) (patternNameLength / 32)];
+                    = new String[(int) (patternNameLength
+                    / PATTERN_NAME_LENGTH)];
 
             // get the strings
             for (int i = 0; i < patternNameStrings.length; i++) {
 
                 // extract channel name
-                patternNameStrings[i] = reader.getByteString(32);
+                patternNameStrings[i] 
+                        = reader.getByteString(PATTERN_NAME_LENGTH);
             }
 
             // set patternNames object
@@ -909,13 +915,15 @@ public class ITHeader extends EditHistoryTime {
 
             // set string array to hold channel names
             String[] channelNameStrings
-                    = new String[(int) (channelNameLength / 20)];
+                    = new String[(int) (channelNameLength 
+                    / CHANNEL_NAME_LENGTH)];
 
             // get the strings
             for (int i = 0; i < channelNameStrings.length; i++) {
 
                 // extract channel name
-                channelNameStrings[i] = reader.getByteString(20);
+                channelNameStrings[i] 
+                        = reader.getByteString(CHANNEL_NAME_LENGTH);
             }
 
             // set channelNames object
@@ -1168,7 +1176,7 @@ public class ITHeader extends EditHistoryTime {
 
             // write length
             patternNameLength = patternNames.getPatternNameStuff().length
-                    * 32;
+                    * PATTERN_NAME_LENGTH;
 
             writer.writeInt((int) patternNameLength);
 
@@ -1189,7 +1197,7 @@ public class ITHeader extends EditHistoryTime {
 
             // write length
             channelNameLength = channelNames.getChannelNames().length
-                    * 20;
+                    * CHANNEL_NAME_LENGTH;
 
             writer.writeInt((int) channelNameLength);
 
@@ -1204,7 +1212,6 @@ public class ITHeader extends EditHistoryTime {
 
         // write plugin information
         //TODO
-        
         // write the message
         if (songMessageAttached) {
 
@@ -1244,12 +1251,14 @@ public class ITHeader extends EditHistoryTime {
 
         // pattern naems
         if (this.patternNames != null) {
-            length += 8 + patternNames.getPatternNameStuff().length;
+            length += 8 + patternNames.getPatternNameStuff().length
+                    * PATTERN_NAME_LENGTH;
         }
 
         // channel names
         if (this.channelNames != null) {
-            length += 8 + channelNames.getChannelNames().length;
+            length += 8 + channelNames.getChannelNames().length
+                    * CHANNEL_NAME_LENGTH;
         }
 
         // plugins

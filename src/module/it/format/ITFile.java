@@ -1,6 +1,6 @@
 /*
  * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
+ * To change this template filePath, choose Tools | Templates
  * and open the template in the editor.
  */
 package module.it.format;
@@ -38,9 +38,11 @@ public class ITFile implements IModuleFile {
     public static final int IT_MOD_TYPE_ID = 4;
 
     // instance variables
-    // file name
-    private String file;
-    // file header
+    // filePath name
+    private String filePath;
+    // filePath
+    private File file;
+    // filePath header
     private ITHeader header;
     // instruments
     private List<ITInstrument> instruments;
@@ -54,17 +56,18 @@ public class ITFile implements IModuleFile {
     private long[] offsetOfSamples;
     // stores the start of patterns
     private long[] offsetOfPatterns;
-    // total number of channels in file
+    // total number of channels in filePath
     private byte totalNumberOfChannels;
 
     // constructor
     public ITFile(String file) {
-        this.file = file;
+        this.filePath = file;
+        this.file = new File(filePath);
     }
 
     @Override
     public String getFileName() {
-        File testFile = new File(file);
+        File testFile = new File(filePath);
         return testFile.getName();
     }
 
@@ -97,13 +100,19 @@ public class ITFile implements IModuleFile {
     public byte getTotalNumberOfChannels() {
         return this.totalNumberOfChannels;
     }
+    
+    // set file name
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+    
 
     @Override
     public boolean read() throws IOException, IllegalArgumentException {
 
         // IT format is in Little Endian
         IReadable reader
-                = new Reader(file, true);
+                = new Reader(filePath, true);
 
         boolean read;
 
@@ -218,8 +227,8 @@ public class ITFile implements IModuleFile {
         // update all counts and set offsets
         updateFileDetails();
         
-        // set up the file writer
-        IWritable writer = new Writer(file, true);
+        // set up the filePath writer
+        IWritable writer = new Writer(filePath, true);
 
         // write header
         header.write(writer);

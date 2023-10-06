@@ -423,7 +423,7 @@ public class ITInstrument implements IInstrument{
         writer.writeByteString(dosFileName);
 
         // skip reserved byte
-        writer.skipBytes(0);
+        writer.skipBytes(1);
 
         // figure out the if the format is the old or new one
         if (oldFormat) {

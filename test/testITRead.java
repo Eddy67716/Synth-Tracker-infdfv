@@ -30,55 +30,17 @@ public class testITRead {
     public static void main(String[] args) {
 
         // create ITReader
-        ITFile reader = new ITFile("src/Hero.it");
+        ITFile reader = new ITFile("src/Hero2.it");
 
         try {
             // check if read
             boolean isRead = reader.read();
 
             if (isRead) {
-
-                /*// header
-                ITHeader header = reader.getHeader();
-
-                // to string
-                System.out.print(header.toString());
                 
+                //reader.setFilePath("src/Hero2.it");
                 
-                // instruments
-                ITInstrument[] instruments = reader.getInstruments();
-
-                for (ITInstrument instrument : instruments) {
-
-                    //System.out.println(instrument.toString());
-                }
-
-                // samples
-                List<ITSampleHeader> samples = reader.getSamples();
-
-                for (ITSampleHeader sample : samples) {
-
-                    System.out.println(sample.toString());
-                }*/
-                
-                
-                // patterns
-                List<IPattern> patterns = reader.getIPatterns();
-
-                for (IPattern pattern : patterns) {
-                    
-                    ITPattern itPattern = (ITPattern)pattern;
-                    
-                    System.out.print(itPattern);
-
-                    byte[] packedData = itPattern.pack();
-                    
-                    itPattern.unpack();
-                    
-                    System.out.print(itPattern);
-                }
-                
-                System.out.println("Total Number of channels: " + reader.getChannelsCount());
+                //reader.write();
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());

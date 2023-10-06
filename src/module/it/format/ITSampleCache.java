@@ -118,6 +118,9 @@ public class ITSampleCache {
         // write format
         writer.writeByte(format);
         
+        // skip 7 bytes
+        writer.skipBytes(7);
+        
         return true;
     }
 }

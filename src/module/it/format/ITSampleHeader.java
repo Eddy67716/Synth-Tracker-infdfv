@@ -24,7 +24,7 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
 
     // constants
     public static final String SAMPLE_HEADER = "IMPS";
-    public static final byte SAMPLE_HEADER_LENGTH = 80;
+    public static final byte SAMPLE_HEADER_LENGTH = 96;
 
     // instance variables
     // name of file
@@ -658,13 +658,13 @@ public class ITSampleHeader implements IAudioSample, ISavableModule {
         convertFlags = 0;
 
         // signed
-        signed = (convertFlags & 1) == 1;
+        convertFlags |= (signed) ? 0b1 : 0;
 
         // delta values
-        delta = (convertFlags & 4) == 4;
+        convertFlags |= (delta) ? 0b100 : 0;
         
         // convert
-        w.writeShort(convertFlags);
+        w.writeByte((byte)convertFlags);
 
         // default pan
         panValue = (panning) ? (byte)(defaultPan | 0b10000000) : defaultPan;
