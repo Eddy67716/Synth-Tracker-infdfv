@@ -91,6 +91,10 @@ public class ITPattern implements IPattern {
         this.name = name;
     }
 
+    public void setNumberOfChannels(byte numberOfChannels) {
+        this.numberOfChannels = numberOfChannels;
+    }
+
     // read method
     public boolean read(IReadable reader) throws IOException, 
             IllegalArgumentException {
@@ -130,8 +134,6 @@ public class ITPattern implements IPattern {
         packedDataIndex = 0;
 
         calculateNumberOfChannels();
-
-        unpack();
 
         return success;
     }

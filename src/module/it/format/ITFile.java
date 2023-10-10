@@ -213,6 +213,16 @@ public class ITFile implements IModuleFile {
                     totalNumberOfChannels = numberOfChannels;
                 }
             }
+            
+            // set pattern channels and unpack pattern data
+            for (ITPattern pattern : patterns) {
+                
+                // set channel count
+                pattern.setNumberOfChannels(totalNumberOfChannels);
+                
+                // unpack data
+                pattern.unpack();
+            }
 
         } catch (IOException | IllegalArgumentException e) {
             throw e;
@@ -252,6 +262,9 @@ public class ITFile implements IModuleFile {
         for (ITSampleHeader sampleHeader : sampleHeaders) {
             sampleHeader.getSampleData().write(writer);
         }
+        
+        // close the file
+        writer.close();
         
         return true;
     }

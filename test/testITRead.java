@@ -30,7 +30,7 @@ public class testITRead {
     public static void main(String[] args) {
 
         // create ITReader
-        ITFile reader = new ITFile("src/Hero2.it");
+        ITFile reader = new ITFile("src/Hero.it");
 
         try {
             // check if read
@@ -38,9 +38,9 @@ public class testITRead {
 
             if (isRead) {
                 
-                //reader.setFilePath("src/Hero2.it");
+                reader.setFilePath("src/Hero 2.it");
                 
-                //reader.write();
+                reader.write();
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());

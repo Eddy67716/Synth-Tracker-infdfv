@@ -66,7 +66,7 @@ public class PatternCell extends JPanel {
                     cellSections[i].setText(String.format("%02d", data[i]));
                     break;
                 case 2:
-                    cellSections[i].setColumns(3);
+                    cellSections[i].setColumns(2);
                     cellSections[i].setText(decodeVolumeByte(data[i]));
                     break;
                 case 3:
