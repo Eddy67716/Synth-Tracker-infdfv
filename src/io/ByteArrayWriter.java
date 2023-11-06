@@ -33,6 +33,10 @@ public class ByteArrayWriter implements IWritable {
     private DataOutputStream dos;
     // the byte array to store data before writing it all
     private List<Byte> byteArray;
+    // the check byte stream used if a portion of the file is needed
+    private List<Byte> checkByteStream;
+    // add bytes to check byte stream if true
+    private boolean buildingCheckByteStream;
     // bytes written
     private long filePosition;
     // extra bits when writing non byte values
@@ -40,7 +44,7 @@ public class ByteArrayWriter implements IWritable {
     // how many bits are in extra bits
     private byte extraBitCount;
     // amount of extra offsetted bits
-    private byte leadingBits;           
+    private byte leadingBits;
 
     /**
      * The 2-args constructor used to write a file with a file name string.
@@ -70,7 +74,7 @@ public class ByteArrayWriter implements IWritable {
             throws IOException {
         this(fileName, false);
     }
-    
+
     /**
      * The 1-arg constructor used to just build an array.
      *
@@ -102,6 +106,51 @@ public class ByteArrayWriter implements IWritable {
     }
 
     /**
+     * Starts saving a check byte stream that can be used for CRC or other
+     * checks.
+     */
+    @Override
+    public void buildCheckByteStream() {
+        buildingCheckByteStream = true;
+        checkByteStream = new LinkedList<>();
+    }
+
+    /**
+     * Gets the check byte stream that has been saved.
+     *
+     * @return the check byte stream
+     */
+    @Override
+    public byte[] getCheckByteStream() {
+
+        // byte arrary
+        byte[] returnByteStream = new byte[checkByteStream.size()];
+
+        // build loop
+        for (int i = 0; i < returnByteStream.length; i++) {
+            returnByteStream[i] = checkByteStream.get(i);
+        }
+
+        return returnByteStream;
+    }
+
+    /**
+     * Resets the check byte stream.
+     */
+    @Override
+    public void resetCheckByteStream() {
+        checkByteStream = new LinkedList<>();
+    }
+
+    /**
+     * End the check byte stream.
+     */
+    @Override
+    public void endCheckByteStream() {
+        buildingCheckByteStream = false;
+    }
+
+    /**
      * Writes a byte string to file.
      *
      * @param outputString string to output.
@@ -111,8 +160,8 @@ public class ByteArrayWriter implements IWritable {
     public void writeByteString(String outputString) throws IOException {
 
         int stringLength = outputString.length();
-        for (int i = 0 ; i < stringLength ; i++) {
-            writeByte((byte)outputString.charAt(i));
+        for (int i = 0; i < stringLength; i++) {
+            writeByte((byte) outputString.charAt(i));
         }
         filePosition += outputString.length();
     }
@@ -127,8 +176,8 @@ public class ByteArrayWriter implements IWritable {
     public void writeCharString(String outputString) throws IOException {
 
         int stringLength = outputString.length();
-        for (int i = 0 ; i < stringLength ; i++) {
-            writeShort((short)outputString.charAt(i));
+        for (int i = 0; i < stringLength; i++) {
+            writeShort((short) outputString.charAt(i));
         }
         filePosition += outputString.length() * 2;
     }
@@ -279,7 +328,7 @@ public class ByteArrayWriter implements IWritable {
                     // do the bitshifting of extra byte overflow bits
                     // just like when there is a byte overflow
                     byte orValue = (byte) (value
-                                & AND_VALUES[8 - extraBitCount]);
+                            & AND_VALUES[8 - extraBitCount]);
 
                     writeBytes[i] = (byte) (extraBits
                             | (orValue << (extraBitCount)));
@@ -525,6 +574,10 @@ public class ByteArrayWriter implements IWritable {
 
         byteArray.add(value);
 
+        if (buildingCheckByteStream && checkByteStream != null) {
+            checkByteStream.add(value);
+        }
+
         filePosition++;
     }
 
@@ -609,6 +662,11 @@ public class ByteArrayWriter implements IWritable {
         // write the bytes
         for (int i = start; i < start + end; i++) {
             byteArray.add(bytesToAppend[i]);
+
+            // append bytes to check byte stream
+            if (buildingCheckByteStream && checkByteStream != null) {
+                checkByteStream.add(bytesToAppend[i]);
+            }
         }
     }
 
@@ -661,10 +719,11 @@ public class ByteArrayWriter implements IWritable {
         byteArray = null;
         dos.close();
     }
-    
+
     /**
      * Writes all bytes in the byte array and resets it
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     public void writeAndClearArray() throws IOException {
         byteAlign();
@@ -674,25 +733,26 @@ public class ByteArrayWriter implements IWritable {
         resetByteArray();
         dos.close();
     }
-    
+
     /**
      * Extracts the array from the writer
+     *
      * @return the extracted array
      */
     public byte[] extractArray() {
         byte[] extractionArray = new byte[byteArray.size()];
-        
+
         Iterator listIterator = byteArray.iterator();
-        
+
         for (int i = 0; i < extractionArray.length; i++) {
             if (listIterator.hasNext()) {
-                extractionArray[i] = (byte)listIterator.next();
+                extractionArray[i] = (byte) listIterator.next();
             }
         }
-        
+
         return extractionArray;
     }
-    
+
     /**
      * Resets the byte array
      */

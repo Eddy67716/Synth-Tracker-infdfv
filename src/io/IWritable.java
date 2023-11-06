@@ -8,7 +8,7 @@ import java.io.IOException;
 
 /**
  *
- * @author Edward Jenkins
+ * @author Edward Jenkins © 2021-2023
  */
 public interface IWritable {
     
@@ -26,6 +26,28 @@ public interface IWritable {
      * @param littleEndian Little-endian if true
      */
     public void setLittleEndian(boolean littleEndian);
+    
+    /**
+     * Starts saving a check byte stream that can be used for 
+     * CRC or other checks.
+     */
+    public void buildCheckByteStream();
+    
+    /**
+     * Gets the check byte stream that has been saved.
+     * @return the check byte stream
+     */
+    public byte[] getCheckByteStream();
+    
+    /**
+     * Resets the check byte stream.
+     */
+    public void resetCheckByteStream();
+    
+    /**
+     * End the check byte stream.
+     */
+    public void endCheckByteStream();
 
     /**
      * Writes a byte string to file.

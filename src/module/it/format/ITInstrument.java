@@ -104,7 +104,7 @@ public class ITInstrument implements IInstrument{
     private EnvelopeLayout panEnvelope;
     // stores pitch/filter envelope
     private EnvelopeLayout pitchFilterEnvelope; 
-    // dummy bytes for new format(7 if between 2.0 and 2.14p2 and 8 if otherwise)
+    // dummy bytes for new format(7 if between 2.0 and 2.14p2 and 4 if otherwise)
     private byte[] dummyBytes;
     // samples
     private List<ITSampleHeader> samples;

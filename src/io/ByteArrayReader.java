@@ -5,7 +5,6 @@ package io;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 import io.*;
 import static io.IOMethods.reverseEndian;
 import java.io.BufferedInputStream;
@@ -15,6 +14,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
@@ -32,6 +33,10 @@ public class ByteArrayReader implements IReadable {
     private boolean littleEndian;
     // the main byte array
     private byte[] byteArray;
+    // the check byte stream used if a portion of the file is needed
+    private List<Byte> checkByteStream;
+    // add bytes to check byte stream if true
+    private boolean buildingCheckByteStream;
     // byted needed to build values
     private byte[] readBytes;
     // stores the position in the file
@@ -61,7 +66,7 @@ public class ByteArrayReader implements IReadable {
         trailingBits = 0;
         this.fileName = fileName;
     }
-    
+
     /**
      * The 2-args constructor for this object.
      *
@@ -69,7 +74,7 @@ public class ByteArrayReader implements IReadable {
      * @param littleEndian Reads Little-endian if true
      * @throws java.io.IOException
      */
-    public ByteArrayReader(byte[] readBytes, boolean littleEndian) 
+    public ByteArrayReader(byte[] readBytes, boolean littleEndian)
             throws IOException {
         this.byteArray = readBytes;
         this.littleEndian = littleEndian;
@@ -136,7 +141,52 @@ public class ByteArrayReader implements IReadable {
      */
     @Override
     public void setFilePosition(long filePosition) throws IOException {
-        this.filePosition = (int)filePosition;
+        this.filePosition = (int) filePosition;
+    }
+
+    /**
+     * Starts saving a check byte stream that can be used for CRC or other
+     * checks.
+     */
+    @Override
+    public void buildCheckByteStream() {
+        buildingCheckByteStream = true;
+        checkByteStream = new LinkedList<>();
+    }
+
+    /**
+     * Gets the check byte stream that has been saved.
+     *
+     * @return the check byte stream
+     */
+    @Override
+    public byte[] getCheckByteStream() {
+
+        // byte arrary
+        byte[] returnByteStream = new byte[checkByteStream.size()];
+
+        // build loop
+        for (int i = 0; i < returnByteStream.length; i++) {
+            returnByteStream[i] = checkByteStream.get(i);
+        }
+
+        return returnByteStream;
+    }
+
+    /**
+     * Resets the check byte stream.
+     */
+    @Override
+    public void resetCheckByteStream() {
+        checkByteStream = new LinkedList<>();
+    }
+
+    /**
+     * End the check byte stream.
+     */
+    @Override
+    public void endCheckByteStream() {
+        buildingCheckByteStream = false;
     }
 
     /**
@@ -699,6 +749,11 @@ public class ByteArrayReader implements IReadable {
         // increment file position
         filePosition++;
 
+        // append byte to check byte stream
+        if (buildingCheckByteStream && checkByteStream != null) {
+            checkByteStream.add(convertedByte);
+        }
+
         // bit shift to right position if there are traling bits
         if (extraBitCount != 0) {
 
@@ -742,17 +797,22 @@ public class ByteArrayReader implements IReadable {
         byte[] extractedBytes = new byte[bytesToExtract];
 
         for (int i = 0; i < extractedBytes.length; i++, filePosition++) {
-            
+
             if (filePosition >= byteArray.length) {
                 throw new IndexOutOfBoundsException(
                         "Index has reached the end of file");
             }
-            
+
             extractedBytes[i] = byteArray[filePosition];
+
+            // append bytes to check byte stream
+            if (buildingCheckByteStream && checkByteStream != null) {
+                checkByteStream.add(extractedBytes[i]);
+            }
 
             if (extraBitCount != 0) {
                 extractedBytes[i]
-                    = manageBitOffset(extractedBytes[i], extraBitCount);
+                        = manageBitOffset(extractedBytes[i], extraBitCount);
             }
         }
 
@@ -776,16 +836,21 @@ public class ByteArrayReader implements IReadable {
         byte[] extractedBytes = new byte[bytesToExtract];
 
         for (int i = 0; i < extractedBytes.length; i++, filePosition++) {
-            
+
             if (filePosition >= byteArray.length) {
                 extractedBytes[i] = 0;
             } else {
                 extractedBytes[i] = byteArray[filePosition];
             }
 
+            // append bytes to check byte stream
+            if (buildingCheckByteStream && checkByteStream != null) {
+                checkByteStream.add(extractedBytes[i]);
+            }
+
             if (!ignoreOffset && extraBitCount != 0) {
                 extractedBytes[i]
-                    = manageBitOffset(extractedBytes[i], extraBitCount);
+                        = manageBitOffset(extractedBytes[i], extraBitCount);
             }
         }
 
@@ -827,6 +892,13 @@ public class ByteArrayReader implements IReadable {
         if (available() > bytes) {
             filePosition += bytes;
             skipped = true;
+        }
+
+        // append bytes to check byte stream
+        if (buildingCheckByteStream && checkByteStream != null) {
+            for (int i = 0; i < bytes; i++) {
+                checkByteStream.add((byte)0);
+            }
         }
 
         return skipped;
@@ -899,14 +971,14 @@ public class ByteArrayReader implements IReadable {
 
         return value;
     }
-    
+
     public boolean isInBounds() {
         boolean beforeLength = filePosition < byteArray.length;
-        
+
         if (filePosition == byteArray.length) {
             return (extraBitCount > 0);
         }
-        
+
         return beforeLength;
     }
 }

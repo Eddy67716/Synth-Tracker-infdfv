@@ -6,29 +6,41 @@ package io;
 
 import static io.IOMethods.reverseEndian;
 import static io.Writer.AND_VALUES;
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
- * @author Edward Jenkins
+ * @author Edward Jenkins © 2021-2023
  */
 public class RandomReaderWriter implements IReadable, IWritable {
 
-    private RandomAccessFile raf;       // accesses the file
-    private String fileName;            // name of file
-    private boolean littleEndian;       // stores if file is reading in little endian or not
+    // accesses the file
+    private RandomAccessFile raf;
+    // name of file
+    private String fileName;
+    // stores if file is reading in little endian or not
+    private boolean littleEndian;
+    // the check byte stream used if a portion of the file is needed
+    private List<Byte> checkByteStream;
+    // add bytes to check byte stream if true
+    private boolean buildingCheckByteStream;
+    // stores bytes to convert
     private byte[] convertBytes;
-    private byte extraBits;             // the extra bits that can't yet be written
-    private byte extraBitCount;         // count of extra bits
-    private byte readTrailingBits;      // count of trailing bits
-    private byte leadingBitsToWrite;    // count of extra offsetted bits
-    private byte bitOffset;             // the bit offset over the byte mark
+    // the extra bits that can't yet be written
+    private byte extraBits;
+    // count of extra bits
+    private byte extraBitCount;
+    // count of trailing bits
+    private byte readTrailingBits;
+    // count of extra offsetted bits
+    private byte leadingBitsToWrite;
+    // the bit offset over the byte mark
+    private byte bitOffset;
 
     /**
      * The 2-args constructor used to write a file with a file name string.
@@ -61,7 +73,7 @@ public class RandomReaderWriter implements IReadable, IWritable {
      *
      * @return the data input stream
      */
-    public RandomAccessFile getDis() {
+    public RandomAccessFile getRaf() {
         return this.raf;
     }
 
@@ -99,6 +111,51 @@ public class RandomReaderWriter implements IReadable, IWritable {
         }
         raf.seek(filePosition);
     }
+    
+    /**
+     * Starts saving a check byte stream that can be used for CRC or other
+     * checks.
+     */
+    @Override
+    public void buildCheckByteStream() {
+        buildingCheckByteStream = true;
+        checkByteStream = new LinkedList<>();
+    }
+
+    /**
+     * Gets the check byte stream that has been saved.
+     *
+     * @return the check byte stream
+     */
+    @Override
+    public byte[] getCheckByteStream() {
+
+        // byte arrary
+        byte[] returnByteStream = new byte[checkByteStream.size()];
+
+        // build loop
+        for (int i = 0; i < returnByteStream.length; i++) {
+            returnByteStream[i] = checkByteStream.get(i);
+        }
+
+        return returnByteStream;
+    }
+
+    /**
+     * Resets the check byte stream.
+     */
+    @Override
+    public void resetCheckByteStream() {
+        checkByteStream = new LinkedList<>();
+    }
+
+    /**
+     * End the check byte stream.
+     */
+    @Override
+    public void endCheckByteStream() {
+        buildingCheckByteStream = false;
+    }
 
     /**
      * Writes a byte string to file.
@@ -109,7 +166,20 @@ public class RandomReaderWriter implements IReadable, IWritable {
     @Override
     public void writeByteString(String outputString) throws IOException {
 
-        raf.writeBytes(outputString);
+        if (leadingBitsToWrite != 0) {
+            int stringLength = outputString.length();
+            for (int i = 0; i < stringLength; i++) {
+                writeByte((byte) outputString.charAt(i));
+            }
+        } else {
+            raf.writeBytes(outputString);
+            if (buildingCheckByteStream && checkByteStream != null) {
+                int stringLength = outputString.length();
+                for (int i = 0; i < stringLength; i++) {
+                    checkByteStream.add((byte) outputString.charAt(i));
+                }
+            }
+        }
     }
 
     /**
@@ -154,7 +224,14 @@ public class RandomReaderWriter implements IReadable, IWritable {
     @Override
     public void writeCharString(String outputString) throws IOException {
 
-        raf.writeChars(outputString);
+        if (leadingBitsToWrite != 0) {
+            int stringLength = outputString.length();
+            for (int i = 0; i < stringLength; i++) {
+                writeShort((short) outputString.charAt(i));
+            }
+        } else {
+            raf.writeChars(outputString);
+        }
     }
 
     /**
@@ -245,21 +322,30 @@ public class RandomReaderWriter implements IReadable, IWritable {
         // method variables
         byte bitOffset;
         int bytesToWrite;
-        byte trailingBits = 0;      // trailing bits used if byte overflow occures
-        boolean littleEndian = this.littleEndian;
+        // trailing bits used if byte overflow occures
+        byte trailingBits = 0;
         boolean byteOverflowing = false;
-        byte writeBitCount;
+        byte bitsToWrite;
+        byte writtenBits = 0;
         byte[] writeBytes;
 
         // extract bytes
         bytesToWrite = bits / 8;
-        writeBitCount = bits;
+        bitsToWrite = bits;
 
         // get extra bit offset
         bitOffset = (byte) (bits % 8);
 
+        // making header bits all 0 if signed i.e. highest bit is 1
+        if ((value >>> 63 & 1) == 1) {
+
+            // bitshift backwards and forwards to set value to unsigned
+            value <<= (64 - bits);
+            value >>>= (64 - bits);
+        }
+
         // deal with bit offsetted values
-        if (bitOffset != 0) {
+        if (bitOffset != 0 || leadingBitsToWrite != 0) {
 
             if (leadingBitsToWrite != 0) {
 
@@ -272,12 +358,12 @@ public class RandomReaderWriter implements IReadable, IWritable {
                     // the bits will byte align
                     bytesToWrite++;
                     bitOffset = 0;
-                    if (writeBitCount > leadingBitsToWrite) {
+                    if (bitsToWrite > leadingBitsToWrite) {
                         byteOverflowing = true;
                     }
                 } else if ((leadingBitsToWrite > 8)
-                        || (leadingBitsToWrite > 0 && leadingBitsToWrite + writeBitCount
-                        > 8)) {
+                        || (leadingBitsToWrite > 0 && leadingBitsToWrite
+                        + bitsToWrite > 8)) {
 
                     // append another byte
                     byteOverflowing = true;
@@ -289,106 +375,190 @@ public class RandomReaderWriter implements IReadable, IWritable {
             } else {
                 leadingBitsToWrite = bitOffset;
             }
-
-            // set to big endian for arbitrary bit values that aren't byte
-            // aligned.
-            this.littleEndian = false;
         }
 
         // build bytes to write
         writeBytes = new byte[bytesToWrite];
 
-        for (int i = 0; i < bytesToWrite; i++) {
+        // write in little endain order
+        if (littleEndian) {
 
-            // values longer than leadingBitsToWrite
-            if (writeBitCount > leadingBitsToWrite) {
+            for (int i = 0; i < bytesToWrite; i++) {
 
-                // subtract 8 to bit shift to next byte to write
-                if (byteOverflowing) {
-                    writeBitCount -= (8 - trailingBits);
-                } else if (writeBitCount >= 8) {
-                    writeBitCount -= 8;
+                if (bitsToWrite > leadingBitsToWrite) {
+
+                    if (byteOverflowing) {
+
+                        // set temperary leading bits
+                        byte newLeadingBits = (leadingBitsToWrite - 8 >= 0)
+                                ? (byte) (leadingBitsToWrite - 8) : leadingBitsToWrite;
+
+                        // do the bitshifting of extra byte overflow bits
+                        byte orValue = (byte) (value
+                                & AND_VALUES[8 - extraBitCount]);
+
+                        writeBytes[i] = (byte) (extraBits
+                                | (orValue << extraBitCount));
+
+                        leadingBitsToWrite = newLeadingBits;
+                        bitOffset = leadingBitsToWrite;
+
+                    } else {
+
+                        // append byte to writeBytes array
+                        writeBytes[i] = (byte) (value >>> writtenBits);
+                    }
+
+                    // subtract 8 to bit shift to next byte to write
+                    if (byteOverflowing) {
+                        bitsToWrite -= (8 - trailingBits);
+                        writtenBits = (byte) (8 - trailingBits);
+                        byteOverflowing = false;
+                    } else {
+                        bitsToWrite -= 8;
+                        writtenBits += 8;
+                    }
+
+                } else if (leadingBitsToWrite == 8) {
+
+                    // values that are a byte
+                    writeBytes[i] = (byte) ((value << extraBitCount)
+                            | extraBits);
+
+                    extraBitCount = 0;
+                    extraBits = 0;
+                    leadingBitsToWrite = 0;
                 } else {
-                    writeBitCount = leadingBitsToWrite;
-                }
-
-                if (byteOverflowing) {
-
-                    // set temperary leading bits
-                    byte newLeadingBits = (leadingBitsToWrite - 8 >= 0)
-                            ? (byte) (leadingBitsToWrite - 8) : leadingBitsToWrite;
 
                     // do the bitshifting of extra byte overflow bits
-                    byte orValue = (byte) (value >>> (bits - (8
-                            - extraBitCount)) & AND_VALUES[8 - extraBitCount]);
+                    // just like when there is a byte overflow
+                    byte orValue = (byte) (value
+                            & AND_VALUES[8 - extraBitCount]);
+
+                    writeBytes[i] = (byte) (extraBits
+                            | (orValue << (extraBitCount)));
+
+                    leadingBitsToWrite -= 8;
+                    bitOffset = leadingBitsToWrite;
+                    bitsToWrite -= (8 - trailingBits);
+                    writtenBits = (byte) (8 - trailingBits);
+                    byteOverflowing = false;
+                }
+            }
+
+            // tempererily set little endian to false
+            littleEndian = false;
+
+            // write the bytes
+            appendBytes(writeBytes, 0, writeBytes.length, true);
+
+            // set little endian back to true
+            littleEndian = true;
+
+            // deal with extra bits for later
+            if (bitsToWrite > 0 && leadingBitsToWrite != 0) {
+
+                // initialise leadingBitsToWrite
+                if (leadingBitsToWrite == bitOffset) {
+
+                    // set extra bits to the leading offset of value
+                    extraBits = (byte) ((value >>> writtenBits)
+                            & AND_VALUES[bitOffset]);
+                    extraBitCount = bitOffset;
+                } else {
+
+                    // set extra bits to the leading offset of value
+                    extraBits = (byte) (extraBits | ((value
+                            & AND_VALUES[bitOffset]) << extraBitCount));
+                    extraBitCount = leadingBitsToWrite;
+                }
+            }
+
+        } else {
+
+            // write in big endian order
+            for (int i = 0; i < bytesToWrite; i++) {
+
+                // values longer than leadingBitsToWrite
+                if (bitsToWrite > leadingBitsToWrite) {
+
+                    // subtract 8 to bit shift to next byte to write
+                    if (byteOverflowing) {
+                        bitsToWrite -= (8 - trailingBits);
+                        writtenBits = (byte) (8 - trailingBits);
+                    } else {
+                        bitsToWrite -= 8;
+                        writtenBits += 8;
+                    }
+
+                    if (byteOverflowing) {
+
+                        // set temperary leading bits
+                        byte newLeadingBits = (leadingBitsToWrite - 8 >= 0)
+                                ? (byte) (leadingBitsToWrite - 8) : leadingBitsToWrite;
+
+                        // do the bitshifting of extra byte overflow bits
+                        byte orValue = (byte) (value >>> (bits - (8
+                                - extraBitCount)) & AND_VALUES[8 - extraBitCount]);
+
+                        writeBytes[i] = (byte) ((extraBits << (8 - extraBitCount))
+                                | orValue);
+
+                        leadingBitsToWrite = newLeadingBits;
+                        bitOffset = leadingBitsToWrite;
+                        byteOverflowing = false;
+                    } else {
+
+                        // append byte to writeBytes array
+                        writeBytes[i] = (byte) (value >>> bitsToWrite);
+                    }
+                } else if (leadingBitsToWrite == 8) {
+
+                    // values that are a byte
+                    writeBytes[i] = (byte) (value | (extraBits << leadingBitsToWrite
+                            - extraBitCount));
+
+                    extraBitCount = 0;
+                    extraBits = 0;
+                    leadingBitsToWrite = 0;
+                } else {
+
+                    // do the bitshifting of extra byte overflow bits
+                    // just like when there is a byte overflow
+                    byte orValue = (byte) ((value & 0xff) >>> (bits
+                            - (8 - extraBitCount)) & AND_VALUES[8 - extraBitCount]);
 
                     writeBytes[i] = (byte) ((extraBits << (8 - extraBitCount))
                             | orValue);
 
-                    leadingBitsToWrite = newLeadingBits;
+                    // subtract 8 from leading bits
+                    leadingBitsToWrite -= 8;
                     bitOffset = leadingBitsToWrite;
                     byteOverflowing = false;
-                } // if bit count is greater than zero, bitshift
-                else if (extraBitCount > 0 && leadingBitsToWrite == 8) {
+                }
+            }
 
-                    // do the bitshifting of extra bits
-                    writeBytes[i] = manageBitOffset(
-                            (byte) (value >>> bitOffset), extraBitCount);
+            // write the bytes
+            appendBytes(writeBytes, 0, writeBytes.length, true);
 
+            // deal with extra bits for later
+            if (bitsToWrite > 0 && leadingBitsToWrite != 0) {
+
+                // initialise leadingBitsToWrite
+                if (leadingBitsToWrite == bitOffset) {
+
+                    // set extra bits to the leading offset of value
+                    extraBits = (byte) (value & AND_VALUES[bitOffset]);
+                    extraBitCount = bitOffset;
                 } else {
 
-                    // append byte to writeBytes array
-                    writeBytes[i] = (byte) (value >>> writeBitCount);
+                    // set extra bits to the leading offset of value
+                    extraBits = (byte) ((extraBits << bitOffset)
+                            | (value & AND_VALUES[bitOffset]));
+                    extraBitCount = leadingBitsToWrite;
                 }
-            } else if (leadingBitsToWrite == 8) {
-
-                // values that are a byte
-                writeBytes[i] = (byte) (value | (extraBits << leadingBitsToWrite
-                        - extraBitCount));
-
-                extraBitCount = 0;
-                extraBits = 0;
-                leadingBitsToWrite = 0;
-            } else {
-
-                // do the bitshifting of extra byte overflow bits
-                // just like when there is a byte overflow
-                byte orValue = (byte) ((value & 0xff) >>> (bits
-                        - (8 - extraBitCount)) & AND_VALUES[8 - extraBitCount]);
-
-                writeBytes[i] = (byte) ((extraBits << (8 - extraBitCount))
-                        | orValue);
-
-                // subtract 8 from leading bits
-                leadingBitsToWrite -= 8;
-                bitOffset = leadingBitsToWrite;
-                byteOverflowing = false;
             }
         }
-
-        // write the bytes
-        appendBytes(writeBytes, 0, writeBytes.length, true);
-
-        // deal with extra bits for later
-        if (writeBitCount > 0 && leadingBitsToWrite != 0) {
-
-            // initialise leadingBitsToWrite
-            if (leadingBitsToWrite == bitOffset) {
-
-                // set extra bits to the leading offset of value
-                extraBits = (byte) (value & AND_VALUES[bitOffset]);
-                extraBitCount = bitOffset;
-            } else {
-
-                // set extra bits to the leading offset of value
-                extraBits = (byte) ((extraBits << bitOffset)
-                        | (value & AND_VALUES[bitOffset]));
-                extraBitCount = leadingBitsToWrite;
-            }
-        }
-
-        // set back to original endianness.
-        this.littleEndian = littleEndian;
     }
 
     /**
@@ -406,8 +576,8 @@ public class RandomReaderWriter implements IReadable, IWritable {
         // method variables
         int bytesToExtract;
         long returnValue = 0;
-        byte leadingBits = 0;           // used in byte overflow tracking
-        boolean littleEndian = this.littleEndian;
+        // used in byte overflow tracking
+        byte leadingBits = 0;
         boolean byteOverflowing = false;
         boolean trailingBitsProcessed = false;
         boolean byteAlign = false;
@@ -419,7 +589,7 @@ public class RandomReaderWriter implements IReadable, IWritable {
         bitOffset = (byte) (bits % 8);
 
         // deal with bit offsetted values
-        if (bitOffset != 0) {
+        if (bitOffset != 0 || readTrailingBits != 0) {
 
             if (readTrailingBits != 0) {
 
@@ -443,106 +613,179 @@ public class RandomReaderWriter implements IReadable, IWritable {
                             byteAlign = true;
                         }
                     }
-                } else if (readTrailingBits == 8) {
-
-                    // the bits will byte align
-                    bytesToExtract--;
-                    readTrailingBits = 0;
                 }
 
             } else {
                 readTrailingBits = (byte) (8 - bitOffset);
                 bytesToExtract++;
             }
-
-            // set to big endian for arbitrary bit values that aren't byte
-            // aligned.
-            this.littleEndian = false;
         }
 
         // extract bytes
-        convertBytes = extractBytes(bytesToExtract, this.littleEndian, true);
+        convertBytes = extractBytes(bytesToExtract, false, true);
 
         // build value to return
-        for (int i = 0; i < convertBytes.length; i++) {
+        if (littleEndian) {
 
-            // deal with a byte align
-            if (byteAlign) {
+            // the bits read (used in little endian bit reading)
+            byte readBits = 0;
 
-                returnValue = (extraBits);
-                extraBitCount = 0;
-                extraBits = 0;
-                i--;
-            } // deal with byte overflow
-            else if (byteOverflowing) {
-                returnValue = (extraBits);
-                readTrailingBits = (byte) (bytesToExtract * 8 - (bits - leadingBits));
-                bitOffset = leadingBits;
-                extraBitCount = 0;
-                extraBits = 0;
-                byteOverflowing = false;
-                i--;
-            } // append byte to return value if not last byte or if there are
-            // no trailing bits
-            else if (i < convertBytes.length - 1 || readTrailingBits == 0) {
-                returnValue = returnValue | (convertBytes[i] & 0xff);
-            } else {
+            // read value in big endian
+            for (int i = 0; i < convertBytes.length; i++) {
 
-                // append readTrailingBits bits to return value
-                returnValue = returnValue | ((convertBytes[i] >>> readTrailingBits)
-                        & AND_VALUES[8 - readTrailingBits]);
-            }
+                // deal with a byte align
+                if (byteAlign) {
 
-            // bitshift one byte to return value if not the second to last byte
-            // or there are no traling bits or is byte aligned
-            if (i < convertBytes.length - 2 || byteAlign) {
+                    returnValue = (extraBits);
+                    extraBits = 0;
+                    i--;
+                } // deal with byte overflow
+                else if (byteOverflowing) {
+                    returnValue = (extraBits);
+                    readTrailingBits = (byte) (bytesToExtract * 8 - (bits
+                            - leadingBits));
+                    bitOffset = leadingBits;
+                    i--;
+                } // append byte to return value if not last byte or if there 
+                // are no trailing bits
+                else if (i < convertBytes.length - 1 || readTrailingBits == 0) {
+                    returnValue = returnValue | ((long) (convertBytes[i] & 0xff)
+                            << readBits);
+                } else {
 
-                returnValue = returnValue << 8;
-                byteAlign = false;
-            } else if (i == convertBytes.length - 2) {
-
-                // bitshift 8 - tralingBits if second to last
-                returnValue = returnValue << (8 - readTrailingBits);
-            } else if (extraBitCount != readTrailingBits
-                    && i == convertBytes.length - 1
-                    && readTrailingBits == 0) {
-
-                // bitshift to left and append extra bits
-                returnValue = (returnValue << extraBitCount) | extraBits;
-
-            } else {
-
-                // set extra bits to the traling bits of last read byte
-                extraBits = (byte) (convertBytes[i] & AND_VALUES[readTrailingBits]);
-
-                // set extra bit count
-                extraBitCount = readTrailingBits;
-            }
-        }
-
-        // return extra bits only if convertBytes length is zero
-        if (convertBytes.length == 0) {
-
-            if (extraBitCount > bitOffset) {
-
-                // append readTrailingBits bits to return value
-                returnValue = (extraBits >>> extraBitCount - bitOffset)
-                        & AND_VALUES[bitOffset];
-                if (!trailingBitsProcessed) {
-                    readTrailingBits -= bitOffset;
+                    // append readTrailingBits bits to return value
+                    returnValue = returnValue | ((convertBytes[i]
+                            & AND_VALUES[8 - readTrailingBits]) << readBits);
                 }
-            } else {
 
-                // return extraBits
-                returnValue = (extraBits & AND_VALUES[extraBitCount]);
+                // deal with the byte overlow
+                if (byteOverflowing) {
+                    readBits += extraBitCount;
+                    extraBitCount = 0;
+                    extraBits = 0;
+                    byteOverflowing = false;
+                } // bitshift one byte to return value if not the second to last 
+                // byte or there are no traling bits or is byte aligned
+                else if (i < convertBytes.length - 1 && !byteAlign) {
+
+                    readBits += 8;
+                } else if (byteAlign) {
+
+                    readBits += extraBitCount;
+                    extraBitCount = 0;
+                    byteAlign = false;
+                } else {
+
+                    // set extra bits to the leading bits of last read byte
+                    extraBits = (byte) ((convertBytes[i] >>> (8 - readTrailingBits))
+                            & AND_VALUES[readTrailingBits]);
+
+                    // set extra bit count
+                    extraBitCount = readTrailingBits;
+                }
             }
 
-            if (readTrailingBits > 0) {
+            // return extra bits only if convertBytes length is zero
+            if (convertBytes.length == 0) {
 
-                // bit shift to get rid of unneeded trailing bits
-                extraBits = (byte) ((extraBits >>> extraBitCount - readTrailingBits)
-                        & AND_VALUES[readTrailingBits]);
-                extraBitCount = readTrailingBits;
+                if (extraBitCount > bitOffset) {
+
+                    // append readTrailingBits bits to return value
+                    returnValue = extraBits & AND_VALUES[bitOffset];
+                    if (!trailingBitsProcessed) {
+                        readTrailingBits -= bitOffset;
+                    }
+                } else {
+
+                    // return extraBits
+                    returnValue = (extraBits & AND_VALUES[extraBitCount]);
+                }
+
+                if (readTrailingBits > 0) {
+
+                    // bit shift to get rid of unneeded trailing bits
+                    extraBits = (byte) ((extraBits >>> (bitOffset))
+                            & AND_VALUES[readTrailingBits]);
+                    extraBitCount = readTrailingBits;
+                }
+            }
+        } else {
+
+            // read value in big endian
+            for (int i = 0; i < convertBytes.length; i++) {
+
+                // deal with a byte align
+                if (byteAlign) {
+
+                    returnValue = (extraBits);
+                    extraBitCount = 0;
+                    extraBits = 0;
+                    i--;
+                } // deal with byte overflow
+                else if (byteOverflowing) {
+                    returnValue = (extraBits);
+                    readTrailingBits = (byte) (bytesToExtract * 8 - (bits
+                            - leadingBits));
+                    bitOffset = leadingBits;
+                    extraBitCount = 0;
+                    extraBits = 0;
+                    byteOverflowing = false;
+                    i--;
+                } // append byte to return value if not last byte or if there are
+                // no trailing bits
+                else if (i < convertBytes.length - 1 || readTrailingBits == 0) {
+                    returnValue = returnValue | (convertBytes[i] & 0xff);
+                } else {
+
+                    // append readTrailingBits bits to return value
+                    returnValue = returnValue | ((convertBytes[i]
+                            >>> readTrailingBits) & AND_VALUES[8 - readTrailingBits]);
+                }
+
+                // bitshift one byte to return value if not the second to last 
+                // byte or there are no traling bits or is byte aligned
+                if (i < convertBytes.length - 2 || byteAlign) {
+
+                    returnValue = returnValue << 8;
+                    byteAlign = false;
+                } else if (i == convertBytes.length - 2) {
+
+                    // bitshift 8 - tralingBits if second to last
+                    returnValue = returnValue << (8 - readTrailingBits);
+                } else {
+
+                    // set extra bits to the traling bits of last read byte
+                    extraBits = (byte) (convertBytes[i]
+                            & AND_VALUES[readTrailingBits]);
+
+                    // set extra bit count
+                    extraBitCount = readTrailingBits;
+                }
+            }
+
+            // return extra bits only if convertBytes length is zero
+            if (convertBytes.length == 0) {
+
+                if (extraBitCount > bitOffset) {
+
+                    // append readTrailingBits bits to return value
+                    returnValue = (extraBits >>> extraBitCount - bitOffset)
+                            & AND_VALUES[bitOffset];
+                    if (!trailingBitsProcessed) {
+                        readTrailingBits -= bitOffset;
+                    }
+                } else {
+
+                    // return extraBits
+                    returnValue = (extraBits & AND_VALUES[extraBitCount]);
+                }
+
+                if (readTrailingBits > 0) {
+
+                    // bit shift to get rid of unneeded trailing bits
+                    extraBits &= AND_VALUES[readTrailingBits];
+                    extraBitCount = readTrailingBits;
+                }
             }
         }
 
@@ -560,7 +803,6 @@ public class RandomReaderWriter implements IReadable, IWritable {
             returnValue = returnValue >> (64 - bits);
         }
 
-        this.littleEndian = littleEndian;
         return returnValue;
     }
 
@@ -575,7 +817,11 @@ public class RandomReaderWriter implements IReadable, IWritable {
         if (leadingBitsToWrite > 0) {
 
             // write extra bits
-            writeByte((byte) (extraBits << (8 - extraBitCount)), true);
+            if (littleEndian) {
+                writeByte(extraBits, true);
+            } else {
+                writeByte((byte) (extraBits << (8 - extraBitCount)), true);
+            }
         }
         leadingBitsToWrite = 0;
         readTrailingBits = 0;
@@ -864,6 +1110,10 @@ public class RandomReaderWriter implements IReadable, IWritable {
         }
 
         raf.writeByte(value);
+        
+        if (buildingCheckByteStream && checkByteStream != null) {
+            checkByteStream.add(value);
+        }
     }
 
     /**
@@ -909,6 +1159,11 @@ public class RandomReaderWriter implements IReadable, IWritable {
 
         // get byte
         byte convertedByte = raf.readByte();
+        
+        // append byte to check byte stream
+        if (buildingCheckByteStream && checkByteStream != null) {
+            checkByteStream.add(convertedByte);
+        }
 
         // bit shift to right position if there are traling bits
         if (extraBitCount != 0) {
@@ -1003,6 +1258,13 @@ public class RandomReaderWriter implements IReadable, IWritable {
 
         // write the bytes
         raf.write(bytesToAppend, start, end);
+        
+        // append bytes to check byte stream
+        if (buildingCheckByteStream && checkByteStream != null) {
+            for (int i = start; i < end; i++) {
+                checkByteStream.add(bytesToAppend[i]);
+            }
+        }
     }
 
     /**
@@ -1036,6 +1298,13 @@ public class RandomReaderWriter implements IReadable, IWritable {
 
         // extract bytes
         raf.read(extractedBytes, 0, bytesToExtract);
+        
+        // append bytes to check byte stream
+        if (buildingCheckByteStream && checkByteStream != null) {
+            for (int i = 0; i < extractedBytes.length; i++) {
+                checkByteStream.add(extractedBytes[i]);
+            }
+        }
 
         // deal with bit offset if any
         if (extraBitCount != 0) {
@@ -1069,6 +1338,13 @@ public class RandomReaderWriter implements IReadable, IWritable {
 
         // extract bytes
         raf.read(extractedBytes, 0, bytesToExtract);
+        
+        // append bytes to check byte stream
+        if (buildingCheckByteStream && checkByteStream != null) {
+            for (int i = 0; i < extractedBytes.length; i++) {
+                checkByteStream.add(extractedBytes[i]);
+            }
+        }
 
         // deal with bit offset if any
         if (!ignoreOffset && extraBitCount != 0) {

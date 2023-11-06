@@ -12,26 +12,40 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
  * @author Edward Jenkins © 2021-2023
  */
-public class Reader implements IReadable{
+public class Reader implements IReadable {
 
     // constants
     public static final byte[] AND_VALUES = {0, 1, 3, 7, 15, 31, 63, 127};
 
     // instance variables
-    private DataInputStream dis;        // the data input stream used in reading file
-    private String fileName;            // name of file
-    private boolean littleEndian;       // stores if file is reading in little endian or not
+    // the data input stream used in reading file
+    private DataInputStream dis;
+    // name of file
+    private String fileName;
+    // stores if file is reading in little endian or not
+    private boolean littleEndian;
+    // the check byte stream used if a portion of the file is needed
+    private List<Byte> checkByteStream;
+    // add bytes to check byte stream if true
+    private boolean buildingCheckByteStream;
     private byte[] convertBytes;
-    private long filePosition;          // stores the position in the file
-    private byte extraBits;             // the extra bits that can't yet be written
-    private byte extraBitCount;         // count of extra bits
-    private byte trailingBits;          // count of trailing bits
-    private byte bitOffset;             // the bit offset over the byte mark
+    // stores the position in the file
+    private long filePosition;
+    // the extra bits that can't yet be written
+    private byte extraBits;
+    // count of extra bits
+    private byte extraBitCount;
+    // count of trailing bits
+    private byte trailingBits;
+    // the bit offset over the byte mark
+    private byte bitOffset;
 
     /**
      * The 2-args constructor for this object.
@@ -110,6 +124,51 @@ public class Reader implements IReadable{
         this.dis = new DataInputStream(new BufferedInputStream(
                 new FileInputStream(fileName)));
         dis.skip(filePosition);
+    }
+
+    /**
+     * Starts saving a check byte stream that can be used for CRC or other
+     * checks.
+     */
+    @Override
+    public void buildCheckByteStream() {
+        buildingCheckByteStream = true;
+        checkByteStream = new LinkedList<>();
+    }
+
+    /**
+     * Gets the check byte stream that has been saved.
+     *
+     * @return the check byte stream
+     */
+    @Override
+    public byte[] getCheckByteStream() {
+
+        // byte arrary
+        byte[] returnByteStream = new byte[checkByteStream.size()];
+
+        // build loop
+        for (int i = 0; i < returnByteStream.length; i++) {
+            returnByteStream[i] = checkByteStream.get(i);
+        }
+
+        return returnByteStream;
+    }
+
+    /**
+     * Resets the check byte stream.
+     */
+    @Override
+    public void resetCheckByteStream() {
+        checkByteStream = new LinkedList<>();
+    }
+
+    /**
+     * End the check byte stream.
+     */
+    @Override
+    public void endCheckByteStream() {
+        buildingCheckByteStream = false;
     }
 
     /**
@@ -213,8 +272,8 @@ public class Reader implements IReadable{
         // method variables
         int bytesToExtract;
         long returnValue = 0;
-        byte leadingBits = 0;           // used in byte overflow tracking
-        boolean littleEndian = this.littleEndian;
+        // used in byte overflow tracking
+        byte leadingBits = 0;
         boolean byteOverflowing = false;
         boolean trailingBitsProcessed = false;
         boolean byteAlign = false;
@@ -226,131 +285,197 @@ public class Reader implements IReadable{
         bitOffset = (byte) (bits % 8);
 
         // deal with bit offsetted values
-        if (bitOffset != 0) {
+        if (trailingBits != 0) {
 
-            if (trailingBits != 0) {
+            if (trailingBits < 8) {
 
-                if (trailingBits < 8) {
+                if ((bitOffset > trailingBits)
+                        || (trailingBits > 0 && trailingBits + bits > 8
+                        && bitOffset != trailingBits)) {
 
-                    if ((bitOffset > trailingBits) 
-                            || (trailingBits > 0 && trailingBits + bits > 8
-                            && bitOffset != trailingBits)) {
-
-                        // byte overflows the trailing bits
-                        byteOverflowing = true;
-                        leadingBits = trailingBits;
-                        if (bitOffset > leadingBits) {
-                            bytesToExtract++;
-                        }
-                    } else {
-                        // use to extract a few bits from extra bits
-                        trailingBits -= bitOffset;
-                        trailingBitsProcessed = true;
-                        if (trailingBits == 0) {
-                            byteAlign = true;
-                        }
+                    // byte overflows the trailing bits
+                    byteOverflowing = true;
+                    leadingBits = trailingBits;
+                    if (bitOffset > leadingBits) {
+                        bytesToExtract++;
                     }
-                } else if (trailingBits == 8) {
-
-                    // the bits will byte align
-                    bytesToExtract--;
-                    trailingBits = 0;
+                } else {
+                    // use to extract a few bits from extra bits
+                    trailingBits -= bitOffset;
+                    trailingBitsProcessed = true;
+                    byteAlign = (trailingBits == 0);
                 }
-
-            } else {
-                trailingBits = (byte) (8 - bitOffset);
-                bytesToExtract++;
             }
-
-            // set to big endian for arbitrary bit values that aren't byte
-            // aligned.
-            this.littleEndian = false;
+        } else if (bitOffset != 0) {
+            trailingBits = (byte) (8 - bitOffset);
+            bytesToExtract++;
         }
 
         // extract bytes
-        convertBytes = extractBytes(bytesToExtract, this.littleEndian, true);
+        convertBytes = extractBytes(bytesToExtract, false, true);
 
         // build value to return
-        for (int i = 0; i < convertBytes.length; i++) {
+        if (littleEndian) {
 
-            // deal with a byte align
-            if (byteAlign) {
-                
-                returnValue = (extraBits);
-                extraBitCount = 0;
-                extraBits = 0;
-                i--;
-            } // deal with byte overflow
-            else if (byteOverflowing) {
-                returnValue = (extraBits);
-                trailingBits = (byte) (bytesToExtract * 8 - (bits - leadingBits));
-                bitOffset = leadingBits;
-                extraBitCount = 0;
-                extraBits = 0;
-                byteOverflowing = false;
-                i--;
-            } // append byte to return value if not last byte or if there are
-            // no trailing bits
-            else if (i < convertBytes.length - 1 || trailingBits == 0) {
-                returnValue = returnValue | (convertBytes[i] & 0xff);
-            } else {
+            // the bits read (used in little endian bit reading)
+            byte readBits = 0;
 
-                // append trailingBits bits to return value
-                returnValue = returnValue | ((convertBytes[i] >>> trailingBits)
-                        & AND_VALUES[8 - trailingBits]);
-            }
+            // read value in big endian
+            for (int i = 0; i < convertBytes.length; i++) {
 
-            
-            // bitshift one byte to return value if not the second to last byte
-            // or there are no traling bits or is byte aligned
-            if (i < convertBytes.length - 2 || byteAlign) {
+                // deal with a byte align
+                if (byteAlign) {
 
-                returnValue = returnValue << 8;
-                byteAlign = false;
-            } else if (i == convertBytes.length - 2) {
+                    returnValue = (extraBits);
+                    extraBits = 0;
+                    i--;
+                } // deal with byte overflow
+                else if (byteOverflowing) {
+                    returnValue = (extraBits);
+                    trailingBits = (byte) (bytesToExtract * 8 - (bits
+                            - leadingBits));
+                    bitOffset = leadingBits;
+                    i--;
+                } // append byte to return value if not last byte or if there 
+                // are no trailing bits
+                else if (i < convertBytes.length - 1 || trailingBits == 0) {
+                    returnValue |= ((long) (convertBytes[i] & 0xff)
+                            << readBits);
+                } else {
 
-                // bitshift 8 - tralingBits if second to last
-                returnValue = returnValue << (8 - trailingBits);
-            } else if (extraBitCount != trailingBits
-                    && i == convertBytes.length - 1
-                    && trailingBits == 0) {
-
-                // bitshift to left and append extra bits
-                returnValue = (returnValue << extraBitCount) | extraBits;
-
-            } else {
-
-                // set extra bits to the traling bits of last read byte
-                extraBits = (byte) (convertBytes[i] & AND_VALUES[trailingBits]);
-
-                // set extra bit count
-                extraBitCount = trailingBits;
-            }
-        }
-
-        // return extra bits only if convertBytes length is zero
-        if (convertBytes.length == 0) {
-
-            if (extraBitCount > bitOffset) {
-
-                // append trailingBits bits to return value
-                returnValue = (extraBits >>> extraBitCount - bitOffset)
-                        & AND_VALUES[bitOffset];
-                if (!trailingBitsProcessed) {
-                    trailingBits -= bitOffset;
+                    // append trailingBits bits to return value
+                    returnValue |= ((convertBytes[i]
+                            & AND_VALUES[8 - trailingBits]) << readBits);
                 }
-            } else {
 
-                // return extraBits
-                returnValue = (extraBits & AND_VALUES[extraBitCount]);
+                // deal with the byte overlow
+                if (byteOverflowing) {
+                    readBits += extraBitCount;
+                    extraBitCount = 0;
+                    extraBits = 0;
+                    byteOverflowing = false;
+                } // bitshift one byte to return value if not the second to last 
+                // byte or there are no traling bits or is byte aligned
+                else if (i < convertBytes.length - 1 && !byteAlign) {
+
+                    readBits += 8;
+                } else if (byteAlign) {
+
+                    readBits += extraBitCount;
+                    extraBitCount = 0;
+                    byteAlign = false;
+                } else {
+
+                    // set extra bits to the leading bits of last read byte
+                    extraBits = (byte) ((convertBytes[i] >>> (8 - trailingBits))
+                            & AND_VALUES[trailingBits]);
+
+                    // set extra bit count
+                    extraBitCount = trailingBits;
+                }
             }
 
-            if (trailingBits > 0) {
+            // return extra bits only if convertBytes length is zero
+            if (convertBytes.length == 0) {
 
-                // bit shift to get rid of unneeded trailing bits
-                extraBits = (byte) ((extraBits >>> extraBitCount - trailingBits)
-                        & AND_VALUES[trailingBits]);
-                extraBitCount = trailingBits;
+                if (extraBitCount > bitOffset) {
+
+                    // append trailingBits bits to return value
+                    returnValue = extraBits & AND_VALUES[bitOffset];
+                    if (!trailingBitsProcessed) {
+                        trailingBits -= bitOffset;
+                    }
+                } else {
+
+                    // return extraBits
+                    returnValue = (extraBits & AND_VALUES[extraBitCount]);
+                }
+
+                if (trailingBits > 0) {
+
+                    // bit shift to get rid of unneeded trailing bits
+                    extraBits = (byte) ((extraBits >>> (bitOffset))
+                            & AND_VALUES[trailingBits]);
+                    extraBitCount = trailingBits;
+                }
+            }
+        } else {
+
+            // read value in big endian
+            for (int i = 0; i < convertBytes.length; i++) {
+
+                // deal with a byte align
+                if (byteAlign) {
+
+                    returnValue = (extraBits);
+                    extraBitCount = 0;
+                    extraBits = 0;
+                    i--;
+                } // deal with byte overflow
+                else if (byteOverflowing) {
+                    returnValue = (extraBits);
+                    trailingBits = (byte) (bytesToExtract * 8 - (bits
+                            - leadingBits));
+                    bitOffset = leadingBits;
+                    extraBitCount = 0;
+                    extraBits = 0;
+                    byteOverflowing = false;
+                    i--;
+                } // append byte to return value if not last byte or if there are
+                // no trailing bits
+                else if (i < convertBytes.length - 1 || trailingBits == 0) {
+                    returnValue |= (convertBytes[i] & 0xff);
+                } else {
+
+                    // append trailingBits bits to return value
+                    returnValue |= ((convertBytes[i]
+                            >>> trailingBits) & AND_VALUES[8 - trailingBits]);
+                }
+
+                // bitshift one byte to return value if not the second to last 
+                // byte or there are no traling bits or is byte aligned
+                if (i < convertBytes.length - 2 || byteAlign) {
+
+                    returnValue <<= 8;
+                    byteAlign = false;
+                } else if (i == convertBytes.length - 2) {
+
+                    // bitshift 8 - tralingBits if second to last
+                    returnValue <<= (8 - trailingBits);
+                } else {
+
+                    // set extra bits to the traling bits of last read byte
+                    extraBits = (byte) (convertBytes[i]
+                            & AND_VALUES[trailingBits]);
+
+                    // set extra bit count
+                    extraBitCount = trailingBits;
+                }
+            }
+
+            // return extra bits only if convertBytes length is zero
+            if (convertBytes.length == 0) {
+
+                if (extraBitCount > bitOffset) {
+
+                    // append trailingBits bits to return value
+                    returnValue = (extraBits >>> extraBitCount - bitOffset)
+                            & AND_VALUES[bitOffset];
+                    if (!trailingBitsProcessed) {
+                        trailingBits -= bitOffset;
+                    }
+                } else {
+
+                    // return extraBits
+                    returnValue = (extraBits & AND_VALUES[extraBitCount]);
+                }
+
+                if (trailingBits > 0) {
+
+                    // bit shift to get rid of unneeded trailing bits
+                    extraBits &= AND_VALUES[trailingBits];
+                    extraBitCount = trailingBits;
+                }
             }
         }
 
@@ -362,13 +487,12 @@ public class Reader implements IReadable{
 
         // making header bits all 1 if signed and first bit is 1
         if (signed && returnValue >>> (bits - 1) == 1) {
-            
+
             // bitshift backwards and forwards to set value to signed
-            returnValue = returnValue << (64 - bits);
-            returnValue = returnValue >> (64 - bits);
+            returnValue <<= (64 - bits);
+            returnValue >>= (64 - bits);
         }
 
-        this.littleEndian = littleEndian;
         return returnValue;
     }
 
@@ -603,6 +727,11 @@ public class Reader implements IReadable{
 
         // get byte
         byte convertedByte = dis.readByte();
+        
+        // append byte to check byte stream
+        if (buildingCheckByteStream && checkByteStream != null) {
+            checkByteStream.add(convertedByte);
+        }
 
         // increment file position
         filePosition++;
@@ -618,8 +747,9 @@ public class Reader implements IReadable{
 
     /**
      * Reads a boolean value from file
+     *
      * @return the boolean variable
-     * @throws IOException 
+     * @throws IOException
      */
     @Override
     public boolean getBoolean() throws IOException {
@@ -650,6 +780,13 @@ public class Reader implements IReadable{
 
         // extract bytes
         dis.read(extractedBytes, 0, bytesToExtract);
+        
+        // append bytes to check byte stream
+        if (buildingCheckByteStream && checkByteStream != null) {
+            for (int i = 0; i < extractedBytes.length; i++) {
+                checkByteStream.add(extractedBytes[i]);
+            }
+        }
 
         // increment file pos by number of bytes read
         filePosition += bytesToExtract;
@@ -686,6 +823,13 @@ public class Reader implements IReadable{
 
         // extract bytes
         dis.read(extractedBytes, 0, bytesToExtract);
+        
+        // append bytes to check byte stream
+        if (buildingCheckByteStream && checkByteStream != null) {
+            for (int i = 0; i < extractedBytes.length; i++) {
+                checkByteStream.add(extractedBytes[i]);
+            }
+        }
 
         // increment file pos by number of bytes read
         filePosition += bytesToExtract;
@@ -741,15 +885,22 @@ public class Reader implements IReadable{
             filePosition += bytes;
             skipped = true;
         }
+        
+        // append bytes to check byte stream
+        if (buildingCheckByteStream && checkByteStream != null) {
+            for (int i = 0; i < bytes; i++) {
+                checkByteStream.add((byte)0);
+            }
+        }
 
         return skipped;
     }
 
     /**
      * Returns available bytes
-     * 
+     *
      * @return approximate amount of bytes left in file
-     * @throws IOException 
+     * @throws IOException
      */
     @Override
     public int available() throws IOException {
@@ -758,8 +909,8 @@ public class Reader implements IReadable{
 
     /**
      * Closes the reader.
-     * 
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     @Override
     public void close() throws IOException {
@@ -768,7 +919,7 @@ public class Reader implements IReadable{
 
     /**
      * Processes any bit-shifting needed on the value
-     * 
+     *
      * @param value the byte to process
      * @param bitCount the amount of bits to bit shift
      * @return the processed value
@@ -781,17 +932,34 @@ public class Reader implements IReadable{
         // set bitsToShiftIn
         bitsToShiftIn = extraBits;
 
-        // get extra bits from end of byte
-        extraBits
-                = (byte) (value & AND_VALUES[bitCount]);
+        if (littleEndian) {
 
-        // bit shift a byte
-        value = (byte) ((value >>> bitCount) & AND_VALUES[8 - bitCount]);
+            // get extra bits from beginning of byte
+            extraBits = (byte) ((value >> (8 - bitCount))
+                    & AND_VALUES[bitCount]);
 
-        // set extra bit count
-        extraBitCount = bitCount;
+            // bit shift left
+            value = (byte) ((int) value << bitCount);
 
-        value = (byte) (value | (bitsToShiftIn << (8 - bitCount)));
+            // set extra bit count
+            extraBitCount = bitCount;
+
+            value = (byte) ((int) value | bitsToShiftIn);
+
+        } else {
+
+            // get extra bits from end of byte
+            extraBits
+                    = (byte) (value & AND_VALUES[bitCount]);
+
+            // bit shift a byte
+            value = (byte) ((value >>> bitCount) & AND_VALUES[8 - bitCount]);
+
+            // set extra bit count
+            extraBitCount = bitCount;
+
+            value = (byte) (value | (bitsToShiftIn << (8 - bitCount)));
+        }
 
         return value;
     }
