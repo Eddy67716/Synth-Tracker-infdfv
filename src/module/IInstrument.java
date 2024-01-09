@@ -43,7 +43,7 @@ public interface IInstrument extends IToneAssignable {
 
     public short getMidiChannel();
 
-    public byte getMidiProgram();
+    public short getMidiProgram();
 
     public short getMidiBank();
     
@@ -91,7 +91,7 @@ public interface IInstrument extends IToneAssignable {
 
     public void setMidiChannel(short midiChannel);
 
-    public void setMidiProgram(byte midiProgram);
+    public void setMidiProgram(short midiProgram);
 
     public void setMidiBank(short midiBank);
 }
