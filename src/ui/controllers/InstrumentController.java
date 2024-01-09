@@ -291,7 +291,7 @@ public class InstrumentController extends GenericController {
         if (isAlteringModels()) {
 
             // update instrument global volume value
-            selectedInstrument.setMidiProgram((short) ((int) instrumentSpinner.getValue()));
+            selectedInstrument.setMidiProgram((byte) ((int) instrumentSpinner.getValue()));
         }
 
         midiProgramOldValue = value;

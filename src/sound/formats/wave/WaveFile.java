@@ -464,7 +464,7 @@ public class WaveFile extends WaveSpecs implements IAudioSample {
     }
 
     @Override
-    public String getDOSFileName() {
+    public String getDosFileName() {
         return getSampleName().substring(0, 12);
     }
 
@@ -474,7 +474,7 @@ public class WaveFile extends WaveSpecs implements IAudioSample {
     }
 
     @Override
-    public byte getGlobalVolume() {
+    public short getGlobalVolume() {
         return 64;
     }
 
@@ -554,7 +554,7 @@ public class WaveFile extends WaveSpecs implements IAudioSample {
     }
 
     @Override
-    public void setDOSFileName(String dosFileName) {
+    public void setDosFileName(String dosFileName) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 

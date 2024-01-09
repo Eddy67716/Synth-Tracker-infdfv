@@ -1,11 +1,11 @@
 
 import module.IModuleFile;
 import module.IPattern;
-import module.it.format.ITHeader;
-import module.it.format.ITInstrument;
-import module.it.format.ITPattern;
-import module.it.format.ITFile;
-import module.it.format.ITSampleHeader;
+import module.it.format.ItHeader;
+import module.it.format.ItInstrument;
+import module.it.format.ItPattern;
+import module.it.format.ItFile;
+import module.it.format.ItSampleHeader;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ public class testITRead {
     public static void main(String[] args) {
 
         // create ITReader
-        ITFile reader = new ITFile("src/Hero.it");
+        ItFile reader = new ItFile("src/Hero.it");
 
         try {
             // check if read

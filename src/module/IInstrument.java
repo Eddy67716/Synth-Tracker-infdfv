@@ -9,33 +9,21 @@ import io.IReadable;
 import io.IWritable;
 import java.io.IOException;
 import module.it.format.NodePoint;
+import sound.sample.player.IToneAssignable;
 
 /**
  *
  * @author Edward Jenkins
  */
-public interface IInstrument {
-    
-    public boolean read() throws IOException, IllegalArgumentException;
-    
-    public boolean read(IReadable reader) throws IOException, 
-            IllegalArgumentException; 
-    
-    public boolean write(IWritable writer) throws Exception;
+public interface IInstrument extends IToneAssignable {
     
     public String getInstrumentName();
     
     public String getDosFileName();
     
-    public byte getNewNoteAction();
+    public short getFadeOut();
 
-    public byte getDuplicateCheckType();
-
-    public byte getDuplicateCheckAction();
-    
-    public int getFadeOut();
-
-    public byte getPitchPanSeparation();
+    public short getPitchPanSeparation();
 
     public byte getPitchPanCentre();
     
@@ -55,7 +43,7 @@ public interface IInstrument {
 
     public short getMidiChannel();
 
-    public short getMidiProgram();
+    public byte getMidiProgram();
 
     public short getMidiBank();
     
@@ -93,7 +81,7 @@ public interface IInstrument {
 
     public void setRandomPanningVariation(byte randomPanningVariation);
 
-    public void setNumberOfSamples(byte numberOfSamples);
+    public void setSampleNumber(short sampleNumber);
 
     public void setInstrumentName(String instrumentName);
 
@@ -103,8 +91,7 @@ public interface IInstrument {
 
     public void setMidiChannel(short midiChannel);
 
-    public void setMidiProgram(short midiProgram);
+    public void setMidiProgram(byte midiProgram);
 
     public void setMidiBank(short midiBank);
-    
 }

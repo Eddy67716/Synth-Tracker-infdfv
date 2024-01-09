@@ -5,11 +5,11 @@
  */
 package ui.view.models;
 
-import module.it.format.ITFile;
+import module.it.format.ItFile;
 import module.IInstrument;
 import module.IModuleFile;
 import module.IPattern;
-import module.it.format.ITSampleHeader;
+import module.it.format.ItSampleHeader;
 import sound.formats.wave.WaveFile;
 import ui.view.ProgressionBar;
 import ui.workers.LoadModuleSwingWorker;
@@ -84,7 +84,7 @@ public class LoadViewModel {
             return "";
         }
         openedFiles.add(fileChooser.getSelectedFile());
-        modFile = new ITFile(fileChooser.getSelectedFile().getPath());
+        modFile = new ItFile(fileChooser.getSelectedFile().getPath());
         UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
         try {
 
@@ -116,7 +116,7 @@ public class LoadViewModel {
                 switch (fileExtension) {
                     case "wav":
                         WaveFile waveFile = new WaveFile(path);
-                        sample = new ITSampleHeader((IAudioSample) waveFile);
+                        sample = new ItSampleHeader((IAudioSample) waveFile);
                         break;
                     case "its":
                         break;

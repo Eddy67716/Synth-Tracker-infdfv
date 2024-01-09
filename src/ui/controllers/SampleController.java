@@ -168,7 +168,7 @@ public class SampleController extends GenericController {
 
         if (isAlteringModels()) {
 
-            selectedSample.setDOSFileName(sampleNameText.substring(0, 12));
+            selectedSample.setDosFileName(sampleNameText.substring(0, 12));
         }
     }
 
@@ -764,7 +764,7 @@ public class SampleController extends GenericController {
         // DOS file name
         if (modType == 2 || modType >= 4) {
             sampleUI.getTools().getSampleDetails()
-                    .getFileNameField().setText(selectedSample.getDOSFileName());
+                    .getFileNameField().setText(selectedSample.getDosFileName());
         }
 
         // format

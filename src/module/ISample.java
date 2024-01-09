@@ -16,13 +16,13 @@ public interface ISample extends ISavableFile {
     public String getSampleName();
     
     // get the file name of the sample
-    public String getDOSFileName();
+    public String getDosFileName();
     
     // get default volume
     public short getDefaultVolume();
     
     // get global volume
-    public byte getGlobalVolume();
+    public short getGlobalVolume();
     
     // get pan value
     public byte getPanValue();
@@ -46,7 +46,7 @@ public interface ISample extends ISavableFile {
     public void setSampleName(String sampleName);
     
     // set the file name of the sample
-    public void setDOSFileName(String dosFileName);
+    public void setDosFileName(String dosFileName);
     
     // set default volume
     public void setDefaultVolume(short defaultVolume);
