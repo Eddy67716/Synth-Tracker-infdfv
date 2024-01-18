@@ -12,6 +12,7 @@ import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.event.ActionListener;
 import javax.swing.DefaultListModel;
 import javax.swing.JComboBox;
 import javax.swing.JList;
@@ -20,6 +21,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JToolBar;
 import static javax.swing.ScrollPaneConstants.*;
+import javax.swing.event.ChangeListener;
 import static ui.UIProperties.DEF_INSETS;
 
 /**
@@ -33,15 +35,15 @@ public class SampleWindow extends JPanel{
     private JToolBar sampleWindowToolBar;
     private GridBagLayout sampleWindowToolBarLayout;
     private GridBagConstraints sampleWindowTBC;
+    private int minSampleCount;
+    private int sampleLength;
     private JSlider zoomSlider;
-    private JComboBox sampleTypeComboBox;
     private SampleCanvas canvas;
     private JScrollPane pane;
     
     public SampleWindow(int modID) {
         
         this.modID = modID;
-        setSampleTypeList();
         canvas = new SampleCanvas();
         sampleWindowToolBar = new JToolBar();
         pane = new JScrollPane(canvas, VERTICAL_SCROLLBAR_NEVER, 
@@ -72,8 +74,9 @@ public class SampleWindow extends JPanel{
         sampleWindowTBC.weightx = 0.0;
         sampleWindowTBC.gridwidth = 1;
         
-        // sample type list
-        sampleWindowToolBar.add(sampleTypeComboBox, sampleWindowTBC);
+        // zoom slider
+        zoomSlider = new JSlider(0, 155);
+        sampleWindowToolBar.add(zoomSlider, sampleWindowTBC);
         
         sampleWindowTBC.gridx++;
         sampleWindowTBC.weightx = 1.0;
@@ -91,33 +94,16 @@ public class SampleWindow extends JPanel{
         add(pane, BorderLayout.CENTER);
     }
     
+    // getters
     public SampleCanvas getCanvas() {
         return this.canvas;
     }
+
+    public JSlider getZoomSlider() {
+        return zoomSlider;
+    }
     
-    private void setSampleTypeList() {
-        
-        sampleTypeComboBox = new JComboBox();
-        String[] elements = {"Audio sample", "OPL2 sample", "OPL3 sample", 
-            "Chip sample", "Additive synth sample", "Organ sample", "FM sample"};
-        
-        switch (modID) {
-            case 2:
-            case 5:
-                sampleTypeComboBox.addItem(elements[0]);
-                sampleTypeComboBox.addItem(elements[1]);
-                break;
-            case 6:
-                sampleTypeComboBox.addItem(elements[0]);
-                sampleTypeComboBox.addItem(elements[2]);
-                sampleTypeComboBox.addItem(elements[3]);
-                sampleTypeComboBox.addItem(elements[4]);
-                sampleTypeComboBox.addItem(elements[5]);
-                sampleTypeComboBox.addItem(elements[6]);
-                break;
-            default:
-                sampleTypeComboBox.addItem(elements[0]);
-                break;
-        }
+    public void addZoomSliderChangeEvent(ChangeListener changePerformed) {
+        zoomSlider.addChangeListener(changePerformed);
     }
 }

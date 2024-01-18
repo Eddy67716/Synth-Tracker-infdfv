@@ -12,6 +12,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Path2D;
+import static java.text.NumberFormat.Field.INTEGER;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -36,7 +37,7 @@ public class SampleCanvas extends JPanel {
 
     public SampleCanvas() {
         setMinimumSize(new Dimension(1000, 20));
-        setMaximumSize(new Dimension(3000, 4000));
+        setMaximumSize(new Dimension(Integer.MAX_VALUE, 4000));
         setPreferredSize(new Dimension(1000, 100));
         setDoubleBuffered(true);
     }

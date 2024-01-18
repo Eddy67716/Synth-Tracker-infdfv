@@ -15,10 +15,12 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
@@ -37,6 +39,7 @@ public class SampleUI extends JPanel {
 
     // instance variables
     private int selectedSample;
+    private int modID;
     // toolbar for pannel
     private GridBagLayout sampleToolBarLayout;
     private GridBagConstraints sampleTBC;
@@ -56,6 +59,8 @@ public class SampleUI extends JPanel {
     private JButton playSampleButton;
     private JButton stopSampleButton;
     private JButton resampleButton;
+    private JSeparator playTypeSeparator;
+    private JComboBox sampleTypeComboBox;
     
     // other windows
     private JSplitPane splitPane;
@@ -63,6 +68,8 @@ public class SampleUI extends JPanel {
     private SampleWindow sampleWindow;
 
     public SampleUI(ArrayList<IAudioSample> samples, int modID) {
+        
+        this.modID = modID;
         
         // set layout
         this.setLayout(new BorderLayout());
@@ -94,6 +101,7 @@ public class SampleUI extends JPanel {
         selectorPlaySeparator = new JSeparator();
         playSampleButton = new JButton();
         stopSampleButton = new JButton();
+        playTypeSeparator = new JSeparator();
         
         init();
     }
@@ -229,6 +237,7 @@ public class SampleUI extends JPanel {
         sampleTBC.gridwidth = 1;
         
         // separator
+        setSampleTypeList();
         sampleToolBar.add(selectorPlaySeparator, sampleTBC);
         
         sampleTBC.gridx++;
@@ -247,7 +256,20 @@ public class SampleUI extends JPanel {
         sampleToolBar.add(playSampleButton, sampleTBC);
         
         sampleTBC.gridx++;
-        sampleTBC.weightx = 1.0;
+        sampleTBC.weightx = 0.0;
+        sampleTBC.gridwidth = 1;
+        
+        // separator
+        sampleToolBar.add(selectorPlaySeparator, sampleTBC);
+        
+        sampleTBC.gridx++;
+        sampleTBC.weightx = 0.0;
+        
+        // sample type combo box
+        sampleToolBar.add(sampleTypeComboBox, sampleTBC);
+        
+        sampleTBC.gridx++;
+        sampleTBC.weightx = 1;
         sampleTBC.gridwidth = 1;
         
         sampleToolBar.add(new JPanel(), sampleTBC);
@@ -261,8 +283,39 @@ public class SampleUI extends JPanel {
         
         this.add(splitPane, BorderLayout.CENTER);
     }
+    
+    private void setSampleTypeList() {
+        
+        sampleTypeComboBox = new JComboBox();
+        String[] elements = {"Audio sample", "OPL2 sample", "OPL3 sample", 
+            "Chip synth sample", "Additive synth sample", "Organ sample", 
+            "FM sample"};
+        
+        switch (modID) {
+            case 2:
+            case 5:
+                sampleTypeComboBox.addItem(elements[0]);
+                sampleTypeComboBox.addItem(elements[1]);
+                break;
+            case 6:
+                sampleTypeComboBox.addItem(elements[0]);
+                sampleTypeComboBox.addItem(elements[2]);
+                sampleTypeComboBox.addItem(elements[3]);
+                sampleTypeComboBox.addItem(elements[4]);
+                sampleTypeComboBox.addItem(elements[5]);
+                sampleTypeComboBox.addItem(elements[6]);
+                break;
+            default:
+                sampleTypeComboBox.addItem(elements[0]);
+                break;
+        }
+    }
 
     public void addSampleSelectSpinnerChangeListener(ChangeListener changePerformed) {
         this.sampleSelectSpinner.addChangeListener(changePerformed);
+    }
+    
+    public void addSampleTypeComboBoxChangeEvent(ActionListener actionPerformed) {
+        sampleTypeComboBox.addActionListener(actionPerformed);
     }
 }

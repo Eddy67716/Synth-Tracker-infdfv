@@ -5,6 +5,7 @@
  */
 package ui.controllers;
 
+import java.awt.Dimension;
 import ui.view.samples.SampleTools;
 import ui.view.samples.SampleUI;
 import ui.view.samples.SampleWindow;
@@ -30,6 +31,7 @@ import ui.controllers.undo.UndoableComboBoxChange;
 import ui.controllers.undo.UndoableSliderChange;
 import ui.controllers.undo.UndoableSpinnerChange;
 import ui.view.samples.LoopingTools;
+import ui.view.samples.SampleCanvas;
 import ui.view.samples.SampleDetails;
 import ui.view.samples.SampleSoundOptions;
 import ui.view.samples.SamplingTools;
@@ -119,6 +121,10 @@ public class SampleController extends GenericController {
         st.addC5SampleRateSpinnerChangeEvent(
                 e -> c5SampleRateSpinnerOnChange());
         st.addSampleTransposeComboBox(e -> sampleTransposeComboBoxOnChange());
+        
+        // set sample canvas slider options
+        SampleWindow sw = sampleUI.getSampleWindow();
+        sw.addZoomSliderChangeEvent(e -> zoomSliderOnChange());
 
         this.sampleUI.addSampleSelectSpinnerChangeListener(
                 e -> sampleOnChange());
@@ -727,6 +733,23 @@ public class SampleController extends GenericController {
             //TODO
         }
     }
+    
+    public void zoomSliderOnChange() {
+        SampleCanvas canvas = sampleUI.getSampleWindow().getCanvas();
+        
+        int zoomValue = sampleUI.getSampleWindow().getZoomSlider().getValue();
+        
+        double widthRatio = 1d / selectedSample.getSampleLength();
+        
+        double currentWidthRatio = zoomValue * widthRatio;
+        
+        int newWidth = (int)Math.round(1800 / currentWidthRatio);
+        
+        canvas.setSize(new Dimension(newWidth, canvas.getHeight()));
+        canvas.setPreferredSize(new Dimension(newWidth, canvas.getHeight()));
+        
+        canvas.repaint();
+    }
 
     public void sampleOnChange() {
 
@@ -936,6 +959,12 @@ public class SampleController extends GenericController {
 
         sampleUI.getTools().getVibratoOptions().getVibWaveformComboBox()
                 .setSelectedIndex(oldVibratoWaveform);
+        
+        // zoom slider value
+        JSlider zoomSlider = sampleUI.getSampleWindow().getZoomSlider();
+        zoomSlider.setMaximum(selectedSample.getSampleLength());
+        zoomSlider.setMinimum(20);
+        zoomSlider.setValue(selectedSample.getSampleLength());
 
         // sample data
         SwingUtilities.invokeLater(() -> {

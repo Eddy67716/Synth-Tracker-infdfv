@@ -35,17 +35,23 @@ public class SampleTools extends JPanel {
     // sampling tools (defining note frequency and C5 frequency)
     private SamplingTools samplingTools;
     // looping tools
-    private LoopingTools loopingTools;              // all
+    // all
+    private LoopingTools loopingTools;              
     // sustain loop tools
-    private SustainLoopTools susLoopTools;          // it and str
+    // it and str
+    private SustainLoopTools susLoopTools;          
     // vibrato options
-    private VibratoOptions vibratoOptions;          // xm, it and str
+    // xm, it and str
+    private VibratoOptions vibratoOptions;          
     // detuning options
-    private JPanel detuningOptins;                  // str
+    // str
+    private JPanel detuningOptins;                 
     // adsr options
-    private JPanel ADSROptions;                     // str
+    // str
+    private JPanel ADSROptions;                     
     // rotaty tremolo optoins
-    private JPanel RotaryTremoloOptions;            // str
+    // str
+    private JPanel RotaryTremoloOptions;            
 
     // consturctor
     public SampleTools(int modType) {

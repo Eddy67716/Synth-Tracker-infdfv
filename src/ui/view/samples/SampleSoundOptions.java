@@ -36,21 +36,26 @@ public class SampleSoundOptions extends JPanel {
     private GridBagConstraints soc;
     private Border soundOptionsBorder;
     private JLabel defaultVolumeLabel;
-    private JSpinner defaultVolumeValue;            // all
+    // all
+    private JSpinner defaultVolumeValue;            
     private SpinnerModel defVolumeSpinnerModel;
     private JSlider defaultVolumeSlider;
     private JLabel globalVolumeLabel;
-    private JSpinner globalVolumeValue;             // s3m, it and str
+    // s3m, it and str
+    private JSpinner globalVolumeValue;             
     private SpinnerModel globalVolumeSpinnerModel;
     private JSlider globalVolumeSlider;
     private JLabel defaultPanningLabel;
-    private JSpinner defaultPanningValue;           // xm, it and str
+    // xm, it and str
+    private JSpinner defaultPanningValue;           
     private SpinnerModel panSpinnerModel;
     private JSlider defaultPanningSlider;
     private JLabel usePanningLabel;
-    private JCheckBox panning;                      // it and str
+    // it and str
+    private JCheckBox panning;                      
     private JLabel useSurroundLabel;
-    private JCheckBox surround;                     // str
+    // str
+    private JCheckBox surround;                     
 
     // constructor
     public SampleSoundOptions(int modType) {
