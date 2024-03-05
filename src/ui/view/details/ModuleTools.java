@@ -2,30 +2,28 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package ui.pattens;
-
-import javax.swing.JPanel;
-import javax.swing.JTable;
+package ui.view.details;
 
 /**
  *
  * @author Edward Jenkins
  */
-public class PatternView extends JPanel {
+public class ModuleTools {
     
     // instance variables
     private int modType;
-    private JTable patternTable;
+    private ModuleDetails moduleDetails;
+    private ModuleSoundOptions moduleSoundOptions;
+    private InitialTiming moduleTiming;
+    private ModuleMessage moduleMessage;
     
     // constructor
-    public PatternView(int modType) {
+    public ModuleTools(int modType) {
         this.modType = modType;
         init();
     }
     
-    // getters
-    
-    public void init() {
+    private void init() {
         
     }
 }

@@ -103,6 +103,7 @@ public class SampleDetails extends JPanel {
         sdc = new GridBagConstraints();
         sdc.anchor = GridBagConstraints.SOUTHWEST;
         sdc.insets = DEF_INSETS;
+        sdc.fill = GridBagConstraints.HORIZONTAL;
 
         // set the border
         sampleDetailsBorder

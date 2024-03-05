@@ -140,6 +140,7 @@ public class SampleSoundOptions extends JPanel {
         soc.gridy = 0;
         soc.weightx = 1.0;
         soc.gridwidth = GridBagConstraints.REMAINDER;
+        soc.fill = GridBagConstraints.HORIZONTAL;
         add(defaultVolumeSlider, soc);
 
         if (modType >= 4) {
@@ -151,6 +152,7 @@ public class SampleSoundOptions extends JPanel {
             soc.gridy = 1;
             soc.weightx = 0.0;
             soc.gridwidth = 0;
+            soc.fill = GridBagConstraints.NONE;
             add(globalVolumeLabel, soc);
 
             // set global volume spinner model
@@ -174,6 +176,7 @@ public class SampleSoundOptions extends JPanel {
             soc.gridy = 1;
             soc.weightx = 1.0;
             soc.gridwidth = GridBagConstraints.REMAINDER;
+            soc.fill = GridBagConstraints.HORIZONTAL;
             add(globalVolumeSlider, soc);
         
             // set the use panning label
@@ -183,6 +186,7 @@ public class SampleSoundOptions extends JPanel {
             soc.gridy++;
             soc.weightx = 0.0;
             soc.gridwidth = 0;
+            soc.fill = GridBagConstraints.NONE;
             add(usePanningLabel, soc);
 
             // set the use panning checkbox
@@ -205,6 +209,7 @@ public class SampleSoundOptions extends JPanel {
             soc.gridwidth = 1;
             soc.weightx = 0.0;
             soc.gridwidth = 0;
+            soc.fill = GridBagConstraints.NONE;
             soc.insets = DEF_INSETS;
             add(defaultPanningLabel, soc);
 
@@ -247,6 +252,7 @@ public class SampleSoundOptions extends JPanel {
             }
             soc.gridx = 2;
             soc.weightx = 1.0;
+            soc.fill = GridBagConstraints.HORIZONTAL;
             soc.gridwidth = GridBagConstraints.REMAINDER;
             add(defaultPanningSlider, soc);
         }
@@ -259,6 +265,7 @@ public class SampleSoundOptions extends JPanel {
             soc.gridy++;
             soc.gridwidth = 0;
             soc.weightx = 0.0;
+            soc.fill = GridBagConstraints.NONE;
             add(useSurroundLabel, soc);
 
             // set the use surround checkbox

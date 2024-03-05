@@ -11,11 +11,13 @@ import java.util.concurrent.ExecutionException;
 import javax.swing.*;
 import ui.controllers.MainController;
 import ui.main.MainFrame;
-import ui.pattens.PatternCell;
+import ui.view.pattens.PatternCell;
 import ui.view.MainMenuBar;
 import ui.view.MainUI;
+import ui.view.details.ModuleDetails;
 import ui.view.instruments.MidiOptions;
 import ui.view.instruments.NoteMapView;
+import ui.view.samples.SampleSoundOptions;
 
 
 /**
@@ -30,7 +32,7 @@ public class testUIPanel extends JFrame {
     
     // constructor
     public testUIPanel() {
-        testPanel = new PatternCell(4, data);
+        testPanel = new ModuleDetails(4);
         init();
     }
 

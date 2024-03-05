@@ -31,16 +31,19 @@ public class testITRead {
 
         // create ITReader
         ItFile reader = new ItFile("src/Hero.it");
-
+        
         try {
             // check if read
             boolean isRead = reader.read();
+            
+            System.out.println(reader.getHeader());
+
 
             if (isRead) {
                 
-                reader.setFilePath("src/Hero 2.it");
+                //reader.setFilePath("src/Hero 2.it");
                 
-                reader.write();
+                //reader.write();
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());

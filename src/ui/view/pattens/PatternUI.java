@@ -2,23 +2,26 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package ui.pattens;
+package ui.view.pattens;
 
 import javax.swing.JPanel;
-import javax.swing.JTable;
+import javax.swing.JScrollPane;
 
 /**
  *
  * @author Edward Jenkins
  */
-public class OrderView extends JPanel {
+public class PatternUI extends JPanel {
     
     // instance variables
     private int modType;
-    private short[] orders;
+    private JScrollPane orderPane;
+    private JScrollPane tablePane;
+    private PatternPanel paternPanel;
+    private OrderView orderView;
     
     // constructor
-    public OrderView(int modType) {
+    public PatternUI(int modType) {
         this.modType = modType;
         init();
     }

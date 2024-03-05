@@ -4,7 +4,7 @@
  */
 package ui.controllers;
 
-import ui.pattens.PatternCell;
+import ui.view.pattens.PatternCell;
 
 /**
  *

@@ -137,8 +137,6 @@ public class MainController implements IUndoable {
             
             closeButton.addActionListener(e -> this.closeTab(fileName));
             
-            
-            
             // set up detailsUI
             
             // set up sampleUI
