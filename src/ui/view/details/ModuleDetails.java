@@ -20,6 +20,7 @@ import javax.swing.border.EtchedBorder;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.DEF_FONT;
 import static ui.UIProperties.DEF_INSETS;
+import static ui.UIProperties.ITALIC_FONT;
 import static ui.UIProperties.LARGE_FIELD_SIZE;
 
 /**
@@ -36,60 +37,37 @@ public class ModuleDetails extends JPanel {
     // all
     private JLabel songNameLabel;
     private JTextField songNameField;
-    // STR
+    // STR and OpenMPT files
     private JLabel songAuthorLabel;
     private JTextField songAuthorField;
-    // s3m, IT and STR
-    private JLabel audioChannelsLabel;
-    private ButtonGroup channelGroup;
-    private JRadioButton stereoOption;
-    private JRadioButton monoOption;
-    private JLabel innstrumentTypeLabel;
-    // XM, IT and STR
-    private ButtonGroup instrumentGroup;
-    private JRadioButton sampleOption;
-    private JRadioButton instrumentOption;
-    // STR
-    private JRadioButton mappedOption;
-    // s3m, XM, IT and STR
-    private JLabel slidesLabal;
-    private ButtonGroup slideGroup;
-    private JRadioButton linearSlidesOption;
-    private JRadioButton amigaSlidesOption;
+    // s3m and onwards
+    private JLabel createdVersionTitleLabel;
+    private JLabel createdVersionLabel;
     // IT and STR
-    private JLabel effectsLabal;
-    private ButtonGroup effectGroup;
-    private JRadioButton oldEffectsOption;
-    private JRadioButton newEffecstOption;
-    // STR options
-    private JLabel initialValueResetLabal;
-    private JCheckBox initialValueReset;
-    private JLabel strPrecisionLabal;
-    private JCheckBox strPrecision;
-    private JLabel usingTwoEffectsLabal;
-    private JCheckBox usingTwoEffects;
-    private JLabel millisecondBaseOffsetLabal;
-    private JCheckBox millisecondBaseOffset;
-    private JLabel constantInstrumentRateLabal;
-    private JCheckBox constantInstrumentRate;
-    // s3m, XM, IT and STR
-    private JLabel channelLabel;
-    private JSpinner channelSpinner;
-    private JLabel globalVolumeLabel;
-    private JTextField globalVolumeField;
-    // s3m, IT and STR
-    private JLabel mixVolumeLabel;
-    private JTextField mixVolumeField;
-    // s3m, IT and STR,
-    private JLabel panSeparationLabel;
-    private JTextField panSeparationField;
-    
-    
+    private JLabel compatibleVersionTitleLabel;
+    private JLabel ccompatibleVersionLabel;
 
     // constructor
     public ModuleDetails(int modType) {
         this.modType = modType;
         init();
+    }
+    
+    // getters
+    public JTextField getSongNameField() {
+        return songNameField;
+    }
+
+    public JTextField getSongAuthorField() {
+        return songAuthorField;
+    }
+
+    public JLabel getCreatedVersionLabel() {
+        return createdVersionLabel;
+    }
+
+    public JLabel getCcompatibleVersionLabel() {
+        return ccompatibleVersionLabel;
     }
 
     public void init() {
@@ -98,7 +76,7 @@ public class ModuleDetails extends JPanel {
         detailsLayout = new GridBagLayout();
         setLayout(detailsLayout);
         dc = new GridBagConstraints();
-        dc.anchor = GridBagConstraints.NORTHWEST;
+        dc.anchor = GridBagConstraints.SOUTHWEST;
         dc.insets = DEF_INSETS;
 
         // set the border
@@ -116,9 +94,11 @@ public class ModuleDetails extends JPanel {
         // song name label
         songNameLabel = new JLabel("Song name: ");
         songNameLabel.setFont(DEF_FONT);
-        
+
         dc.gridx = 0;
         dc.gridy = 0;
+        dc.weightx = 1;
+        dc.gridwidth = GridBagConstraints.REMAINDER;
         add(songNameLabel, dc);
 
         // song name field
@@ -128,15 +108,15 @@ public class ModuleDetails extends JPanel {
 
         dc.fill = GridBagConstraints.HORIZONTAL;
         dc.gridx = 0;
-        dc.gridy = 1;
+        dc.gridy++;
         add(songNameField, dc);
-        
+
         // song author label
         songAuthorLabel = new JLabel("Song author: ");
         songAuthorLabel.setFont(DEF_FONT);
-        
+
         dc.gridx = 0;
-        dc.gridy = 2;
+        dc.gridy++;
         add(songAuthorLabel, dc);
 
         // song author field
@@ -146,122 +126,62 @@ public class ModuleDetails extends JPanel {
 
         dc.fill = GridBagConstraints.HORIZONTAL;
         dc.gridx = 0;
-        dc.gridy = 3;
-        dc.weighty = 1.0;
-        dc.gridheight = GridBagConstraints.REMAINDER;
+        dc.gridy++;
         add(songAuthorField, dc);
 
-        // audio label
-        audioChannelsLabel = new JLabel("Audio: ");
-        audioChannelsLabel.setFont(DEF_FONT);
+        // created version title label
+        createdVersionTitleLabel = new JLabel("Created version: ");
+        createdVersionTitleLabel.setFont(DEF_FONT);
 
-        dc.fill = GridBagConstraints.NONE;
-        dc.gridx = 1;
-        dc.gridy = 0;
-        dc.weighty = 0;
-        dc.gridwidth = 2;
-        dc.gridheight = 1;
-        add(audioChannelsLabel, dc);
-
-        // stereo
-        stereoOption = new JRadioButton("Stereo");
-
-        dc.gridx = 1;
-        dc.gridy = 1;
+        dc.gridx = 0;
+        dc.gridy++;
         dc.weightx = 0;
-        dc.weighty = 0;
         dc.gridwidth = 1;
-        add(stereoOption, dc);
+        add(createdVersionTitleLabel, dc);
 
-        // mono
-        monoOption = new JRadioButton("Mono");
+        // created version field
+        createdVersionLabel = new JLabel();
+        createdVersionLabel.setText("1.0");
+        createdVersionLabel.setToolTipText("Version number");
+        createdVersionLabel.setFont(ITALIC_FONT);
 
-        dc.gridx = 2;
-        dc.gridy = 1;
-        dc.weightx = 0;
-        dc.weighty = 0;
-        add(monoOption, dc);
-        
-        // button structure
-        channelGroup = new ButtonGroup();
-        channelGroup.add(monoOption);
-        channelGroup.add(stereoOption);
-        
-        // slides
-        slidesLabal = new JLabel("Slides: ");
-        slidesLabal.setFont(DEF_FONT);
-
+        dc.fill = GridBagConstraints.HORIZONTAL;
         dc.gridx = 1;
-        dc.gridy = 2;
-        dc.weightx = 0;
-        add(slidesLabal, dc);
-
-        // linear
-        linearSlidesOption = new JRadioButton("Linear");
-        linearSlidesOption.setToolTipText("Slides are tone linar");
-
-        dc.gridx = 1;
-        dc.gridy = 3;
-        dc.weightx = 0;
-        dc.weighty = 0;
-        dc.gridwidth = 1;
-        dc.gridheight = GridBagConstraints.REMAINDER;
-        add(linearSlidesOption, dc);
-
-        // amiga
-        amigaSlidesOption = new JRadioButton("Amiga");
-        amigaSlidesOption.setToolTipText("Slides are tone logarithmic");
-
-        dc.gridx = 2;
-        dc.gridy = 3;
-        dc.weightx = 0;
-        dc.weighty = 0;
-        dc.gridwidth = GridBagConstraints.REMAINDER;
-        dc.gridheight = GridBagConstraints.REMAINDER;
-        add(amigaSlidesOption, dc);
-        
-        // button structure
-        slideGroup = new ButtonGroup();
-        slideGroup.add(linearSlidesOption);
-        slideGroup.add(amigaSlidesOption);
-        
-        // effects
-        effectsLabal = new JLabel("Effects: ");
-        effectsLabal.setFont(DEF_FONT);
-
-        dc.gridx = 3;
-        dc.gridy = 0;
         dc.weightx = 1.0;
         dc.gridwidth = GridBagConstraints.REMAINDER;
-        add(effectsLabal, dc);
+        add(createdVersionLabel, dc);
 
-        // old
-        oldEffectsOption = new JRadioButton("Old");
-        oldEffectsOption.setToolTipText("Process every non-row tick.");
+        if (modType >= 4) {
+            
+            // compatible version title label
+            compatibleVersionTitleLabel = new JLabel("Compatible version: ");
+            compatibleVersionTitleLabel.setFont(DEF_FONT);
 
-        dc.gridx = 3;
-        dc.gridy = 1;
-        dc.weightx = 0;
+            dc.gridx = 0;
+            dc.gridy++;
+            dc.weightx = 0;
+            dc.gridwidth = 1;
+            add(compatibleVersionTitleLabel, dc);
+
+            // compatible version field
+            ccompatibleVersionLabel = new JLabel();
+            ccompatibleVersionLabel.setText("1.0");
+            ccompatibleVersionLabel.setToolTipText("Version number");
+            ccompatibleVersionLabel.setFont(ITALIC_FONT);
+
+            dc.fill = GridBagConstraints.HORIZONTAL;
+            dc.gridx = 1;
+            dc.weightx = 1.0;
+            dc.gridwidth = GridBagConstraints.REMAINDER;
+            add(ccompatibleVersionLabel, dc);
+        }
+
+        // add trailing JPanel
+        dc.gridx = 0;
+        dc.gridy++;
         dc.weighty = 1.0;
-        dc.gridwidth = 1;
         dc.gridheight = GridBagConstraints.REMAINDER;
-        add(oldEffectsOption, dc);
 
-        // new
-        newEffecstOption = new JRadioButton("New");
-        newEffecstOption.setToolTipText("Process every single tick.");
-
-        dc.gridx = 4;
-        dc.gridy = 1;
-        dc.weightx = 1.0;
-        dc.weighty = 1.0;
-        dc.gridwidth = GridBagConstraints.REMAINDER;
-        dc.gridheight = GridBagConstraints.REMAINDER;
-        add(newEffecstOption, dc);
-        
-        // button structure
-        effectGroup = new ButtonGroup();
-        effectGroup.add(newEffecstOption);
-        effectGroup.add(oldEffectsOption);
+        add(new JPanel(), dc);
     }
 }

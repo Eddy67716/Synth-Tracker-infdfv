@@ -11,10 +11,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import static ui.UIProperties.BOLD_FONT;
+import static ui.UIProperties.DEF_FONT;
 import static ui.UIProperties.DEF_INSETS;
+import static ui.UIProperties.VALUE_SPINNER_SIZE;
 
 /**
  *
@@ -40,13 +43,23 @@ public class InitialTiming extends JPanel {
         init();
     }
     
+    // getters
+    public JSpinner getTickSpeedSpinner() {
+        return tickSpeedSpinner;
+    }
+
+    public JSpinner getTempoSpinner() {
+        return tempoSpinner;
+    }
+    
+    
     private void init() {
         
         // set the layout
         timingLayout = new GridBagLayout();
         setLayout(timingLayout);
         tc = new GridBagConstraints();
-        tc.anchor = GridBagConstraints.NORTHWEST;
+        tc.anchor = GridBagConstraints.SOUTHWEST;
         tc.insets = DEF_INSETS;
 
         // set the border
@@ -60,5 +73,65 @@ public class InitialTiming extends JPanel {
 
         // set options border
         setBorder(timingBorder);
+        
+        // tick speed
+        
+        // tick speed label
+        tickSpeedLabel = new JLabel("Tick speed");
+        tickSpeedLabel.setFont(DEF_FONT);
+        
+        // grid bag setting
+        tc.gridx = 0;
+        tc.gridy = 0;
+        add(tickSpeedLabel, tc);
+        
+        // tick speed spinner model
+        tickSpeedSpinnerModel = new SpinnerNumberModel(6, 1, 128, 1);
+        
+        // tick speed spinner
+        tickSpeedSpinner = new JSpinner(tickSpeedSpinnerModel);
+        tickSpeedSpinner.setPreferredSize(VALUE_SPINNER_SIZE);
+        
+        // grid bag setting
+        tc.gridx = 1;
+        tc.gridy = 0;
+        tc.weightx = 1.0;
+        tc.gridwidth = GridBagConstraints.REMAINDER;
+        add(tickSpeedSpinner, tc);
+        
+        // tempo
+        
+        // tempo lable
+        tempoLabel = new JLabel("Tempo");
+        tempoLabel.setFont(DEF_FONT);
+        
+        // grid bag setting
+        tc.gridx = 0;
+        tc.gridy = 1;
+        tc.weightx = 0;
+        tc.gridwidth = 1;
+        add(tempoLabel, tc);
+        
+        // tempo spinner model
+        tempoSpinnerModel = new SpinnerNumberModel(120, 0, 255, 1);
+        
+        // tempo spinner
+        tempoSpinner = new JSpinner(tempoSpinnerModel);
+        tempoSpinner.setPreferredSize(VALUE_SPINNER_SIZE);
+        
+        // grid bag setting
+        tc.gridx = 1;
+        tc.gridy = 1;
+        tc.weightx = 1.0;
+        tc.gridwidth = GridBagConstraints.REMAINDER;
+        add(tempoSpinner, tc);
+        
+        // add trailing JPanel
+        tc.gridx = 0;
+        tc.gridy++;
+        tc.weighty = 1.0;
+        tc.gridheight = GridBagConstraints.REMAINDER;
+        
+        add(new JPanel(), tc);
     }
 }

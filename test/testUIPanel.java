@@ -14,7 +14,12 @@ import ui.main.MainFrame;
 import ui.view.pattens.PatternCell;
 import ui.view.MainMenuBar;
 import ui.view.MainUI;
+import ui.view.details.InitialTiming;
 import ui.view.details.ModuleDetails;
+import ui.view.details.ModuleMessage;
+import ui.view.details.ModuleOptions;
+import ui.view.details.ModuleSoundOptions;
+import ui.view.details.ModuleTools;
 import ui.view.instruments.MidiOptions;
 import ui.view.instruments.NoteMapView;
 import ui.view.samples.SampleSoundOptions;
@@ -32,7 +37,7 @@ public class testUIPanel extends JFrame {
     
     // constructor
     public testUIPanel() {
-        testPanel = new ModuleDetails(4);
+        testPanel = new ModuleTools(4);
         init();
     }
 
