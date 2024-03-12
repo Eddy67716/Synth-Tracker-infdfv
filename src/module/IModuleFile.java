@@ -18,6 +18,8 @@ public interface IModuleFile extends ISavableFile{
     
     public int getModTypeID();
     
+    public IModuleHeader getIModuleheader();
+    
     public List<IInstrument> getIInstruments();
     
     public List<IAudioSample> getISamples();

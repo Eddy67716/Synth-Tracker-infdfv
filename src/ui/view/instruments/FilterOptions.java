@@ -68,12 +68,20 @@ public class FilterOptions extends JPanel {
     }
 
     // getters
+    public JCheckBox getFilterCheckBox() {
+        return filterCheckBox;
+    }
+    
     public JSpinner getFilterCutoffSpinner() {
         return filterCutoffSpinner;
     }
 
     public JSlider getFilterCutoffSlider() {
         return filterCutoffSlider;
+    }
+
+    public JCheckBox getResonanceCheckBox() {
+        return resonanceCheckBox;
     }
 
     public JSpinner getFilterResonanceSpinner() {
@@ -157,9 +165,9 @@ public class FilterOptions extends JPanel {
         add(filterResonanceLabel, foc);
         
         // set the filter check boxk
-        filterCheckBox = new JCheckBox();
+        resonanceCheckBox = new JCheckBox();
         foc.gridx = 1;
-        add(filterCheckBox, foc);
+        add(resonanceCheckBox, foc);
 
         // set filter resonance spinner model
         filterResonanceSpinnerModel = new SpinnerNumberModel(127, 0, 127, 1);

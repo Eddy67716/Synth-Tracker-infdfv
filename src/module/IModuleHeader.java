@@ -14,7 +14,7 @@ public interface IModuleHeader {
     public String getSongName();
     
     // set author name
-    public String getAuthorName();
+    public String getArtistName();
     
     // get pettern highlight
     public short[] getPatternHilight();
@@ -28,11 +28,38 @@ public interface IModuleHeader {
     // is using IT effects
     public boolean isUsingOldEffects();
     
+    // max global volume value
+    public int getMaxGlobalVolume();
+    
+    // normalised global volume
+    public double getNormalisedGlobalVolume();
+    
     // global volume
     public short getGlobalVolume();
     
-    // mix value
-    public double getMixVolume();
+    // max global volume value
+    public int getMaxMixVolume();
+    
+    // normalised mix value
+    public double getNormalisedMixVolume();
+    
+    // mix volume
+    public short getMixVolume();
+    
+    // max pan separation value
+    public int getMaxPanSeparation();
+    
+    // normalised pan separation
+    public double getNormalisedPanSeparation();
+    
+    // pan separation
+    public short getPanSeparation();
+    
+    // initial speed
+    public short getInitialSpeed();
+
+    // initial tempo
+    public short getInitialTempo();
     
     // channel count
     public byte getChannelCount();
@@ -42,6 +69,18 @@ public interface IModuleHeader {
     
     // instrumentCount
     public short getInstrumentCount();
+    
+    // created tracker
+    public int getCreatedWithTracker();
+    
+    // possible creation software
+    public String getPossibleCreatedSoftware();
+
+    // lowest compatible tracker
+    public int getCompatibleWithTracker();
+    
+    // lowest compatible software string
+    public String getLowestCompatibleSoftware();
     
     // order count
     public short getOrderCount();
@@ -56,7 +95,7 @@ public interface IModuleHeader {
     public void setSongName(String songName);
     
     // set author name
-    public void setAuthorName(String authourName);
+    public void setAritistName(String authourName);
     
     // set stereo
     public void setStereo(boolean stereo);
@@ -71,7 +110,25 @@ public interface IModuleHeader {
     public void setGlobalVolume(short globalVolume);
     
     // set mix value
-    public void setMixVolume(double mixVolume);
+    public void setNormalisedGlobalVolume(double globalVolume);
+    
+    // set unnormalisedMixVoume
+    public void setMixVolume(short mixVolume);
+    
+    // set mix value
+    public void setNormalisedMixVolume(double mixVolume);
+    
+    // set unnormalisedMixVoume
+    public void setPanSeparation(short panSeparation);
+    
+    // set mix value
+    public void setNormalisedPanSeparation(double panSeparation);
+    
+    // set initial speed
+    public void setInitialSpeed(short initialSpeed);
+
+    // set initial tempo
+    public void setInitialTempo(short initialTempo);
     
     // set channel count
     public void setChannelCount(byte channelCount);
@@ -81,6 +138,9 @@ public interface IModuleHeader {
     
     // set instrumentCount
     public void setInstrumentCount(short instrumentCount);
+    
+    // set compatible tracker
+    public void setCompatibleWithTracker(int compatibleWithTracker);
     
     // set order count
     public void setOrderCount(short orderCount);

@@ -35,6 +35,7 @@ public class UIProperties {
     public static final String[] SAMPLE_NOTES = {"C_", "C#", "D_",
         "D#", "E_", "F_", "F#", "G_", "G#", "A_", "A#", "B_"};
     public static final Color DEF_BACKGROUND_COLOUR = new Color(200, 200, 200);
+    public static final Color DEF_FORGROUND_COLOUR = Color.WHITE;
     public static final Color DEF_HIGHLIGT_COLOUR = new Color(255, 0, 0);
     public static final Color DEF_TEXT_COLOUR = new Color(0, 0, 0);
     public static final Color DEF_OSCILOSCOPE_COLUR = Color.GREEN;

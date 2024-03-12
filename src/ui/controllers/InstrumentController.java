@@ -13,7 +13,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.undo.UndoManager;
 import module.IAudioSample;
 import module.IInstrument;
-import static sound.midi.MidiTables.MIDI_PROGRAM_LIST;
 import ui.controllers.undo.UndoableCheckBoxChange;
 import ui.controllers.undo.UndoableComboBoxChange;
 import ui.controllers.undo.UndoableSliderChange;
@@ -27,6 +26,7 @@ import ui.view.instruments.InstrumentUI;
 import ui.view.instruments.MidiOptions;
 import ui.view.instruments.RandomOffsets;
 import ui.view.instruments.SustainOptions;
+import static sound.midi.MidiTables.MIDI_GEN_1_PROGRAM_LIST;
 
 /**
  *
@@ -44,16 +44,24 @@ public class InstrumentController extends GenericController {
     private int nnaComboBoxOldValue;
     private int dntComboBoxOldValue;
     private int dnaComboBoxOldValue;
-    private int globalVolOldValue;
-    private int panOldValue;
+    private int globalVolSpinnerOldValue;
+    private int globalVolSliderOldValue;
+    private int panSpinnerOldValue;
+    private int panSliderOldValue;
     private int pitchPanSeperationOldValue;
     private int pitchPanCentreOldValue;
-    private int randomVolumeOldValue;
-    private int randomPanOldValue;
-    private int randomCutoffOldValue;
-    private int randomRezOldValue;
-    private int filterCutoffOldValue;
-    private int filterRezOldValue;
+    private int randomVolumeSpinnerOldValue;
+    private int randomVolumeSliderOldValue;
+    private int randomPanSpinnerOldValue;
+    private int randomPanSliderOldValue;
+    private int randomCutoffSpinnerOldValue;
+    private int randomCutoffSliderOldValue;
+    private int randomRezSpinnerOldValue;
+    private int randomRezSliderOldValue;
+    private int filterCutoffSpinnerOldValue;
+    private int filterCutoffSliderOldValue;
+    private int filterRezSpinnerOldValue;
+    private int filterRezSliderOldValue;
     private int midiProgramOldValue;
     private int midiChannelOldValue;
     private int midiBankOldValue;
@@ -98,8 +106,10 @@ public class InstrumentController extends GenericController {
 
         // set the filter actions
         FilterOptions fo = instrumentUI.getTools().getFilterOptions();
+        fo.addFilterCheckBoxChangeListner(e -> cutoffOnChange());
         fo.addFilterCutoffSpinnerChangeListener(e -> cutoffSpinnerOnChange());
         fo.addFilterCutoffSliderChangeListener(e -> cutoffSliderOnChange());
+        fo.addResonanceCheckBoxChangeListner(e -> resonanceOnChange());
         fo.addFilterResSpinnerChangeListener(e -> resonanceSpinnerOnChange());
         fo.addFilterResSliderChangeListener(e -> resonanceSliderOnChange());
 
@@ -297,8 +307,7 @@ public class InstrumentController extends GenericController {
         midiProgramOldValue = value;
 
         // update tool tip text to appropriate instrument
-        instrumentSpinner.setToolTipText(
-                MIDI_PROGRAM_LIST[(int) instrumentSpinner.getValue()]);
+        instrumentSpinner.setToolTipText(MIDI_GEN_1_PROGRAM_LIST[(int) instrumentSpinner.getValue()]);
     }
 
     public void midiBankOnChange() {
@@ -345,12 +354,12 @@ public class InstrumentController extends GenericController {
             // undo event
             UndoableSpinnerChange spinnerChange
                     = new UndoableSpinnerChange(globalVolumeSpinner,
-                            globalVolOldValue);
+                            globalVolSpinnerOldValue);
 
             getCurrentUndoManager().addEdit(spinnerChange);
-
-            globalVolOldValue = value;
         }
+        
+        globalVolSpinnerOldValue = value;
 
         if (isAlteringModels()) {
 
@@ -379,12 +388,12 @@ public class InstrumentController extends GenericController {
                 // undo event
                 UndoableSliderChange sliderChange
                         = new UndoableSliderChange(globalVolumeSlider,
-                                globalVolOldValue);
+                                globalVolSliderOldValue);
 
                 getCurrentUndoManager().addEdit(sliderChange);
-
-                globalVolOldValue = value;
             }
+            
+            globalVolSliderOldValue = value;
 
             if (isAlteringModels()) {
 
@@ -439,12 +448,12 @@ public class InstrumentController extends GenericController {
             // undo event
             UndoableSpinnerChange spinnerChange
                     = new UndoableSpinnerChange(defaultPanningSpinner,
-                            panOldValue);
+                            panSpinnerOldValue);
 
             getCurrentUndoManager().addEdit(spinnerChange);
-
-            panOldValue = value;
         }
+        
+        panSpinnerOldValue = value;
 
         if (isAlteringModels()) {
 
@@ -472,12 +481,12 @@ public class InstrumentController extends GenericController {
                 // undo event
                 UndoableSliderChange sliderChange
                         = new UndoableSliderChange(defaultPanningSlider,
-                                panOldValue);
+                                panSliderOldValue);
 
                 getCurrentUndoManager().addEdit(sliderChange);
-
-                panOldValue = value;
             }
+            
+            panSliderOldValue = value;
 
             if (isAlteringModels()) {
 
@@ -541,6 +550,33 @@ public class InstrumentController extends GenericController {
     }
 
     // filter events
+    public void cutoffOnChange() {
+
+        JCheckBox cutoff = instrumentUI.getTools().getFilterOptions()
+                .getFilterCheckBox();
+
+        boolean isSelected = cutoff.isSelected();
+
+        instrumentUI.getTools().getFilterOptions().getFilterCutoffSpinner()
+                .setEnabled(isSelected);
+        instrumentUI.getTools().getFilterOptions().getFilterCutoffSlider()
+                .setEnabled(isSelected);
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableCheckBoxChange checkBoxChange
+                    = new UndoableCheckBoxChange(cutoff);
+
+            getCurrentUndoManager().addEdit(checkBoxChange);
+        }
+
+        if (isAlteringModels()) {
+
+            // update instrument panning value
+            selectedInstrument.setFiltered(isSelected);
+        }
+    }
+    
     public void cutoffSpinnerOnChange() {
 
         JSpinner cutoffSpinner = instrumentUI.getTools().getFilterOptions()
@@ -559,12 +595,12 @@ public class InstrumentController extends GenericController {
             // undo event
             UndoableSpinnerChange spinnerChange
                     = new UndoableSpinnerChange(cutoffSpinner,
-                            filterCutoffOldValue);
+                            filterCutoffSpinnerOldValue);
 
             getCurrentUndoManager().addEdit(spinnerChange);
-
-            filterCutoffOldValue = value;
         }
+        
+        filterCutoffSpinnerOldValue = value;
 
         if (isAlteringModels()) {
 
@@ -593,18 +629,45 @@ public class InstrumentController extends GenericController {
                 // undo event
                 UndoableSliderChange sliderChange
                         = new UndoableSliderChange(cutoffSlider,
-                                filterCutoffOldValue);
+                                filterCutoffSliderOldValue);
 
                 getCurrentUndoManager().addEdit(sliderChange);
-
-                filterCutoffOldValue = value;
             }
+            
+            filterCutoffSliderOldValue = value;
 
             if (isAlteringModels()) {
 
                 // update instrument initial filter cutoff value
                 selectedInstrument.setInitialFilterCutoff((short) value);
             }
+        }
+    }
+    
+    public void resonanceOnChange() {
+
+        JCheckBox cutoff = instrumentUI.getTools().getFilterOptions()
+                .getResonanceCheckBox();
+
+        boolean isSelected = cutoff.isSelected();
+
+        instrumentUI.getTools().getFilterOptions().getFilterResonanceSpinner()
+                .setEnabled(isSelected);
+        instrumentUI.getTools().getFilterOptions().getFilterResonanceSlider()
+                .setEnabled(isSelected);
+
+        if (isRecordingUndos()) {
+            // undo event
+            UndoableCheckBoxChange checkBoxChange
+                    = new UndoableCheckBoxChange(cutoff);
+
+            getCurrentUndoManager().addEdit(checkBoxChange);
+        }
+
+        if (isAlteringModels()) {
+
+            // update instrument panning value
+            selectedInstrument.setUsingResonance(isSelected);
         }
     }
 
@@ -626,12 +689,12 @@ public class InstrumentController extends GenericController {
             // undo event
             UndoableSpinnerChange spinnerChange
                     = new UndoableSpinnerChange(rezSpinner,
-                            filterRezOldValue);
+                            filterRezSpinnerOldValue);
 
             getCurrentUndoManager().addEdit(spinnerChange);
-
-            filterRezOldValue = value;
         }
+        
+        filterRezSpinnerOldValue = value;
 
         if (isAlteringModels()) {
 
@@ -660,12 +723,12 @@ public class InstrumentController extends GenericController {
                 // undo event
                 UndoableSliderChange sliderChange
                         = new UndoableSliderChange(rezSlider,
-                                filterRezOldValue);
+                                filterRezSliderOldValue);
 
                 getCurrentUndoManager().addEdit(sliderChange);
-
-                filterRezOldValue = value;
             }
+            
+            filterRezSliderOldValue = value;
 
             if (isAlteringModels()) {
 
@@ -694,12 +757,12 @@ public class InstrumentController extends GenericController {
             // undo event
             UndoableSpinnerChange spinnerChange
                     = new UndoableSpinnerChange(randomVolSpinner,
-                            randomVolumeOldValue);
+                            randomVolumeSpinnerOldValue);
 
             getCurrentUndoManager().addEdit(spinnerChange);
-
-            randomVolumeOldValue = value;
         }
+        
+        randomVolumeSpinnerOldValue = value;
 
         if (isAlteringModels()) {
 
@@ -728,12 +791,12 @@ public class InstrumentController extends GenericController {
                 // undo event
                 UndoableSliderChange sliderChange
                         = new UndoableSliderChange(randomVolSlider,
-                                randomVolumeOldValue);
+                                randomVolumeSliderOldValue);
 
                 getCurrentUndoManager().addEdit(sliderChange);
-
-                randomVolumeOldValue = value;
             }
+            
+            randomVolumeSliderOldValue = value;
 
             if (isAlteringModels()) {
 
@@ -761,12 +824,12 @@ public class InstrumentController extends GenericController {
             // undo event
             UndoableSpinnerChange spinnerChange
                     = new UndoableSpinnerChange(randomPanSpinner,
-                            randomPanOldValue);
+                            randomPanSpinnerOldValue);
 
             getCurrentUndoManager().addEdit(spinnerChange);
-
-            randomPanOldValue = value;
         }
+        
+        randomPanSpinnerOldValue = value;
 
         if (isAlteringModels()) {
 
@@ -794,12 +857,12 @@ public class InstrumentController extends GenericController {
                 // undo event
                 UndoableSliderChange sliderChange
                         = new UndoableSliderChange(randomPanSlider,
-                                randomPanOldValue);
+                                randomPanSliderOldValue);
 
                 getCurrentUndoManager().addEdit(sliderChange);
-
-                randomPanOldValue = value;
             }
+            
+            randomPanSliderOldValue = value;
 
             if (isAlteringModels()) {
 
@@ -928,8 +991,7 @@ public class InstrumentController extends GenericController {
         midiProgramOldValue = (int) instrumentSpinner.getValue();
 
         // update tool tip text to appropriate instrument
-        instrumentSpinner.setToolTipText(
-                MIDI_PROGRAM_LIST[(int) instrumentSpinner.getValue()]);
+        instrumentSpinner.setToolTipText(MIDI_GEN_1_PROGRAM_LIST[(int) instrumentSpinner.getValue()]);
 
         // MIDI bank
         // set old value (needed in case of undo)
@@ -940,13 +1002,15 @@ public class InstrumentController extends GenericController {
 
         // global volume
         // set old value (needed in case of undo)
-        globalVolOldValue = selectedInstrument.getGlobalVolume();
+        globalVolSpinnerOldValue = selectedInstrument.getGlobalVolume();
 
         instrumentUI.getTools().getSoundOptions().getGlobalVolumeSlider()
-                .setValue(globalVolOldValue);
+                .setValue(globalVolSpinnerOldValue);
+        
+        globalVolSliderOldValue = selectedInstrument.getGlobalVolume();
 
         instrumentUI.getTools().getSoundOptions().getGlobalVolumeValue()
-                .setValue(globalVolOldValue);
+                .setValue(globalVolSpinnerOldValue);
 
         // default paning
         instrumentUI.getTools().getSoundOptions().getPanning()
@@ -956,13 +1020,15 @@ public class InstrumentController extends GenericController {
 
         // default pan value
         // set old value (needed in case of undo)
-        panOldValue = selectedInstrument.getPanValue();
+        panSpinnerOldValue = selectedInstrument.getPanValue();
 
         instrumentUI.getTools().getSoundOptions().getDefaultPanningSlider()
-                .setValue(panOldValue);
+                .setValue(panSpinnerOldValue);
 
+        panSliderOldValue = selectedInstrument.getPanValue();
+        
         instrumentUI.getTools().getSoundOptions().getDefaultPanningValue()
-                .setValue(panOldValue);
+                .setValue(panSpinnerOldValue);
 
         // set old value (needed in case of undo)
         pitchPanSeperationOldValue = selectedInstrument.getPitchPanSeparation();
@@ -980,44 +1046,62 @@ public class InstrumentController extends GenericController {
                 .setSelectedIndex(pitchPanCentreOldValue);
 
         // filter cutoff
+        instrumentUI.getTools().getFilterOptions().getFilterCheckBox()
+                .setSelected(selectedInstrument.isFiltered());
+        
+        cutoffOnChange();
+        
         // set old value (needed in case of undo)
-        filterCutoffOldValue = selectedInstrument.getInitialFilterCutoff();
+        filterCutoffSpinnerOldValue = selectedInstrument.getInitialFilterCutoff();
 
         instrumentUI.getTools().getFilterOptions().getFilterCutoffSpinner()
-                .setValue(filterCutoffOldValue);
+                .setValue(filterCutoffSpinnerOldValue);
+        
+        filterCutoffSliderOldValue = selectedInstrument.getInitialFilterCutoff();
 
         instrumentUI.getTools().getFilterOptions().getFilterCutoffSlider()
-                .setValue(filterCutoffOldValue);
+                .setValue(filterCutoffSpinnerOldValue);
 
         // filter resoance
+        instrumentUI.getTools().getFilterOptions().getResonanceCheckBox()
+                .setSelected(selectedInstrument.isUsingResonance());
+        
+        resonanceOnChange();
+        
         // set old value (needed in case of undo)
-        filterRezOldValue = selectedInstrument.getInitialFilterResonance();
+        filterRezSpinnerOldValue = selectedInstrument.getInitialFilterResonance();
 
         instrumentUI.getTools().getFilterOptions().getFilterResonanceSpinner()
-                .setValue(filterRezOldValue);
+                .setValue(filterRezSpinnerOldValue);
+        
+        filterRezSliderOldValue = selectedInstrument.getInitialFilterResonance();
 
         instrumentUI.getTools().getFilterOptions().getFilterResonanceSlider()
-                .setValue(filterRezOldValue);
+                .setValue(filterRezSpinnerOldValue);
 
         // random volume
         // set old value (needed in case of undo)
-        randomVolumeOldValue = selectedInstrument.getRandomVolumeVariation();
+        randomVolumeSpinnerOldValue = selectedInstrument.getRandomVolumeVariation();
 
         instrumentUI.getTools().getRandomOffsets().getRandomVolumeSpinner()
-                .setValue(randomVolumeOldValue);
+                .setValue(randomVolumeSpinnerOldValue);
+        
+        randomVolumeSliderOldValue = selectedInstrument.getRandomVolumeVariation();
 
         instrumentUI.getTools().getRandomOffsets().getRandomVolumeSlider()
-                .setValue(randomVolumeOldValue);
+                .setValue(randomVolumeSpinnerOldValue);
 
         // random panning
         // set old value (needed in case of undo)
-        randomPanOldValue = selectedInstrument.getRandomPanningVariation();
+        randomPanSpinnerOldValue = selectedInstrument.getRandomPanningVariation();
 
         instrumentUI.getTools().getRandomOffsets().getRandomPanningSpinner()
-                .setValue(randomPanOldValue);
+                .setValue(randomPanSpinnerOldValue);
+        
+        randomPanSliderOldValue = selectedInstrument.getRandomPanningVariation();
 
         instrumentUI.getTools().getRandomOffsets().getRandomPanningSlider()
-                .setValue(randomPanOldValue);
+                .setValue(randomPanSpinnerOldValue);
 
         // note map
         instrumentUI.getTools().getNoteMapView()

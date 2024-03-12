@@ -14,6 +14,10 @@ import ui.main.MainFrame;
 import ui.view.pattens.PatternCell;
 import ui.view.MainMenuBar;
 import ui.view.MainUI;
+import ui.view.details.ChannelDetailsPanel;
+import ui.view.details.ChannelDetailsScrollPanel;
+import ui.view.details.ChannelPanel;
+import ui.view.details.DetailsUI;
 import ui.view.details.InitialTiming;
 import ui.view.details.ModuleDetails;
 import ui.view.details.ModuleMessage;
@@ -37,7 +41,6 @@ public class testUIPanel extends JFrame {
     
     // constructor
     public testUIPanel() {
-        testPanel = new ModuleTools(4);
         init();
     }
 

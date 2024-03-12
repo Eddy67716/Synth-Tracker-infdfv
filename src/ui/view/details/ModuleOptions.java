@@ -6,6 +6,8 @@ package ui.view.details;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
@@ -67,6 +69,10 @@ public class ModuleOptions extends JPanel {
     }
     
     // getters
+    public ButtonGroup getChannelGroup() {
+        return channelGroup;
+    }
+    
     public JRadioButton getStereoOption() {
         return stereoOption;
     }
@@ -305,5 +311,14 @@ public class ModuleOptions extends JPanel {
         moc.gridheight = GridBagConstraints.REMAINDER;
 
         add(new JPanel(), moc);
+    }
+    
+    // events and listeners
+    public void addStereoOptionsEvent(ActionListener actionPerformed) {
+        this.stereoOption.addActionListener(actionPerformed);
+    }
+    
+    public void addMonoOptionsEvent(ActionListener actionPerformed) {
+        this.monoOption.addActionListener(actionPerformed);
     }
 }

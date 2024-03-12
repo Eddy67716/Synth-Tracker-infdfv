@@ -4,13 +4,18 @@
  */
 package ui.view.details;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.KeyListener;
 import javax.swing.BorderFactory;
 import javax.swing.border.EtchedBorder;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import javax.swing.border.Border;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.DEF_FONT;
@@ -30,6 +35,7 @@ public class ModuleMessage extends JPanel {
     private Border messageBorder;
     // IT and STR
     private JLabel messageLabel;
+    private JScrollPane messagePane;
     private JTextArea messageArea;
     
     public ModuleMessage(int modType) {
@@ -77,17 +83,28 @@ public class ModuleMessage extends JPanel {
         // message area
         messageArea = new JTextArea("placeholder");
         messageArea.setFont(ITALIC_FONT);
+        
+        messagePane = new JScrollPane(messageArea, VERTICAL_SCROLLBAR_AS_NEEDED, 
+                HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        
+        // set size of message pane to prevent oversizing
+        messagePane.setPreferredSize(new Dimension (300, 150));
 
         mmc.fill = GridBagConstraints.BOTH;
         mmc.gridy++;
-        add(messageArea, mmc);
+        add(messagePane, mmc);
         
-        // add trailing JPanel
+        // add trailing JPanels
         mmc.gridx = 0;
         mmc.gridy++;
         mmc.weighty = 1.0;
         mmc.gridheight = GridBagConstraints.REMAINDER;
 
         add(new JPanel(), mmc);
+    }
+    
+    // events and listeners
+    public void addMessageAreaKeyListner(KeyListener keyPerformed) {
+        messageArea.addKeyListener(keyPerformed);
     }
 }

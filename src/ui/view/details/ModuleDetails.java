@@ -6,6 +6,7 @@ package ui.view.details;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
@@ -38,8 +39,8 @@ public class ModuleDetails extends JPanel {
     private JLabel songNameLabel;
     private JTextField songNameField;
     // STR and OpenMPT files
-    private JLabel songAuthorLabel;
-    private JTextField songAuthorField;
+    private JLabel songArtistLabel;
+    private JTextField songArtistField;
     // s3m and onwards
     private JLabel createdVersionTitleLabel;
     private JLabel createdVersionLabel;
@@ -58,15 +59,15 @@ public class ModuleDetails extends JPanel {
         return songNameField;
     }
 
-    public JTextField getSongAuthorField() {
-        return songAuthorField;
+    public JTextField getSongArtistField() {
+        return songArtistField;
     }
 
     public JLabel getCreatedVersionLabel() {
         return createdVersionLabel;
     }
 
-    public JLabel getCcompatibleVersionLabel() {
+    public JLabel getCompatibleVersionLabel() {
         return ccompatibleVersionLabel;
     }
 
@@ -112,22 +113,22 @@ public class ModuleDetails extends JPanel {
         add(songNameField, dc);
 
         // song author label
-        songAuthorLabel = new JLabel("Song author: ");
-        songAuthorLabel.setFont(DEF_FONT);
+        songArtistLabel = new JLabel("Song author: ");
+        songArtistLabel.setFont(DEF_FONT);
 
         dc.gridx = 0;
         dc.gridy++;
-        add(songAuthorLabel, dc);
+        add(songArtistLabel, dc);
 
         // song author field
-        songAuthorField = new JTextField();
-        songAuthorField.setToolTipText("Writer of song");
-        songAuthorField.setPreferredSize(LARGE_FIELD_SIZE);
+        songArtistField = new JTextField();
+        songArtistField.setToolTipText("Writer of song");
+        songArtistField.setPreferredSize(LARGE_FIELD_SIZE);
 
         dc.fill = GridBagConstraints.HORIZONTAL;
         dc.gridx = 0;
         dc.gridy++;
-        add(songAuthorField, dc);
+        add(songArtistField, dc);
 
         // created version title label
         createdVersionTitleLabel = new JLabel("Created version: ");
@@ -183,5 +184,14 @@ public class ModuleDetails extends JPanel {
         dc.gridheight = GridBagConstraints.REMAINDER;
 
         add(new JPanel(), dc);
+    }
+    
+    // events and listneers
+    public void addSongNameFieldActionListener(ActionListener actionPerformed) {
+        songNameField.addActionListener(actionPerformed);
+    }
+    
+    public void addSongArtistFieldActionListener(ActionListener actionPerformed) {
+        songArtistField.addActionListener(actionPerformed);
     }
 }

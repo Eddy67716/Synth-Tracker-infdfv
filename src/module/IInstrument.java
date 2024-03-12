@@ -38,8 +38,12 @@ public interface IInstrument extends IToneAssignable {
     public byte getRandomPanningVariation();
     
     public short getInitialFilterCutoff();
+    
+    public boolean isFiltered();
 
     public short getInitialFilterResonance();
+    
+    public boolean isUsingResonance();
 
     public short getMidiChannel();
 
@@ -86,8 +90,12 @@ public interface IInstrument extends IToneAssignable {
     public void setInstrumentName(String instrumentName);
 
     public void setInitialFilterCutoff(short initialFilterCutoff);
+    
+    public void setFiltered(boolean filtered);
 
     public void setInitialFilterResonance(short initialFilterResonance);
+    
+    public void setUsingResonance(boolean usingResonance);
 
     public void setMidiChannel(short midiChannel);
 

@@ -4,7 +4,7 @@
  */
 package ui.view.models;
 
-import ui.controllers.HeaderController;
+import ui.controllers.DetailsController;
 import ui.controllers.IUndoable;
 import ui.controllers.InstrumentController;
 import ui.controllers.PatternController;
@@ -17,17 +17,17 @@ import ui.controllers.SampleController;
 public class ControllerViewModel {
 
     // controllers
-    private HeaderController headerController;
+    private DetailsController detailsController;
     private InstrumentController instrumentController;
     private SampleController sampleController;
     private PatternController patternController;
 
     // constructor
-    public ControllerViewModel(HeaderController headerController,
+    public ControllerViewModel(DetailsController headerController,
             InstrumentController instrumentController,
             SampleController sampleController,
             PatternController patternController) {
-        this.headerController = headerController;
+        this.detailsController = headerController;
         this.instrumentController = instrumentController;
         this.sampleController = sampleController;
         this.patternController = patternController;
@@ -39,8 +39,8 @@ public class ControllerViewModel {
     }
 
     // getters
-    public HeaderController getHeaderController() {
-        return headerController;
+    public DetailsController getDetailsController() {
+        return detailsController;
     }
 
     public InstrumentController getInstrumentController() {
@@ -56,8 +56,8 @@ public class ControllerViewModel {
     }
 
     // settters
-    public void setHeaderController(HeaderController headerController) {
-        this.headerController = headerController;
+    public void setDetailsController(DetailsController detailsController) {
+        this.detailsController = detailsController;
     }
 
     public void setInstrumentController(InstrumentController instrumentController) {
@@ -91,7 +91,7 @@ public class ControllerViewModel {
         
         switch (index) {
             case 0:
-                returnController = headerController;
+                returnController = detailsController;
                 break;
             case 1:
                 returnController = patternController;

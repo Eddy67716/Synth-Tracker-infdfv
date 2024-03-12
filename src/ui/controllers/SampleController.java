@@ -52,9 +52,12 @@ public class SampleController extends GenericController {
     private UndoManager[] sampleManagers;
     private String oldSampleName;
     private String oldFileName;
-    private int defaultVolumeOldValue;
-    private int globalVolumeOldValue;
-    private int panOldValue;
+    private int defaultVolSpinnerOldValue;
+    private int defaultVolSliderOldValue;
+    private int globalVolSpinnerOldValue;
+    private int globalVolSliderOldValue;
+    private int panSpinnerOldValue;
+    private int panSliderOldValue;
     private int loopOldIndex;
     private int loopStartOldValue;
     private int loopEndOldValue;
@@ -145,7 +148,6 @@ public class SampleController extends GenericController {
                 }
             }
         });
-        this.loadVM = loadVM;
         sampleOnChange();
     }
 
@@ -197,12 +199,12 @@ public class SampleController extends GenericController {
             // undo event
             UndoableSpinnerChange spinnerChange
                     = new UndoableSpinnerChange(defaultVolumeSpinner,
-                            defaultVolumeOldValue);
+                            defaultVolSpinnerOldValue);
 
             getCurrentUndoManager().addEdit(spinnerChange);
-
-            defaultVolumeOldValue = value;
         }
+        
+        defaultVolSpinnerOldValue = value;
 
         if (isAlteringModels()) {
 
@@ -231,12 +233,12 @@ public class SampleController extends GenericController {
                 // undo event
                 UndoableSliderChange sliderChange
                         = new UndoableSliderChange(defaultVolumeSlider,
-                                defaultVolumeOldValue);
+                                defaultVolSliderOldValue);
 
                 getCurrentUndoManager().addEdit(sliderChange);
-
-                defaultVolumeOldValue = value;
             }
+            
+            defaultVolSliderOldValue = value;
 
             if (isAlteringModels()) {
 
@@ -264,12 +266,12 @@ public class SampleController extends GenericController {
             // undo event
             UndoableSpinnerChange spinnerChange
                     = new UndoableSpinnerChange(globalVolumeSpinner,
-                            globalVolumeOldValue);
+                            globalVolSpinnerOldValue);
 
             getCurrentUndoManager().addEdit(spinnerChange);
-
-            globalVolumeOldValue = value;
         }
+        
+        globalVolSpinnerOldValue = value;
 
         if (isAlteringModels()) {
 
@@ -298,12 +300,12 @@ public class SampleController extends GenericController {
                 // undo event
                 UndoableSliderChange sliderChange
                         = new UndoableSliderChange(globalVolumeSlider,
-                                globalVolumeOldValue);
+                                globalVolSliderOldValue);
 
                 getCurrentUndoManager().addEdit(sliderChange);
-
-                globalVolumeOldValue = value;
             }
+            
+            globalVolSliderOldValue = value;
 
             if (isAlteringModels()) {
 
@@ -357,12 +359,12 @@ public class SampleController extends GenericController {
             // undo event
             UndoableSpinnerChange spinnerChange
                     = new UndoableSpinnerChange(defaultPanningSpinner,
-                            panOldValue);
+                            panSpinnerOldValue);
 
             getCurrentUndoManager().addEdit(spinnerChange);
-
-            panOldValue = value;
         }
+        
+        panSpinnerOldValue = value;
 
         if (isAlteringModels()) {
 
@@ -390,12 +392,12 @@ public class SampleController extends GenericController {
                 // undo event
                 UndoableSliderChange sliderChange
                         = new UndoableSliderChange(defaultPanningSlider,
-                                panOldValue);
+                                panSliderOldValue);
 
                 getCurrentUndoManager().addEdit(sliderChange);
-
-                panOldValue = value;
             }
+            
+            panSliderOldValue = value;
 
             if (isAlteringModels()) {
 
@@ -819,19 +821,21 @@ public class SampleController extends GenericController {
 
         // default volume
         // set old value
-        defaultVolumeOldValue = selectedSample.getDefaultVolume();
+        defaultVolSpinnerOldValue = selectedSample.getDefaultVolume();
+        defaultVolSliderOldValue = selectedSample.getDefaultVolume();
 
         sampleUI.getTools().getSoundOptions()
-                .getDefaultVolumeSlider().setValue(defaultVolumeOldValue);
+                .getDefaultVolumeSlider().setValue(defaultVolSpinnerOldValue);
 
         defaultVolumeSliderOnChange();
 
         // global volume
         // set old value
-        globalVolumeOldValue = selectedSample.getGlobalVolume();
+        globalVolSpinnerOldValue = selectedSample.getGlobalVolume();
+        globalVolSliderOldValue = selectedSample.getGlobalVolume();
 
         sampleUI.getTools().getSoundOptions()
-                .getGlobalVolumeSlider().setValue(globalVolumeOldValue);
+                .getGlobalVolumeSlider().setValue(globalVolSpinnerOldValue);
 
         globalVolumeSliderOnChange();
 
@@ -843,10 +847,11 @@ public class SampleController extends GenericController {
 
         // default panning
         // set old value
-        panOldValue = selectedSample.getPanValue();
+        panSpinnerOldValue = selectedSample.getPanValue();
+        panSliderOldValue = selectedSample.getPanValue();
 
         sampleUI.getTools().getSoundOptions()
-                .getDefaultPanningSlider().setValue(panOldValue);
+                .getDefaultPanningSlider().setValue(panSpinnerOldValue);
 
         defaultPanningSliderOnChange();
 

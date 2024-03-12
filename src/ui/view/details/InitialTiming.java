@@ -14,6 +14,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.ChangeListener;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.DEF_FONT;
 import static ui.UIProperties.DEF_INSETS;
@@ -51,7 +52,6 @@ public class InitialTiming extends JPanel {
     public JSpinner getTempoSpinner() {
         return tempoSpinner;
     }
-    
     
     private void init() {
         
@@ -95,8 +95,6 @@ public class InitialTiming extends JPanel {
         // grid bag setting
         tc.gridx = 1;
         tc.gridy = 0;
-        tc.weightx = 1.0;
-        tc.gridwidth = GridBagConstraints.REMAINDER;
         add(tickSpeedSpinner, tc);
         
         // tempo
@@ -106,10 +104,8 @@ public class InitialTiming extends JPanel {
         tempoLabel.setFont(DEF_FONT);
         
         // grid bag setting
-        tc.gridx = 0;
-        tc.gridy = 1;
-        tc.weightx = 0;
-        tc.gridwidth = 1;
+        tc.gridx = 2;
+        tc.gridy = 0;
         add(tempoLabel, tc);
         
         // tempo spinner model
@@ -120,18 +116,26 @@ public class InitialTiming extends JPanel {
         tempoSpinner.setPreferredSize(VALUE_SPINNER_SIZE);
         
         // grid bag setting
-        tc.gridx = 1;
-        tc.gridy = 1;
+        tc.gridx = 3;
+        tc.gridy = 0;
         tc.weightx = 1.0;
         tc.gridwidth = GridBagConstraints.REMAINDER;
         add(tempoSpinner, tc);
         
         // add trailing JPanel
         tc.gridx = 0;
-        tc.gridy++;
+        tc.gridy = 1;
         tc.weighty = 1.0;
         tc.gridheight = GridBagConstraints.REMAINDER;
         
         add(new JPanel(), tc);
+    }
+    
+    public void addTickSpeedSpinnerChangeListener(ChangeListener changePerformed) {
+        this.tickSpeedSpinner.addChangeListener(changePerformed);
+    }
+    
+    public void addBpmSpinnerChangeListener(ChangeListener changePerformed) {
+        this.tempoSpinner.addChangeListener(changePerformed);
     }
 }

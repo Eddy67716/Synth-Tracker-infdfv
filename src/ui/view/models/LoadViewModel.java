@@ -31,6 +31,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import module.IAudioSample;
+import module.IModuleHeader;
 
 /**
  *
@@ -133,6 +134,14 @@ public class LoadViewModel {
 
     public void readPatternFile() {
 
+    }
+    
+    public int getChannels() {
+        return modFile.getChannelsCount();
+    }
+    
+    public IModuleHeader getHeader() {
+        return modFile.getIModuleheader();
     }
 
     public List<IAudioSample> getSamples() {

@@ -30,6 +30,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ListSelectionListener;
 import module.IAudioSample;
+import ui.view.details.DetailsUI;
 import ui.view.instruments.InstrumentUI;
 
 /**
@@ -43,6 +44,7 @@ public class TabUI extends JPanel {
     private final JPanel modDataPane;
     private final JTabbedPane modDataInterface;
     private final JPanel detailsPanel;
+    private DetailsUI detailsUI;
     private final JPanel patternPanel;
     private final JPanel samplePanel;
     private SampleUI sampleUI;
@@ -263,6 +265,11 @@ public class TabUI extends JPanel {
     
     public void addPatternListSelectionListener(ListSelectionListener selection) {
         patternList.addListSelectionListener(selection);
+    }
+    
+    public void addDetailsInterface(DetailsUI detailsUI) {
+        this.detailsUI = detailsUI;
+        detailsPanel.add(detailsUI);
     }
     
     public void addSampleInterface(SampleUI sampleUI) {

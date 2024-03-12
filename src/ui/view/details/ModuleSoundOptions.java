@@ -11,11 +11,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
-import javax.swing.JTextField;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.ChangeListener;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.DEF_FONT;
 import static ui.UIProperties.DEF_INSETS;
@@ -138,14 +138,14 @@ public class ModuleSoundOptions extends JPanel {
 
         }
 
-        // set the global volume value spinner
-        globalVolumeValue = new JSpinner(channelSpinnerModel);
-        globalVolumeValue.setPreferredSize(VALUE_SPINNER_SIZE);
+        // set the channel value spinner
+        channelSpinner = new JSpinner(channelSpinnerModel);
+        channelSpinner.setPreferredSize(VALUE_SPINNER_SIZE);
 
         soc.gridx = 1;
         soc.gridy = 0;
         soc.gridwidth = GridBagConstraints.REMAINDER;
-        add(globalVolumeValue, soc);
+        add(channelSpinner, soc);
 
         // set the global volume label
         globalVolumeLabel = new JLabel("Global volume: ");
@@ -172,7 +172,7 @@ public class ModuleSoundOptions extends JPanel {
         add(globalVolumeValue, soc);
 
         // set the global volume slider
-        globalVolumeSlider = (modType == 6)
+        globalVolumeSlider = (modType >= 4)
                 ? new JSlider(0, 128, 128)
                 : new JSlider(0, 64, 64);
         soc.gridx = 2;
@@ -208,7 +208,7 @@ public class ModuleSoundOptions extends JPanel {
             add(mixVolumeValue, soc);
 
             // set the mix volume slider
-            mixVolumeSlider = (modType == 6)
+            mixVolumeSlider = (modType >= 4)
                     ? new JSlider(0, 128, 128)
                     : new JSlider(0, 64, 64);
             soc.gridx = 2;
@@ -228,7 +228,7 @@ public class ModuleSoundOptions extends JPanel {
             soc.fill = GridBagConstraints.NONE;
             add(panSeparationLabel, soc);
 
-            // set mix volume spinner model
+            // set panned separation spinner model
             panSeparationSpinnerModel = (modType >= 4)
                     ? new SpinnerNumberModel(128, 0, 128, 1)
                     : new SpinnerNumberModel(64, 0, 64, 1);
@@ -241,7 +241,7 @@ public class ModuleSoundOptions extends JPanel {
             add(panSeparationValue, soc);
 
             // set the mix volume slider
-            panSeparationSlider = (modType == 6)
+            panSeparationSlider = (modType >= 4)
                     ? new JSlider(0, 128, 128)
                     : new JSlider(0, 64, 64);
             
@@ -259,5 +259,34 @@ public class ModuleSoundOptions extends JPanel {
         soc.gridheight = GridBagConstraints.REMAINDER;
         
         add(new JPanel(), soc);
+    }
+    
+    // events and listners
+    public void addChannelSpinnerChangeListener(ChangeListener changePerformed) {
+        channelSpinner.addChangeListener(changePerformed);
+    }
+    
+    public void addGlobVolumeValChangeListener(ChangeListener changePerformed) {
+        globalVolumeValue.addChangeListener(changePerformed);
+    }
+
+    public void addGlobVolumeSliderChangeListener(ChangeListener changePerformed) {
+        globalVolumeSlider.addChangeListener(changePerformed);
+    }
+    
+    public void addMixVolumeValChangeListener(ChangeListener changePerformed) {
+        mixVolumeValue.addChangeListener(changePerformed);
+    }
+
+    public void addMixVolumeSliderChangeListener(ChangeListener changePerformed) {
+        mixVolumeSlider.addChangeListener(changePerformed);
+    }
+    
+    public void addPanSepValChangeListener(ChangeListener changePerformed) {
+        panSeparationValue.addChangeListener(changePerformed);
+    }
+
+    public void addPanSepSliderChangeListener(ChangeListener changePerformed) {
+        panSeparationSlider.addChangeListener(changePerformed);
     }
 }

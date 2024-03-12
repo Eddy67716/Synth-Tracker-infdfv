@@ -10,7 +10,7 @@ package sound.midi;
  */
 public class MidiTables {
 
-    public static final String[] MIDI_PROGRAM_LIST = {
+    public static final String[] MIDI_GEN_1_PROGRAM_LIST = {
         // Piano
         "Acoustic Grand Piano", "Bright Acoustic Piano", "Electric Grand Piano",
         "Honky-tonk Piano", "Electric Piano 1", "Electric Piano 2",

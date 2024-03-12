@@ -15,13 +15,13 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeListener;
-import static sound.midi.MidiTables.MIDI_PROGRAM_LIST;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.C5_SPINNER_SIZE;
 import static ui.UIProperties.DEF_FONT;
 import static ui.UIProperties.DEF_INSETS;
 import static ui.UIProperties.LARGE_FIELD_SIZE;
 import static ui.UIProperties.MEDIUM_FIELD_SIZE;
+import static sound.midi.MidiTables.MIDI_GEN_1_PROGRAM_LIST;
 
 /**
  *

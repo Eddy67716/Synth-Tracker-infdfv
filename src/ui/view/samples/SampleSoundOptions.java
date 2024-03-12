@@ -288,7 +288,7 @@ public class SampleSoundOptions extends JPanel {
         add(new JPanel(), soc);
     }
 
-    // events
+    // events and listeners
     public void addDefVolumeValChangeListener(ChangeListener changePerformed) {
         this.defaultVolumeValue.addChangeListener(changePerformed);
     }
