@@ -17,6 +17,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeListener;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.C5_SPINNER_SIZE;
 import static ui.UIProperties.DEF_FONT;
@@ -29,11 +30,10 @@ import static ui.UIProperties.DEF_INSETS;
 public class SustainLoopTools extends JPanel {
 
     // constants
-    private static final String[] LOOP_OPTIONS
-            = {"Off", "Forward", "Ping-Pong"};
-
     // instance variables
     private int modType;
+    private LanguageHandler languageHandler;
+    private final String[] loopOptions;
     private GridBagLayout susLoopToolsLayout;
     private GridBagConstraints slc;
     private Border susLoopToolsBorder;
@@ -47,8 +47,13 @@ public class SustainLoopTools extends JPanel {
     private SpinnerModel susLoopEndSpinnerModel;
 
     // constructor
-    public SustainLoopTools(int modType) {
+    public SustainLoopTools(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
+        loopOptions = new String[]{
+            languageHandler.getLanguageText("sample.loop_tools.off"),
+            languageHandler.getLanguageText("sample.loop_tools.forwards"),
+            languageHandler.getLanguageText("sample.loop_tools.bidi"),};
         init();
     }
 
@@ -72,6 +77,7 @@ public class SustainLoopTools extends JPanel {
         setLayout(susLoopToolsLayout);
         slc = new GridBagConstraints();
         slc.anchor = GridBagConstraints.SOUTHWEST;
+        //slc.fill = GridBagConstraints.BOTH;
         slc.insets = DEF_INSETS;
 
         // set the border
@@ -81,20 +87,23 @@ public class SustainLoopTools extends JPanel {
         // set the border title
         susLoopToolsBorder
                 = BorderFactory.createTitledBorder(susLoopToolsBorder,
-                        "Sustain loop tools: ", 0, 0, BOLD_FONT);
+                        languageHandler
+                                .getLanguageText("sample.sustain_loop_tools"),
+                        0, 0, BOLD_FONT);
 
         // set loop tools border
         setBorder(susLoopToolsBorder);
 
         // set loop title label
-        susLoopTitleLabel = new JLabel("Loop");
+        susLoopTitleLabel = new JLabel(languageHandler
+                .getLanguageText("sample.loop_tools.loop"));
         susLoopTitleLabel.setFont(DEF_FONT);
         slc.gridx = 0;
         slc.gridy = 0;
         add(susLoopTitleLabel, slc);
 
         // set loop combo box
-        susLoopComboBox = new JComboBox(LOOP_OPTIONS);
+        susLoopComboBox = new JComboBox(loopOptions);
         susLoopComboBox.setSelectedIndex(0);
         slc.gridx = 1;
         slc.gridy = 0;
@@ -103,7 +112,8 @@ public class SustainLoopTools extends JPanel {
         add(susLoopComboBox, slc);
 
         // set loop start title
-        susLoopStartTitleLabel = new JLabel("Start: ");
+        susLoopStartTitleLabel = new JLabel(languageHandler
+                .getLanguageText("sample.loop_tools.start"));
         susLoopStartTitleLabel.setFont(DEF_FONT);
         slc.gridx = 0;
         slc.gridy = 1;
@@ -125,7 +135,8 @@ public class SustainLoopTools extends JPanel {
         add(susLoopStartSpinner, slc);
 
         // set loop end title
-        susLoopEndTitleLabel = new JLabel("End: ");
+        susLoopEndTitleLabel = new JLabel(languageHandler
+                .getLanguageText("sample.loop_tools.end"));
         susLoopEndTitleLabel.setFont(DEF_FONT);
         slc.gridx = 0;
         slc.gridy = 2;

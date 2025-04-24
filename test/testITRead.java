@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import module.IAudioSample;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -36,7 +35,7 @@ public class testITRead {
             // check if read
             boolean isRead = reader.read();
             
-            System.out.println(reader.getHeader());
+            System.out.println(reader.getPatterns());
 
 
             if (isRead) {

@@ -1,15 +1,29 @@
 
-import java.util.Calendar;
-import module.it.format.EditHistoryEvent;
-
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.json.JSONObject;
 
 public class RandomTests {
 
     public static void main(String[] args) {
 
-        EditHistoryEvent ehi = new EditHistoryEvent(Calendar.getInstance(), 
-                (long) Math.round(18.2 * 361));
-        
-        System.out.println(ehi);
+        try {
+            
+            String langAddress = "src/lang/eng_au.json";
+            
+            String jsonString = Files.readString(Path.of(langAddress));
+
+            JSONObject j = new JSONObject(jsonString);
+            
+            String name = (String)j.get("edit.undo");
+            
+            System.out.println(name);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

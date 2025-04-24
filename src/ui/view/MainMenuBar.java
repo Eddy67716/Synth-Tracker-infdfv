@@ -10,6 +10,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
+import lang.LanguageHandler;
 
 /**
  *
@@ -18,6 +19,7 @@ import javax.swing.JToolBar;
 public class MainMenuBar extends JMenuBar {
 
     // instance variables
+    private LanguageHandler languageHandler;
     private JMenu fileMenu;
     private JMenu editMenu;
     private JMenu viewMenu;
@@ -34,8 +36,9 @@ public class MainMenuBar extends JMenuBar {
     private JMenuItem settings;
 
     // constructor
-    public MainMenuBar(MainController controller) {
-
+    public MainMenuBar(MainController controller, 
+            LanguageHandler languageHandler) {
+        this.languageHandler = languageHandler;
         fileMenu = new JMenu();
         editMenu = new JMenu();
         viewMenu = new JMenu();
@@ -51,7 +54,8 @@ public class MainMenuBar extends JMenuBar {
     }
 
     private void init(MainController controller) {
-        fileMenu.setText("File");
+        fileMenu.setText(languageHandler
+                                .getLanguageText("file"));
 
         // new file
         newFile.setAccelerator(javax.swing.KeyStroke.getKeyStroke(
@@ -59,7 +63,7 @@ public class MainMenuBar extends JMenuBar {
                 java.awt.event.InputEvent.CTRL_DOWN_MASK));
         newFile.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/New.png")));
-        newFile.setText("New file");
+        newFile.setText(languageHandler.getLanguageText("file.new"));
         newFile.addActionListener(e -> controller.newFile());
         fileMenu.add(newFile);
 
@@ -69,7 +73,7 @@ public class MainMenuBar extends JMenuBar {
                 java.awt.event.InputEvent.CTRL_DOWN_MASK));
         openFile.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/Open.png")));
-        openFile.setText("Open file");
+        openFile.setText(languageHandler.getLanguageText("file.open"));
         openFile.addActionListener(e -> controller.loadFile());
         fileMenu.add(openFile);
 
@@ -79,13 +83,13 @@ public class MainMenuBar extends JMenuBar {
                 java.awt.event.InputEvent.CTRL_DOWN_MASK));
         saveFile.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/Filled save icon.png")));
-        saveFile.setText("Save file");
+        saveFile.setText(languageHandler.getLanguageText("file.save"));
         saveFile.addActionListener(e -> controller.saveFile());
         fileMenu.add(saveFile);
 
         add(fileMenu);
 
-        editMenu.setText("Edit");
+        editMenu.setText(languageHandler.getLanguageText("edit"));
         
         // undo
         undo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(
@@ -93,7 +97,7 @@ public class MainMenuBar extends JMenuBar {
                 java.awt.event.InputEvent.CTRL_DOWN_MASK));
         undo.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/Undo.png")));
-        undo.setText("Undo");
+        undo.setText(languageHandler.getLanguageText("edit.undo"));
         undo.addActionListener(e -> controller.undo());
         editMenu.add(undo);
         
@@ -104,29 +108,29 @@ public class MainMenuBar extends JMenuBar {
                 java.awt.event.InputEvent.CTRL_DOWN_MASK));
         redo.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/Redo.png")));
-        redo.setText("Redo");
+        redo.setText(languageHandler.getLanguageText("edit.redo"));
         redo.addActionListener(e -> controller.redo());
         editMenu.add(redo);
         
         add(editMenu);
 
-        viewMenu.setText("View");
+        viewMenu.setText(languageHandler.getLanguageText("view"));
         add(viewMenu);
 
-        optionsMenu.setText("Options");
+        optionsMenu.setText(languageHandler.getLanguageText("options"));
         
         settings.setAccelerator(javax.swing.KeyStroke.getKeyStroke(
                 java.awt.event.KeyEvent.VK_S,
                 java.awt.event.InputEvent.SHIFT_DOWN_MASK));
         settings.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/Gear.png")));
-        settings.setText("Settings");
+        settings.setText(languageHandler.getLanguageText("settings"));
         settings.addActionListener(e -> controller.openSettings());
         optionsMenu.add(settings);
         
         add(optionsMenu);
 
-        helpMenu.setText("Help");
+        helpMenu.setText(languageHandler.getLanguageText("help"));
         add(helpMenu);
     }
 

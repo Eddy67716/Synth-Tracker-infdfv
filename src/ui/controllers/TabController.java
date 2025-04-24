@@ -13,8 +13,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
-import module.IAudioSample;
 import ui.view.models.ControllerViewModel;
+import module.ISampleSynth;
 
 /**
  *
@@ -44,9 +44,10 @@ public class TabController implements IUndoable {
         this.tabUI.addSampleListSelectionListener(e -> navigateToSample());
         this.tabUI.addInstrumentListSelectionListener(
                 e -> navigateToInstrument());
+        this.tabUI.addPatternListSelectionListener(e -> navigateToPattern());
 
         // set samples
-        List<IAudioSample> samples = loadVM.getSamples();
+        List<ISampleSynth> samples = loadVM.getSamples();
 
         sampleNames = new String[samples.size()];
 
@@ -131,6 +132,19 @@ public class TabController implements IUndoable {
         // set spinner value to selected index value
         tabUI.getInstrumentUI().getInstrumentSelectSpinner()
                 .setValue(selectedIndex + 1);
+    }
+    
+    // navigates to selected pattern in patternUI
+    public void navigateToPattern() {
+        // get selection index
+        int selectedIndex = tabUI.getPatternList().getSelectedIndex();
+
+        // set to instrument window (index 3)
+        tabUI.getModDataInterface().setSelectedIndex(1);
+
+        // set pattern controller to selected pattern
+        this.tabControllers.getPatternController()
+                .viewListPattern(selectedIndex);
     }
     
     @Override

@@ -18,6 +18,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeListener;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.CHECKBOX_INSETS;
 import static ui.UIProperties.DEF_FONT;
@@ -43,6 +44,7 @@ public class FilterOptions extends JPanel {
 
     // instance variables
     private int modType;
+    private LanguageHandler languageHandler;
     private GridBagLayout filterOptionsLayout;
     private GridBagConstraints foc;
     private Border filterOptionsBorder;
@@ -62,8 +64,9 @@ public class FilterOptions extends JPanel {
     private JComboBox filterTypeComboBox;               // str
 
     // constructor
-    public FilterOptions(int modType) {
+    public FilterOptions(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         init();
     }
 

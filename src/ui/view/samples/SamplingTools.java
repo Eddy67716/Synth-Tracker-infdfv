@@ -19,6 +19,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeListener;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.C5_SPINNER_SIZE;
 import static ui.UIProperties.DEF_FONT;
@@ -31,13 +32,14 @@ import static ui.UIProperties.SAMPLE_NOTES;
  * @author Edward Jenkins
  */
 public class SamplingTools extends JPanel {
-    
+
     // constants
     private static final Dimension FTUNE_SPINNER_SIZE = new Dimension(85, 20);
     private static final String[] RESAMPLER_OPTIONS = {"Stair-Step", "Sinc LPF"};
-    
+
     // instance variables
     private int modType;
+    private LanguageHandler languageHandler;
     private GridBagLayout samplingToolsLayout;
     private GridBagConstraints stc;
     private Border samplingToolsBorder;
@@ -55,13 +57,14 @@ public class SamplingTools extends JPanel {
     private JSpinner fineTuneSpinner;                   // MOD, XM and str
     private JLabel originalSampleRateTileLabel;
     private JLabel originalSampleRateLabel;
-    
+
     // constructor
-    public SamplingTools(int modType) {
+    public SamplingTools(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         init();
     }
-    
+
     // getters
     public JSpinner getC5SampleRateSpinner() {
         return c5SampleRateSpinner;
@@ -70,14 +73,15 @@ public class SamplingTools extends JPanel {
     public JComboBox getSampleTransposeComboBox() {
         return sampleTransposeComboBox;
     }
-    
+
     private void init() {
-        
+
         // set the layout
         samplingToolsLayout = new GridBagLayout();
         setLayout(samplingToolsLayout);
         stc = new GridBagConstraints();
         stc.anchor = GridBagConstraints.SOUTHWEST;
+        //stc.fill = GridBagConstraints.BOTH;
         stc.insets = DEF_INSETS;
 
         // set the border
@@ -87,31 +91,36 @@ public class SamplingTools extends JPanel {
         // set the border title
         samplingToolsBorder
                 = BorderFactory.createTitledBorder(samplingToolsBorder,
-                        "Sampling tools", 0, 0, BOLD_FONT);
+                        languageHandler
+                                .getLanguageText("sample.sampling_tools"),
+                        0, 0, BOLD_FONT);
 
         // set options border
         setBorder(samplingToolsBorder);
 
         // set C5 sample rate label
-        c5SampleRateLabel = new JLabel("C5 Sample Rate: ");
+        c5SampleRateLabel = new JLabel(languageHandler
+                .getLanguageText("sample.sampling_tools.middle_c_rate"));
         c5SampleRateLabel.setFont(DEF_FONT);
         stc.gridx = 0;
         stc.gridy = 0;
         add(c5SampleRateLabel, stc);
 
         // set C5 sample rate spinner model
-        c5SpinnerModel = new SpinnerNumberModel(8363, 0, 9999999, 1);
+        c5SpinnerModel = new SpinnerNumberModel(8363, 2, 9999999, 1);
 
         // set C5 sample rate spinner
         c5SampleRateSpinner = new JSpinner(c5SpinnerModel);
-        c5SampleRateSpinner.setToolTipText("Sample rate for Middle C. ");
+        c5SampleRateSpinner.setToolTipText(languageHandler
+                .getLanguageText("sample.sampling_tools.middle_c_rate.desc"));
         c5SampleRateSpinner.setPreferredSize(C5_SPINNER_SIZE);
         stc.gridx = 1;
         stc.gridy = 0;
         add(c5SampleRateSpinner, stc);
 
         // set sample transpose title label
-        sampleTransposeTitleLabel = new JLabel("Tramsposition: ");
+        sampleTransposeTitleLabel = new JLabel(languageHandler
+                .getLanguageText("sample.sampling_tools.transposition"));
         sampleTransposeTitleLabel.setFont(DEF_FONT);
         stc.gridx = 0;
         stc.gridy = 1;
@@ -141,7 +150,8 @@ public class SamplingTools extends JPanel {
         if (modType == 1 || modType == 3 || modType == 6) {
 
             // set fine tuning title label
-            fineTuneTitleLabel = new JLabel("Fine tuning: ");
+            fineTuneTitleLabel = new JLabel(languageHandler
+                .getLanguageText("sample.sampling_tools.tuning"));
             fineTuneTitleLabel.setFont(DEF_FONT);
             stc.gridx = 2;
             stc.gridy = 0;
@@ -197,15 +207,15 @@ public class SamplingTools extends JPanel {
         stc.weighty = 1;
         stc.gridwidth = GridBagConstraints.REMAINDER;
         stc.gridheight = GridBagConstraints.REMAINDER;
-        add(new JPanel(), stc); 
+        add(new JPanel(), stc);
     }
-    
+
     // events and listeners
     public void addC5SampleRateSpinnerChangeEvent(
             ChangeListener changePerformed) {
         c5SampleRateSpinner.addChangeListener(changePerformed);
-    }   
-    
+    }
+
     public void addSampleTransposeComboBox(ActionListener actionPerformed) {
         sampleTransposeComboBox.addActionListener(actionPerformed);
     }

@@ -17,7 +17,11 @@ import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.plaf.ColorUIResource;
+import javax.swing.plaf.metal.MetalLookAndFeel;
+import lang.LanguageHandler;
+import ui.UIProperties;
 import static ui.UIProperties.*;
+import ui.custom.SynthCustomMetalTheme;
 
 /**
  *
@@ -29,21 +33,31 @@ public class MainFrame extends JFrame {
     private MainController controller;
     private MainMenuBar mainMenuBar;
     private MainUI mainUI;
+    private LanguageHandler languageHandler;
 
     // constructor
     public MainFrame() {
 
-        this.mainUI = new MainUI();
-        this.controller = new MainController(mainUI);
-        this.mainMenuBar = new MainMenuBar(controller);
-
-        init();
+        try {
+            languageHandler = new LanguageHandler();
+            this.mainUI = new MainUI(languageHandler);
+            this.controller = new MainController(mainUI);
+            this.mainMenuBar = new MainMenuBar(controller, languageHandler);
+            init();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+
+        MetalLookAndFeel.setCurrentTheme(new SynthCustomMetalTheme());
+
+        // set ui properties
+        UIProperties.setUIProperties();
 
         // run the frame
         SwingUtilities.invokeLater(() -> {
@@ -52,9 +66,12 @@ public class MainFrame extends JFrame {
     }
 
     private void init() {
+
+        //System.out.println(UIManager.get("ScrollBar.track"));
+        // set main frame
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(new Dimension(1920, 1080));
-        setTitle("Synth Tracker");
+        setTitle(languageHandler.getLanguageText("synth_tracker"));
         setJMenuBar((JMenuBar) mainMenuBar);
         add(mainUI);
         setLocationRelativeTo(null);

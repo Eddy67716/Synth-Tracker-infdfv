@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.DEF_FONT;
 import static ui.UIProperties.DEF_INSETS;
@@ -27,6 +28,7 @@ public class InstrumentDetails extends JPanel {
     
     // instance variables
     private int modType;
+    private LanguageHandler languageHandler;
     private GridBagLayout instrumentDetailsLayout;
     private GridBagConstraints idc;
     private Border instrumentDetailsBorder;
@@ -36,8 +38,9 @@ public class InstrumentDetails extends JPanel {
     private JTextField fileNameField;               // it and str
     
     // constructor
-    public InstrumentDetails(int modType) {
+    public InstrumentDetails(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         init();
     }
     
@@ -67,13 +70,15 @@ public class InstrumentDetails extends JPanel {
         // set the border title
         instrumentDetailsBorder
                 = BorderFactory.createTitledBorder(instrumentDetailsBorder,
-                        "Instrument details", 0, 0, BOLD_FONT);
+                        languageHandler.getLanguageText("instrument.details"), 
+                        0, 0, BOLD_FONT);
 
         // set details border
         setBorder(instrumentDetailsBorder);
 
         // set the instrument name label
-        instrumentNameLabel = new JLabel("Instrument name: ");
+        instrumentNameLabel = new JLabel(languageHandler
+                .getLanguageText("instrument.details.name"));
         instrumentNameLabel.setFont(DEF_FONT);
         idc.gridx = 0;
         idc.gridy = 0;
@@ -83,7 +88,8 @@ public class InstrumentDetails extends JPanel {
 
         // set the instrument name field
         instrumentNameField = new JTextField("");
-        instrumentNameField.setToolTipText("Name of instrument. ");
+        instrumentNameField.setToolTipText(languageHandler
+                .getLanguageText("instrument.details.name.desc"));
         instrumentNameField.setPreferredSize(LARGE_FIELD_SIZE);
         idc.gridx = 0;
         idc.gridy++;
@@ -93,7 +99,8 @@ public class InstrumentDetails extends JPanel {
 
         if (modType >= 4) {
             // set the file name label
-            fileNameLabel = new JLabel("Instrument file name: ");
+            fileNameLabel = new JLabel(languageHandler
+                .getLanguageText("instrument.details.dos_file"));
             fileNameLabel.setFont(DEF_FONT);
             idc.gridx = 0;
             idc.gridy++;
@@ -103,8 +110,8 @@ public class InstrumentDetails extends JPanel {
 
             // set the file name field
             fileNameField = new JTextField("");
-            fileNameField.setToolTipText("File name of instrument. "
-                    + "Mostly used with it samples.");
+            fileNameField.setToolTipText(languageHandler
+                .getLanguageText("instrument.details.dos_file.desc"));
             fileNameField.setPreferredSize(SMALLER_FIELD_SIZE);
             idc.gridx = 1;
             idc.weightx = 1;

@@ -6,7 +6,8 @@ package ui.view;
 
 import ui.controllers.MainController;
 import java.awt.BorderLayout;
-import java.awt.Color;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -14,6 +15,10 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
 import javax.swing.JToolBar.Separator;
+import javax.swing.UIManager;
+import lang.LanguageHandler;
+import static ui.UIProperties.DEF_BACKGROUND_COLOUR;
+import static ui.UIProperties.DEF_INSETS;
 
 /**
  *
@@ -22,7 +27,10 @@ import javax.swing.JToolBar.Separator;
 public class MainUI extends JPanel {
     
     // instance variables
+    private LanguageHandler languageHandler;
     private JToolBar mainToolBar;
+    private GridBagLayout mainToolBarLayout;
+    private GridBagConstraints mainTBC;
     private JButton newFileButton;
     private JButton openFileButton;
     private JButton saveButton;
@@ -31,13 +39,17 @@ public class MainUI extends JPanel {
     private JButton stopButton;
     private JTabbedPane openedFilesTab;
     
-    public MainUI() {
+    public MainUI(LanguageHandler languageHandler) {
+        
+        // language handler
+        this.languageHandler = languageHandler;
         
         // layout
         this.setLayout(new BorderLayout());
         
         // tool bar 
         mainToolBar = new JToolBar();
+        mainTBC = new GridBagConstraints();
         newFileButton = new JButton();
         openFileButton = new JButton();
         saveButton = new JButton();
@@ -52,6 +64,10 @@ public class MainUI extends JPanel {
     }
     
     // getters
+    public LanguageHandler getLanguageHandler() {
+        return languageHandler;
+    }
+    
     public JTabbedPane getOpenedFilesTab() {
         return this.openedFilesTab;
     }
@@ -61,49 +77,89 @@ public class MainUI extends JPanel {
         // main tool bar
         mainToolBar.setRollover(true);
         mainToolBar.setFloatable(false);
+        mainToolBarLayout = new GridBagLayout();
+        mainToolBar.setLayout(mainToolBarLayout);
+        
+        // sampleTBC
+        mainTBC.anchor = GridBagConstraints.NORTHWEST;
+        mainTBC.gridx = 0;
+        mainTBC.gridy = 0;
+        mainTBC.insets = DEF_INSETS;
+        mainTBC.weightx = 0.0;
+        mainTBC.gridwidth = 1;
 
         // new file
-        newFileButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/assets/New.png"))); // NOI18N
-        newFileButton.setToolTipText("New file");
+        newFileButton.setIcon(new javax.swing.ImageIcon(getClass()
+                .getResource("/ui/assets/New.png")));
+        newFileButton.setToolTipText(languageHandler.getLanguageText("file.new"));
         newFileButton.setFocusable(false);
         newFileButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         newFileButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        mainToolBar.add(newFileButton);
+        mainToolBar.add(newFileButton, mainTBC);
+        
+        mainTBC.gridx++;
+        mainTBC.weightx = 0.0;
+        mainTBC.gridwidth = 1;
 
         // open file
-        openFileButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/assets/Open.png"))); // NOI18N
-        openFileButton.setToolTipText("Open file");
+        openFileButton.setIcon(new javax.swing.ImageIcon(getClass()
+                .getResource("/ui/assets/Open.png")));
+        openFileButton.setToolTipText(languageHandler.getLanguageText("file.open"));
         openFileButton.setFocusable(false);
         openFileButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         openFileButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        mainToolBar.add(openFileButton);
+        mainToolBar.add(openFileButton, mainTBC);
+        
+        mainTBC.gridx++;
+        mainTBC.weightx = 0.0;
+        mainTBC.gridwidth = 1;
 
         // save file
-        saveButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/assets/Filled save icon.png"))); // NOI18N
-        saveButton.setToolTipText("Save");
+        saveButton.setIcon(new javax.swing.ImageIcon(getClass()
+                .getResource("/ui/assets/Filled save icon.png")));
+        saveButton.setToolTipText(languageHandler.getLanguageText("file.save"));
         saveButton.setFocusable(false);
         saveButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         saveButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        mainToolBar.add(saveButton);
+        mainToolBar.add(saveButton, mainTBC);
+        
+        mainTBC.gridx++;
+        mainTBC.weightx = 0.0;
+        mainTBC.gridwidth = 1;
         
         // seperator
-        mainToolBar.add(filePlaySeparator);
+        mainToolBar.add(filePlaySeparator, mainTBC);
+        
+        mainTBC.gridx++;
+        mainTBC.weightx = 0.0;
+        mainTBC.gridwidth = 1;
         
         // play button
-        playButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/assets/Play Pause.png"))); // NOI18N
-        playButton.setToolTipText("Play/Pause module");
+        playButton.setIcon(new javax.swing.ImageIcon(getClass()
+                .getResource("/ui/assets/Play Pause.png")));
+        playButton.setToolTipText(languageHandler.getLanguageText("main.toolbar.play_pause"));
         playButton.setFocusable(false);
         playButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         playButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        mainToolBar.add(playButton);
+        mainToolBar.add(playButton, mainTBC);
+        
+        mainTBC.gridx++;
+        mainTBC.weightx = 0.0;
+        mainTBC.gridwidth = 1;
         
         // stop button
         stopButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/assets/Stop.png"))); // NOI18N
-        stopButton.setToolTipText("Stop module");
+        stopButton.setToolTipText(languageHandler.getLanguageText("main.toolbar.stop"));
         stopButton.setFocusable(false);
         stopButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         stopButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        mainToolBar.add(stopButton);
+        mainToolBar.add(stopButton, mainTBC);
+        
+        mainTBC.gridx++;
+        mainTBC.weightx = 1.0;
+        mainTBC.gridwidth = GridBagConstraints.REMAINDER;
+        
+        mainToolBar.add(new JPanel(), mainTBC);
         
         // add tool bar
         this.add(mainToolBar, BorderLayout.NORTH);

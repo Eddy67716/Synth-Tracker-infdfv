@@ -7,6 +7,7 @@ package ui.view.details;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.JPanel;
+import lang.LanguageHandler;
 
 /**
  *
@@ -16,6 +17,7 @@ public class ModuleTools extends JPanel {
     
     // instance variables
     private int modType;
+    private final LanguageHandler languageHandler;
     private GridBagLayout toolsLayout;
     private GridBagConstraints tc;
     private ModuleDetails moduleDetails;
@@ -25,8 +27,9 @@ public class ModuleTools extends JPanel {
     private ModuleMessage moduleMessage;
     
     // constructor
-    public ModuleTools(int modType) {
+    public ModuleTools(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         init();
     }
     
@@ -61,7 +64,7 @@ public class ModuleTools extends JPanel {
         tc.anchor = GridBagConstraints.NORTHWEST;
         
         // mod detials
-        moduleDetails = new ModuleDetails(modType);
+        moduleDetails = new ModuleDetails(modType, languageHandler);
         
         // layout
         tc.gridx = 0;
@@ -71,7 +74,7 @@ public class ModuleTools extends JPanel {
         add(moduleDetails, tc);
         
         // sound options
-        moduleSoundOptions = new ModuleSoundOptions(modType);
+        moduleSoundOptions = new ModuleSoundOptions(modType, languageHandler);
         
         // layout
         tc.gridx = 1;
@@ -80,7 +83,7 @@ public class ModuleTools extends JPanel {
         add(moduleSoundOptions, tc);
         
         // timing
-        moduleTiming = new InitialTiming(modType);
+        moduleTiming = new InitialTiming(modType, languageHandler);
         
         // layout
         tc.gridx = 1;
@@ -90,7 +93,7 @@ public class ModuleTools extends JPanel {
         add(moduleTiming, tc);
         
         // otions
-        moduleOptions = new ModuleOptions(modType);
+        moduleOptions = new ModuleOptions(modType, languageHandler);
         
         // layout
         tc.gridx = 2;
@@ -100,7 +103,7 @@ public class ModuleTools extends JPanel {
         add(moduleOptions, tc);
         
         // message
-        moduleMessage = new ModuleMessage(modType);
+        moduleMessage = new ModuleMessage(modType, languageHandler);
         
         // layout
         tc.gridx = 3;

@@ -17,6 +17,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeListener;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.C5_SPINNER_SIZE;
 import static ui.UIProperties.DEF_FONT;
@@ -27,13 +28,12 @@ import static ui.UIProperties.DEF_INSETS;
  * @author Edward Jenkins
  */
 public class LoopingTools extends JPanel {
-    
+
     // constants
-    private static final String[] LOOP_OPTIONS
-            = {"Off", "Forward", "Ping-Pong"};
-    
     // instance variables
     private int modType;
+    private LanguageHandler languageHandler;
+    private final String[] loopOptions;
     private GridBagLayout loopingToolsLayout;
     private GridBagConstraints lc;
     private Border loopingToolsBorder;
@@ -45,13 +45,19 @@ public class LoopingTools extends JPanel {
     private JLabel loopEndTitleLabel;
     private JSpinner loopEndSpinner;
     private SpinnerModel loopEndSpinnerModel;
-    
+
     // constructor
-    public LoopingTools(int modType) {
+    public LoopingTools(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
+        loopOptions = new String[]{
+            languageHandler.getLanguageText("sample.loop_tools.off"),
+            languageHandler.getLanguageText("sample.loop_tools.forwards"),
+            languageHandler.getLanguageText("sample.loop_tools.bidi"),
+        };
         init();
     }
-    
+
     // getters
     public JComboBox getLoopComboBox() {
         return loopComboBox;
@@ -64,14 +70,15 @@ public class LoopingTools extends JPanel {
     public JSpinner getLoopEndSpinner() {
         return loopEndSpinner;
     }
-    
+
     private void init() {
-        
+
         // set the layout
         loopingToolsLayout = new GridBagLayout();
         setLayout(loopingToolsLayout);
         lc = new GridBagConstraints();
         lc.anchor = GridBagConstraints.SOUTHWEST;
+        //lc.fill = GridBagConstraints.BOTH;
         lc.insets = DEF_INSETS;
 
         // set the border
@@ -81,20 +88,22 @@ public class LoopingTools extends JPanel {
         // set the border title
         loopingToolsBorder
                 = BorderFactory.createTitledBorder(loopingToolsBorder,
-                        "Loop tools: ", 0, 0, BOLD_FONT);
+                        languageHandler.getLanguageText("sample.loop_tools"), 0,
+                        0, BOLD_FONT);
 
         // set loop tools border
         setBorder(loopingToolsBorder);
 
         // set loop title label
-        loopTitleLabel = new JLabel("Loop");
+        loopTitleLabel = new JLabel(languageHandler
+                .getLanguageText("sample.loop_tools.loop"));
         loopTitleLabel.setFont(DEF_FONT);
         lc.gridx = 0;
         lc.gridy = 0;
         add(loopTitleLabel, lc);
 
         // set loop combo box
-        loopComboBox = new JComboBox(LOOP_OPTIONS);
+        loopComboBox = new JComboBox(loopOptions);
         loopComboBox.setSelectedIndex(0);
         lc.gridx = 1;
         lc.gridy = 0;
@@ -103,7 +112,8 @@ public class LoopingTools extends JPanel {
         add(loopComboBox, lc);
 
         // set loop start title
-        loopStartTitleLabel = new JLabel("Start: ");
+        loopStartTitleLabel = new JLabel(languageHandler
+                .getLanguageText("sample.loop_tools.start"));
         loopStartTitleLabel.setFont(DEF_FONT);
         lc.gridx = 0;
         lc.gridy = 1;
@@ -125,7 +135,8 @@ public class LoopingTools extends JPanel {
         add(loopStartSpinner, lc);
 
         // set loop end title
-        loopEndTitleLabel = new JLabel("End: ");
+        loopEndTitleLabel = new JLabel(languageHandler
+                .getLanguageText("sample.loop_tools.end"));
         loopEndTitleLabel.setFont(DEF_FONT);
         lc.gridx = 0;
         lc.gridy = 2;
@@ -156,16 +167,16 @@ public class LoopingTools extends JPanel {
 
         add(new JPanel(), lc);
     }
-    
+
     // events and listeners
     public void addLoopComboBoxActionListener(ActionListener actionPerformed) {
         loopComboBox.addActionListener(actionPerformed);
     }
-    
+
     public void addLoopStartSpinnerChangeListener(ChangeListener changePerformed) {
         loopStartSpinner.addChangeListener(changePerformed);
     }
-    
+
     public void addLoopEndSpinnerChangeListener(ChangeListener changePerformed) {
         loopEndSpinner.addChangeListener(changePerformed);
     }

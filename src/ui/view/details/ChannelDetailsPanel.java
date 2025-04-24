@@ -7,6 +7,7 @@ package ui.view.details;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.JPanel;
+import lang.LanguageHandler;
 
 /**
  *
@@ -16,15 +17,26 @@ public class ChannelDetailsPanel extends JPanel {
     
     // instance variables
     private int modType;
+    private final LanguageHandler languageHandler;
     private int channelCount;
     private GridBagLayout channelsPanelLayout;
     private GridBagConstraints cpc;
     private ChannelPanel[] channelPanels;
     
-    public ChannelDetailsPanel(int modType, int channels) {
+    public ChannelDetailsPanel(int modType, LanguageHandler languageHandler, 
+            int channels) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         this.channelCount = channels;
         init();
+    }
+
+    public int getChannelCount() {
+        return channelCount;
+    }
+
+    public ChannelPanel[] getChannelPanels() {
+        return channelPanels;
     }
     
     public void init() {
@@ -40,7 +52,7 @@ public class ChannelDetailsPanel extends JPanel {
         channelPanels = new ChannelPanel[channelCount];
         
         for (int i = 0; i < channelPanels.length; i++) {
-            channelPanels[i] = new ChannelPanel(modType, i + 1);
+            channelPanels[i] = new ChannelPanel(modType, languageHandler, i + 1);
         }
         
         // populate channels panel

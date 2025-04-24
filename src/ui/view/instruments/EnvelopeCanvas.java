@@ -11,7 +11,7 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Path2D;
 import javax.swing.JPanel;
-import module.it.format.NodePoint;
+import module.IEnvelopeNode;
 
 /**
  *
@@ -20,7 +20,7 @@ import module.it.format.NodePoint;
 public class EnvelopeCanvas extends JPanel {
 
     // instance variabls
-    private NodePoint[] envelopeValues;
+    private IEnvelopeNode[] envelopeValues;
     private double[] envelopeXPoints;
     private double[] envelopeYPoints;
     private Shape envelopePath;
@@ -93,21 +93,21 @@ public class EnvelopeCanvas extends JPanel {
 
         if (envelopeValues.length > 0) {
             int lastTick
-                    = envelopeValues[envelopeValues.length - 1].getTickNumber();
+                    = envelopeValues[envelopeValues.length - 1].getTickIndex();
 
             for (int i = 0; i < envelopeValues.length; i++) {
 
-                envelopeXPoints[i] = (double) envelopeValues[i].getTickNumber()
+                envelopeXPoints[i] = (double) envelopeValues[i].getTickIndex()
                         / lastTick;
 
                 envelopeYPoints[i] = 1 - ((double) envelopeValues[i]
-                        .getNodeValue() + Math.abs(lowest)) / (highest 
+                        .getNodePoint() + Math.abs(lowest)) / (highest 
                         + Math.abs(lowest));
             }
         }
     }
 
-    public void setEnvelopeData(NodePoint[] envelopeData, int lowest,
+    public void setEnvelopeData(IEnvelopeNode[] envelopeData, int lowest,
             int highest) {
 
         envelopeValues = envelopeData;

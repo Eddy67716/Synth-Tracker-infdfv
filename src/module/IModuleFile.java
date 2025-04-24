@@ -5,14 +5,14 @@
  */
 package module;
 
-import io.ISavableFile;
+import file.ISaveableFile;
 import java.util.List;
 
 /**
  *
  * @author Edward Jenkins
  */
-public interface IModuleFile extends ISavableFile{
+public interface IModuleFile extends ISaveableFile{
     
     public String getFileName();
     
@@ -20,9 +20,11 @@ public interface IModuleFile extends ISavableFile{
     
     public IModuleHeader getIModuleheader();
     
+    public short[] getPatternOrder();
+    
     public List<IInstrument> getIInstruments();
     
-    public List<IAudioSample> getISamples();
+    public List<ISampleSynth> getISamples();
     
     public List<IPattern> getIPatterns();
     

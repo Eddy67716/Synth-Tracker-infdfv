@@ -8,56 +8,20 @@ package module;
 import io.IReadable;
 import io.IWritable;
 import java.io.IOException;
-import module.it.format.NodePoint;
+import module.it.format.ItNodePoint;
 import sound.sample.player.IToneAssignable;
 
 /**
  *
  * @author Edward Jenkins
  */
-public interface IInstrument extends IToneAssignable {
+public interface IInstrument extends IInstrumentParseable {
     
-    public String getInstrumentName();
+    public IEnvelopeNode[] getVolumeEnvelopePoints();
     
-    public String getDosFileName();
+    public IEnvelopeNode[] getPanEnvelopePoints();
     
-    public short getFadeOut();
-
-    public short getPitchPanSeparation();
-
-    public byte getPitchPanCentre();
-    
-    public short getGlobalVolume();
-
-    public byte getPanValue();
-    
-    public boolean isPanning();
-
-    public byte getRandomVolumeVariation();
-
-    public byte getRandomPanningVariation();
-    
-    public short getInitialFilterCutoff();
-    
-    public boolean isFiltered();
-
-    public short getInitialFilterResonance();
-    
-    public boolean isUsingResonance();
-
-    public short getMidiChannel();
-
-    public short getMidiProgram();
-
-    public short getMidiBank();
-    
-    public short[][] getNoteSampleKeyboardTable();
-    
-    public NodePoint[] getVolumeEnvelopePoints();
-    
-    public NodePoint[] getPanEnvelopePoints();
-    
-    public NodePoint[] getPitchEnvelopePoints();
+    public IEnvelopeNode[] getPitchEnvelopePoints();
 
     public void setDosFileName(String dosFileName);
 
@@ -75,9 +39,13 @@ public interface IInstrument extends IToneAssignable {
 
     public void setPitchPanCentre(byte pitchPanCentre);
 
-    public void setGlobalVolume(short globalVolume);
+    public void setNormalisedGlobalVolumeValue(double globalVolumeValue);
 
-    public void setPanValue(byte panValue);
+    public void setNormalisedPanValue(double panValue);
+    
+    public void setGlobalVolumeValue(int globalVolumeValue);
+
+    public void setPanValue(int panValue);
     
     public void setPanning(boolean panning);
 
@@ -89,17 +57,19 @@ public interface IInstrument extends IToneAssignable {
 
     public void setInstrumentName(String instrumentName);
 
-    public void setInitialFilterCutoff(short initialFilterCutoff);
-    
     public void setFiltered(boolean filtered);
 
-    public void setInitialFilterResonance(short initialFilterResonance);
+    public void setInitialFilterCutoff(short initialFilterCutoff);
     
-    public void setUsingResonance(boolean usingResonance);
+    public void setUsingResonance(boolean resonance);
+
+    public void setInitialFilterResonance(short initialFilterResonance);
 
     public void setMidiChannel(short midiChannel);
 
-    public void setMidiProgram(short midiProgram);
+    public void setMidiProgram(byte midiProgram);
 
     public void setMidiBank(short midiBank);
+    
+    public void offsetSamples(short offset);
 }

@@ -18,6 +18,7 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import lang.LanguageHandler;
 import module.IInstrument;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.DEF_FONT;
@@ -31,6 +32,7 @@ public class InstrumentTools extends JPanel {
 
     // instance variables
     private int modType;
+    private LanguageHandler languageHandler;
     // this panel
     private GridBagLayout toolsLayout;
     private GridBagConstraints tc;
@@ -51,15 +53,9 @@ public class InstrumentTools extends JPanel {
     // Note map view
     private NoteMapView noteMapView;
 
-    public InstrumentTools(int modType) {
+    public InstrumentTools(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
-
-        // set layout
-        toolsLayout = new GridBagLayout();
-        tc = new GridBagConstraints();
-        tc.anchor = GridBagConstraints.NORTHWEST;
-        tc.fill = GridBagConstraints.VERTICAL;
-        this.setLayout(toolsLayout);
+        this.languageHandler = languageHandler;
 
         init();
     }
@@ -98,23 +94,30 @@ public class InstrumentTools extends JPanel {
     }
 
     public void init() {
+        
+        // set layout
+        toolsLayout = new GridBagLayout();
+        tc = new GridBagConstraints();
+        tc.anchor = GridBagConstraints.SOUTHWEST;
+        tc.fill = GridBagConstraints.VERTICAL;
+        this.setLayout(toolsLayout);
 
         // add innstrument details to tools
-        instrumentDetails = new InstrumentDetails(modType);
+        instrumentDetails = new InstrumentDetails(modType, languageHandler);
         //tc.fill = GridBagConstraints.BOTH;
         tc.gridx = 0;
         tc.gridy = 0;
         this.add(instrumentDetails, tc);
         
         // add sustain options to tools
-        sustainOptions = new SustainOptions(modType);
+        sustainOptions = new SustainOptions(modType, languageHandler);
         tc.gridy++;
         tc.weighty = 1;
         tc.gridheight = GridBagConstraints.REMAINDER;
         this.add(sustainOptions, tc);
         
         // add MIDI options
-        midiOptions = new MidiOptions(modType);
+        midiOptions = new MidiOptions(modType, languageHandler);
         tc.gridx = 1;
         tc.gridy = 0;
         tc.weighty = 0;
@@ -122,14 +125,14 @@ public class InstrumentTools extends JPanel {
         add(midiOptions, tc);
         
         // add instrument sound options to tools 
-        soundOptions = new InstrumentSoundOptions(modType);
+        soundOptions = new InstrumentSoundOptions(modType, languageHandler);
         tc.gridx = 1;
         tc.gridy = 1;
         tc.gridheight = GridBagConstraints.REMAINDER;
         add(soundOptions, tc);
         
         // add filter options to tools
-        filterOptions = new FilterOptions(modType);
+        filterOptions = new FilterOptions(modType, languageHandler);
         tc.gridx++;
         tc.gridy = 0;
         tc.weighty = 0.0;
@@ -137,14 +140,14 @@ public class InstrumentTools extends JPanel {
         add(filterOptions, tc);
         
         // add random offsets to tools
-        randomOffsets = new RandomOffsets(modType);
+        randomOffsets = new RandomOffsets(modType, languageHandler);
         tc.gridy = 1;
         tc.weighty = 1;
         tc.gridheight = GridBagConstraints.REMAINDER;
         add(randomOffsets, tc);
         
         // add note map view
-        noteMapView = new NoteMapView(modType);
+        noteMapView = new NoteMapView(modType, languageHandler);
         tc.gridx++;
         tc.gridy = 0;
         tc.weightx = 1;

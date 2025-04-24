@@ -4,15 +4,25 @@
  */
 package ui.controllers;
 
+import java.util.List;
+import javax.swing.ButtonGroup;
+import javax.swing.ButtonModel;
+import javax.swing.JCheckBox;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.undo.UndoManager;
+import module.IChannel;
 import module.IModuleHeader;
-import ui.controllers.undo.UndoableRadioButtonChange;
+import module.it.format.EditHistoryEvent;
+import module.it.format.ItHeader;
+import ui.controllers.undo.UndoableButtonGroupChange;
+import ui.controllers.undo.UndoableCheckBoxChange;
 import ui.controllers.undo.UndoableSliderChange;
 import ui.controllers.undo.UndoableSpinnerChange;
+import ui.view.details.ChannelPanel;
 import ui.view.details.DetailsUI;
 import ui.view.details.InitialTiming;
 import ui.view.details.ModuleDetails;
@@ -44,6 +54,10 @@ public class DetailsController extends GenericController {
     private int mixSliderOldValue;
     private int panSeparationSpinnerOldValue;
     private int panSeparationSliderOldValue;
+    private ButtonModel channelSelectionOldButton;
+    private ButtonModel slideSelectionOldButton;
+    private ButtonModel effectSelectionOldButton;
+    private ButtonModel instrumentSelectionOldButton;
     
     public DetailsController(DetailsUI detailsUI, LoadViewModel loadVM) {
         super();
@@ -96,10 +110,33 @@ public class DetailsController extends GenericController {
         // set module options
         ModuleOptions modOptions
                 = detailsUI.getModuleTools().getModuleOptions();
-        modOptions.addStereoOptionsEvent(e -> this.stereoOptionChange());
-        modOptions.addMonoOptionsEvent(e -> this.monoOptionChange());
+        modOptions.addStereoOptionsAction(e -> stereoOptionChange());
+        modOptions.addMonoOptionsAction(e -> monoOptionChange());
+        modOptions.addInstrumentOptionsAction(e -> instrumentOptionChange());
+        modOptions.addSampleOptionsAction(e -> sampleOptionChange());
+        modOptions.addLinearSlideOptionsAction(e -> linearSlideOptionChange());
+        modOptions.addAmigaSlideOptionsAction(e -> amigaSlideOptionChange());
+        modOptions.addOldEffectOptionsAction(e -> oldEffectsOptionChange());
+        modOptions.addNewEffectOptionsAction(e -> newEffectsOptionChange());
+        modOptions.addPortamentoLinkAction(e -> portamentoLinkOnChange());
         
         loadHeaderProperties();
+        
+        ChannelPanel[] channelPanels = detailsUI.getChannelsPanel()
+                .getChannelsPanel().getChannelPanels();
+        
+        // set up the channel controllers array
+        channelControllers = new ChannelController[channelPanels.length];
+        
+        List<IChannel> channels = loadVM.getHeader().getIChannels();
+        
+        // setup channel controllers
+        for (int i = 0; i < channelPanels.length; i++) {
+            
+            channelControllers[i] = new ChannelController(channelPanels[i],
+                loadVM, detailsManager, channels.get(i));
+        }
+        
     }
     
     // controller methods
@@ -110,10 +147,6 @@ public class DetailsController extends GenericController {
                 .getSongNameField();
 
         String sampleNameText = songNameField.getText();
-
-        if (isRecordingUndos()) {
-            //sampleNameText.
-        }
 
         if (isAlteringModels()) {
             moduleHeader.setSongName(sampleNameText);
@@ -126,10 +159,6 @@ public class DetailsController extends GenericController {
                 .getSongArtistField();
         
         String songArtistText = artistNameField.getText();
-        
-        if (isRecordingUndos()) {
-            //sampleNameText.
-        }
 
         if (isAlteringModels()) {
 
@@ -423,43 +452,243 @@ public class DetailsController extends GenericController {
     // module options
     public void stereoOptionChange() {
         
-        JRadioButton stereoRadioButtion = detailsUI.getModuleTools()
+        ButtonGroup channelButtionGroup = detailsUI.getModuleTools()
+                .getModuleOptions().getChannelGroup();
+        
+        JRadioButton stereoRadioButton = detailsUI.getModuleTools()
                 .getModuleOptions().getStereoOption();
         
         if (isRecordingUndos()) {
             
             // undo event
-            UndoableRadioButtonChange radioButtionChange
-                    = new UndoableRadioButtonChange(stereoRadioButtion);
+            UndoableButtonGroupChange radioButtionChange
+                    = new UndoableButtonGroupChange(channelButtionGroup, 
+                            channelSelectionOldButton);
 
             getCurrentUndoManager().addEdit(radioButtionChange);
         }
+        
+        channelSelectionOldButton = stereoRadioButton.getModel();
 
         if (isAlteringModels()) {
 
             // update module global volume value
-            moduleHeader.setStereo(stereoRadioButtion.isSelected());
+            moduleHeader.setStereo(stereoRadioButton.isSelected());
         }
     }
     
     public void monoOptionChange() {
         
-        JRadioButton monoRadioButtion = detailsUI.getModuleTools()
+        ButtonGroup channelButtionGroup = detailsUI.getModuleTools()
+                .getModuleOptions().getChannelGroup();
+        
+        JRadioButton monoRadioButton = detailsUI.getModuleTools()
                 .getModuleOptions().getMonoOption();
         
         if (isRecordingUndos()) {
             
             // undo event
-            UndoableRadioButtonChange radioButtionChange
-                    = new UndoableRadioButtonChange(monoRadioButtion);
+            UndoableButtonGroupChange radioButtionChange
+                    = new UndoableButtonGroupChange(channelButtionGroup, 
+                            channelSelectionOldButton);
 
             getCurrentUndoManager().addEdit(radioButtionChange);
+        }
+        
+        channelSelectionOldButton = monoRadioButton.getModel();
+
+        if (isAlteringModels()) {
+
+            // update module global volume value
+            moduleHeader.setStereo(!monoRadioButton.isSelected());
+        }
+    }
+    
+    public void instrumentOptionChange() {
+        
+        ButtonGroup instrumentButtonGroup = detailsUI.getModuleTools()
+                .getModuleOptions().getInstrumentGroup();
+        
+        JRadioButton instrumentRadioButton = detailsUI.getModuleTools()
+                .getModuleOptions().getInstrumentOption();
+        
+        if (isRecordingUndos()) {
+            
+            // undo event
+            UndoableButtonGroupChange radioButtionChange
+                    = new UndoableButtonGroupChange(instrumentButtonGroup, 
+                            instrumentSelectionOldButton);
+
+            getCurrentUndoManager().addEdit(radioButtionChange);
+        }
+        
+        instrumentSelectionOldButton = instrumentRadioButton.getModel();
+
+        if (isAlteringModels()) {
+
+            // update module global volume value
+            moduleHeader.setUsingInstruments(
+                    instrumentRadioButton.isSelected());
+        }
+    }
+    
+    public void sampleOptionChange() {
+        
+        ButtonGroup instrumentButtonGroup = detailsUI.getModuleTools()
+                .getModuleOptions().getInstrumentGroup();
+        
+        JRadioButton sampleRadioButton = detailsUI.getModuleTools()
+                .getModuleOptions().getSampleOption();
+        
+        if (isRecordingUndos()) {
+            
+            // undo event
+            UndoableButtonGroupChange radioButtionChange
+                    = new UndoableButtonGroupChange(instrumentButtonGroup, 
+                            instrumentSelectionOldButton);
+
+            getCurrentUndoManager().addEdit(radioButtionChange);
+        }
+        
+        instrumentSelectionOldButton = sampleRadioButton.getModel();
+
+        if (isAlteringModels()) {
+
+            // update module global volume value
+            moduleHeader.setUsingInstruments(!sampleRadioButton.isSelected());
+        }
+    }
+    
+    public void linearSlideOptionChange() {
+        
+        ButtonGroup slideButtonGroup = detailsUI.getModuleTools()
+                .getModuleOptions().getSlideGroup();
+        
+        JRadioButton linearSlideRadioButton = detailsUI.getModuleTools()
+                .getModuleOptions().getLinearSlidesOption();
+        
+        if (isRecordingUndos()) {
+            
+            // undo event
+            UndoableButtonGroupChange radioButtionChange
+                    = new UndoableButtonGroupChange(slideButtonGroup, 
+                            slideSelectionOldButton);
+
+            getCurrentUndoManager().addEdit(radioButtionChange);
+        }
+        
+        slideSelectionOldButton = linearSlideRadioButton.getModel();
+
+        if (isAlteringModels()) {
+
+            // update module global volume value
+            moduleHeader.setUsingLinearSlides(
+                    linearSlideRadioButton.isSelected());
+        }
+    }
+    
+    public void amigaSlideOptionChange() {
+        
+        ButtonGroup slideButtonGroup = detailsUI.getModuleTools()
+                .getModuleOptions().getSlideGroup();
+        
+        JRadioButton amigaSlideRadioButton = detailsUI.getModuleTools()
+                .getModuleOptions().getAmigaSlidesOption();
+        
+        if (isRecordingUndos()) {
+            
+            // undo event
+            UndoableButtonGroupChange radioButtionChange
+                    = new UndoableButtonGroupChange(slideButtonGroup, 
+                            slideSelectionOldButton);
+
+            getCurrentUndoManager().addEdit(radioButtionChange);
+        }
+        
+        slideSelectionOldButton = amigaSlideRadioButton.getModel();
+
+        if (isAlteringModels()) {
+
+            // update module global volume value
+            moduleHeader.setUsingLinearSlides(!amigaSlideRadioButton
+                    .isSelected());
+        }
+    }
+    
+    public void oldEffectsOptionChange() {
+        
+        ButtonGroup effectButtonGroup = detailsUI.getModuleTools()
+                .getModuleOptions().getEffectGroup();
+        
+        JRadioButton oldEffectsRadioButton = detailsUI.getModuleTools()
+                .getModuleOptions().getOldEffectsOption();
+        
+        if (isRecordingUndos()) {
+            
+            // undo event
+            UndoableButtonGroupChange radioButtionChange
+                    = new UndoableButtonGroupChange(effectButtonGroup, 
+                            this.effectSelectionOldButton);
+
+            getCurrentUndoManager().addEdit(radioButtionChange);
+        }
+        
+        effectSelectionOldButton = oldEffectsRadioButton.getModel();
+
+        if (isAlteringModels()) {
+
+            // update module global volume value
+            moduleHeader.setUsingOldEffects(oldEffectsRadioButton.isSelected());
+        }
+    }
+    
+    public void newEffectsOptionChange() {
+        
+        ButtonGroup slideButtonGroup = detailsUI.getModuleTools()
+                .getModuleOptions().getEffectGroup();
+        
+        JRadioButton newEffectsRadioButton = detailsUI.getModuleTools()
+                .getModuleOptions().getNewEffecstOption();
+        
+        if (isRecordingUndos()) {
+            
+            // undo event
+            UndoableButtonGroupChange radioButtionChange
+                    = new UndoableButtonGroupChange(slideButtonGroup, 
+                            effectSelectionOldButton);
+
+            getCurrentUndoManager().addEdit(radioButtionChange);
+        }
+        
+        effectSelectionOldButton = newEffectsRadioButton.getModel();
+
+        if (isAlteringModels()) {
+
+            // update module global volume value
+            moduleHeader.setUsingOldEffects(!newEffectsRadioButton.isSelected());
+        }
+    }
+    
+    // portamento link
+    public void portamentoLinkOnChange() {
+        
+        JCheckBox portamentoLinkCheckBox = detailsUI.getModuleTools()
+                .getModuleOptions().getPortamentoLink();
+        
+        if (isRecordingUndos()) {
+            
+            // undo event
+            UndoableCheckBoxChange checkBoxChange
+                    = new UndoableCheckBoxChange(portamentoLinkCheckBox);
+
+            getCurrentUndoManager().addEdit(checkBoxChange);
         }
 
         if (isAlteringModels()) {
 
             // update module global volume value
-            moduleHeader.setStereo(!monoRadioButtion.isSelected());
+            moduleHeader.setPortamentoLinked(portamentoLinkCheckBox
+                    .isSelected());
         }
     }
     
@@ -472,8 +701,15 @@ public class DetailsController extends GenericController {
         // set module details listeners
         ModuleDetails modDetails 
                 = detailsUI.getModuleTools().getModuleDetails();
+        // name
         modDetails.getSongNameField().setText(moduleHeader.getSongName());
+        modDetails.getSongNameField().getDocument()
+                .addUndoableEditListener(detailsManager);
+        
+        // artist name
         modDetails.getSongArtistField().setText(moduleHeader.getArtistName());
+        modDetails.getSongArtistField().getDocument()
+                .addUndoableEditListener(detailsManager);
         
         // created version
         String createdVerision 
@@ -496,6 +732,11 @@ public class DetailsController extends GenericController {
         // set module sound options
         ModuleSoundOptions modSoundOptions 
                 = detailsUI.getModuleTools().getModuleSoundOptions();
+        
+        // set channels
+        channelOldValue = moduleHeader.getChannelCount();
+        modSoundOptions.getChannelSpinner().setValue(
+                (int)moduleHeader.getChannelCount());
         
         // global volume
         globalVolumeSpinnerOldValue = moduleHeader.getGlobalVolume();
@@ -531,9 +772,56 @@ public class DetailsController extends GenericController {
         if (stereo) {
             // stereo
             modOptions.getStereoOption().setSelected(true);
+            channelSelectionOldButton = modOptions.getStereoOption().getModel();
         } else {
             // mono
             modOptions.getMonoOption().setSelected(true);
+            channelSelectionOldButton = modOptions.getMonoOption().getModel();
+        }
+        
+        // instruments
+        boolean instrumental = moduleHeader.isUsingInstruments();
+        
+        if (instrumental) {
+            // instruments
+            modOptions.getInstrumentOption().setSelected(true);
+            instrumentSelectionOldButton = modOptions.getInstrumentOption()
+                    .getModel();
+        } else {
+            // samples
+            modOptions.getSampleOption().setSelected(true);
+            instrumentSelectionOldButton = modOptions.getSampleOption()
+                    .getModel();
+        }
+        
+        // slides
+        boolean linear = moduleHeader.isUsingLinearSlides();
+        
+        if (linear) {
+            // old
+            modOptions.getLinearSlidesOption().setSelected(true);
+            slideSelectionOldButton = modOptions.getLinearSlidesOption()
+                    .getModel();
+        } else {
+            // new
+            modOptions.getAmigaSlidesOption().setSelected(true);
+            slideSelectionOldButton = modOptions.getAmigaSlidesOption()
+                    .getModel();
+        }
+        
+        // effects
+        boolean old = moduleHeader.isUsingOldEffects();
+        
+        if (old) {
+            // old
+            modOptions.getOldEffectsOption().setSelected(true);
+            effectSelectionOldButton = modOptions.getOldEffectsOption()
+                    .getModel();
+        } else {
+            // new
+            modOptions.getNewEffecstOption().setSelected(true);
+            effectSelectionOldButton = modOptions.getNewEffecstOption()
+                    .getModel();
         }
         
         // timing
@@ -556,8 +844,56 @@ public class DetailsController extends GenericController {
         
         moduleMessage.getMessageArea().setText(moduleHeader.getMessage());
         
+        // add the undo manager
+        moduleMessage.getMessageArea().getDocument()
+                .addUndoableEditListener(detailsManager);
+        
+        // edit histories
+        if (moduleHeader instanceof ItHeader) {
+            
+            ItHeader itHeader = (ItHeader) moduleHeader;
+            
+            JTextArea editHistoryArea = detailsUI.getChannelsPanel()
+                .getEditHistoryPanel().getEditHistoryArea();
+            
+            EditHistoryEvent[] editHistoryEvents 
+                    = itHeader.getEditHistoryEvents();
+            
+            if (editHistoryEvents != null) {
+                int i = 0;
+                for (EditHistoryEvent editHistoryEvent : editHistoryEvents) {
+                    editHistoryArea.append(editHistoryEvent.toString());
+                    if (i < editHistoryEvents.length - 1) {
+                        editHistoryArea.append("\n");
+                    }
+                }
+            }
+        }
+        
         // set record undo back to true
         setRecordingUndos(true);
         setAlteringModels(true);
+    }
+    
+    @Override
+    public void redo() {
+        for (ChannelController controller : channelControllers) {
+            controller.setRecordingUndos(false);
+        }
+        super.redo(); 
+        for (ChannelController controller : channelControllers) {
+            controller.setRecordingUndos(true);
+        }
+    }
+
+    @Override
+    public void undo() {
+        for (ChannelController controller : channelControllers) {
+            controller.setRecordingUndos(false);
+        }
+        super.undo(); 
+        for (ChannelController controller : channelControllers) {
+            controller.setRecordingUndos(true);
+        }
     }
 }

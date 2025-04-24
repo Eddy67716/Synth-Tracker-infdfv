@@ -13,7 +13,8 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.JPanel;
-import module.IAudioSample;
+import lang.LanguageHandler;
+import module.ISampleSynth;
 
 /**
  *
@@ -23,11 +24,12 @@ public class SampleTools extends JPanel {
 
     // instance variables
     private int modType;
+    private LanguageHandler languageHandler;
     // this panel
     private GridBagLayout toolsLayout;
     private GridBagConstraints tc;
     // basics
-    private IAudioSample sample;
+    private ISampleSynth sample;
     // Sample details (File name, bitrate, channels, etc.)
     private SampleDetails sampleDetails;
     // sound options (volume, panning, etc.)
@@ -54,15 +56,11 @@ public class SampleTools extends JPanel {
     private JPanel RotaryTremoloOptions;            
 
     // consturctor
-    public SampleTools(int modType) {
+    public SampleTools(int modType, LanguageHandler languageHandler) {
 
-        // set layout
-        toolsLayout = new GridBagLayout();
-        tc = new GridBagConstraints();
-        tc.anchor = GridBagConstraints.NORTHWEST;
-        tc.fill = GridBagConstraints.VERTICAL;
-        this.setLayout(toolsLayout);
+        
         this.modType = modType;
+        this.languageHandler = languageHandler;
 
         init();
     }
@@ -98,62 +96,76 @@ public class SampleTools extends JPanel {
     
     public void init() {
         
-        // set the panels
+        // set layout
+        toolsLayout = new GridBagLayout();
+        tc = new GridBagConstraints();
+        tc.anchor = GridBagConstraints.SOUTHWEST;
+        tc.fill = GridBagConstraints.VERTICAL;
+        tc.insets = DEF_INSETS;
+        this.setLayout(toolsLayout);
         
         // add sample details to tools;
-        sampleDetails = new SampleDetails(modType);
+        sampleDetails = new SampleDetails(modType, languageHandler);
         tc.gridx = 0;
         tc.gridy = 0;
-        tc.weighty = 1;
-        tc.gridheight = 2;
+        tc.weighty = 1.0;
+        tc.gridheight = GridBagConstraints.REMAINDER;
         this.add(sampleDetails, tc);
         
         // add sound options to tools
-        soundOptions = new SampleSoundOptions(modType);
+        soundOptions = new SampleSoundOptions(modType, languageHandler);
         tc.gridx = 1;
         tc.gridy = 0;
-        tc.weighty = 1;
-        tc.gridheight = 2;
+        tc.gridheight = GridBagConstraints.REMAINDER;
         this.add(soundOptions, tc);
         
         // add loop tools to tools
-        loopingTools = new LoopingTools(modType);
+        loopingTools = new LoopingTools(modType, languageHandler);
         tc.gridx = 2;
         tc.gridy = 0;
-        tc.weightx = 0.0;
-        tc.weighty = 0.0;
         tc.gridwidth = 1;
         tc.gridheight = 1;
         this.add(loopingTools, tc);
         
         // add sustain loop tools to tools
-        susLoopTools = new SustainLoopTools(modType);
+        susLoopTools = new SustainLoopTools(modType, languageHandler);
         tc.gridx = 3;
         tc.gridy = 0;
-        tc.weightx = 0.0;
-        tc.weighty = 0.0;
         tc.gridwidth = 1;
         tc.gridheight = 1;
         this.add(susLoopTools, tc);
         
         // add sampling tools to tools
-        samplingTools = new SamplingTools(modType);
+        samplingTools = new SamplingTools(modType, languageHandler);
         tc.gridx = 2;
         tc.gridy = 1;
-        tc.weightx = 0.0;
-        tc.weighty = 0.0;
         tc.gridwidth = 2;
-        tc.gridheight = 1;
+        tc.gridheight = GridBagConstraints.REMAINDER;
         this.add(samplingTools, tc);
         
+        // add bottom trailing JPanel
+        tc.gridx = 4;
+        tc.gridy = 1;
+        tc.weightx = 1.0;
+        tc.gridwidth = GridBagConstraints.REMAINDER;
+        tc.gridheight = GridBagConstraints.REMAINDER;
+        this.add(new JPanel(), tc);
+        
         // add vibrato options to tools
-        vibratoOptions = new VibratoOptions(modType);
+        vibratoOptions = new VibratoOptions(modType, languageHandler);
         tc.gridx = 4;
         tc.gridy = 0;
-        tc.weightx = 1.0;
-        tc.weighty = 1.0;
-        tc.gridwidth = 1;
+        tc.weightx = 0;
+        tc.gridwidth = GridBagConstraints.REMAINDER;
         tc.gridheight = 1;
         this.add(vibratoOptions, tc);
+        
+        // add trailing JPanel
+        tc.gridx = 5;
+        tc.gridy = 0;
+        tc.weightx = 1.0;
+        tc.gridwidth = GridBagConstraints.REMAINDER;
+        tc.gridheight = 1;
+        this.add(new JPanel(), tc);
     }
 }

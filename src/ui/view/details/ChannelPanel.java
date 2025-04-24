@@ -19,6 +19,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeListener;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.DEF_FONT;
 import static ui.UIProperties.DEF_INSETS;
@@ -33,6 +34,7 @@ public class ChannelPanel extends JPanel {
 
     // instance variables
     private int modType;
+    private final LanguageHandler languageHandler;
     private int channelNumber;
     private GridBagLayout channelLayout;
     private GridBagConstraints cc;
@@ -54,8 +56,10 @@ public class ChannelPanel extends JPanel {
     private JLabel surroundLabel;
     private JCheckBox surround;
 
-    public ChannelPanel(int modType, int channelNumber) {
+    public ChannelPanel(int modType, LanguageHandler languageHandler, 
+            int channelNumber) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         this.channelNumber = channelNumber;
         init();
     }
@@ -63,6 +67,10 @@ public class ChannelPanel extends JPanel {
     // getters
     public int getChannelNumber() {
         return channelNumber;
+    }
+
+    public JTextField getChannelNameField() {
+        return channelNameField;
     }
 
     public JSpinner getChannelVolumeValue() {
@@ -106,17 +114,22 @@ public class ChannelPanel extends JPanel {
         // set the border
         channelBorder
                 = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+        
+        String channelTitle = languageHandler
+                            .getLanguageText("module.channel")
+                .replaceFirst("%1", Integer.toString(channelNumber));
 
         // set the border title
         channelBorder
                 = BorderFactory.createTitledBorder(channelBorder,
-                        "Channel: " + channelNumber, 0, 0, BOLD_FONT);
+                        channelTitle, 0, 0, BOLD_FONT);
 
         // set options border
         setBorder(channelBorder);
 
         // channel name label
-        channelNameLabel = new JLabel("Channel name: ");
+        channelNameLabel = new JLabel(languageHandler
+                            .getLanguageText("module.channel.name"));
         channelNameLabel.setFont(DEF_FONT);
 
         cc.gridx = 0;
@@ -127,7 +140,8 @@ public class ChannelPanel extends JPanel {
 
         // channel name field
         channelNameField = new JTextField();
-        channelNameField.setToolTipText("Name of channel");
+        channelNameField.setToolTipText(languageHandler
+                            .getLanguageText("module.channel.name.desc"));
         channelNameField.setPreferredSize(LARGE_FIELD_SIZE);
 
         cc.gridx = 0;
@@ -142,7 +156,8 @@ public class ChannelPanel extends JPanel {
                     : new SpinnerNumberModel(64, 0, 64, 1);
 
             // channel volume label
-            channelVolumeLabel = new JLabel("Volume: ");
+            channelVolumeLabel = new JLabel(languageHandler
+                            .getLanguageText("module.channel.volume"));
 
             cc.gridx = 0;
             cc.gridy++;
@@ -169,11 +184,12 @@ public class ChannelPanel extends JPanel {
 
             // channel pan spinner model
             channelPanningSpinnerModel = (modType == 6)
-                    ? new SpinnerNumberModel(128, 0, 128, 1)
+                    ? new SpinnerNumberModel(0, -128, 127, 1)
                     : new SpinnerNumberModel(64, 0, 64, 1);
 
             // channel pan label
-            channelPanningLabel = new JLabel("Panning: ");
+            channelPanningLabel = new JLabel(languageHandler
+                            .getLanguageText("module.channel.panning"));
 
             cc.gridx = 1;
             cc.gridy = 2;
@@ -202,14 +218,23 @@ public class ChannelPanel extends JPanel {
         }
 
         // add mute check box
-        muted = new JCheckBox("Muted");
+        muted = new JCheckBox(languageHandler
+                            .getLanguageText("module.channel.mute"));
 
         cc.gridx = 0;
         cc.gridy++;
+        cc.anchor = GridBagConstraints.SOUTHWEST;
+        add(muted, cc);
+        
+        // add surround check box
+        surround = new JCheckBox(languageHandler
+                            .getLanguageText("module.channel.surround"));
+
+        cc.gridx = 1;
         cc.weightx = 1.0;
         cc.gridwidth = GridBagConstraints.REMAINDER;
         cc.anchor = GridBagConstraints.SOUTHWEST;
-        add(muted, cc);
+        add(surround, cc);
 
         // add trailing JPanel
         cc.gridx = 0;
@@ -231,7 +256,7 @@ public class ChannelPanel extends JPanel {
         channelVolumeValue.addChangeListener(changePerformed);
     }
 
-    public void addDefVolumeSliderChangeListener(ChangeListener changePerformed) {
+    public void addChannelVolumeSliderChangeListener(ChangeListener changePerformed) {
         channelVolumeSlider.addChangeListener(changePerformed);
     }
 

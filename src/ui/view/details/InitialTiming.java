@@ -15,6 +15,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeListener;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.DEF_FONT;
 import static ui.UIProperties.DEF_INSETS;
@@ -28,6 +29,7 @@ public class InitialTiming extends JPanel {
     
     // instance variables
     private int modType;
+    private final LanguageHandler languageHandler;
     private GridBagLayout timingLayout;
     private GridBagConstraints tc;
     private Border timingBorder;
@@ -39,8 +41,9 @@ public class InitialTiming extends JPanel {
     private SpinnerModel tempoSpinnerModel;
     private JSpinner tempoSpinner;
     
-    public InitialTiming(int modType) {
+    public InitialTiming(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         init();
     }
     
@@ -68,8 +71,9 @@ public class InitialTiming extends JPanel {
 
         // set the border title
         timingBorder
-                = BorderFactory.createTitledBorder(timingBorder,
-                        "Initial timings:", 0, 0, BOLD_FONT);
+                = BorderFactory.createTitledBorder(timingBorder, languageHandler
+                        .getLanguageText("module.initial_timings"), 0, 0, 
+                        BOLD_FONT);
 
         // set options border
         setBorder(timingBorder);
@@ -77,7 +81,8 @@ public class InitialTiming extends JPanel {
         // tick speed
         
         // tick speed label
-        tickSpeedLabel = new JLabel("Tick speed");
+        tickSpeedLabel = new JLabel(languageHandler
+                        .getLanguageText("module.initial_timings.ticks"));
         tickSpeedLabel.setFont(DEF_FONT);
         
         // grid bag setting
@@ -100,7 +105,8 @@ public class InitialTiming extends JPanel {
         // tempo
         
         // tempo lable
-        tempoLabel = new JLabel("Tempo");
+        tempoLabel = new JLabel(languageHandler
+                        .getLanguageText("module.initial_timings.tempo"));
         tempoLabel.setFont(DEF_FONT);
         
         // grid bag setting

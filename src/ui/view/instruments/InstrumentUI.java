@@ -17,6 +17,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeListener;
+import lang.LanguageHandler;
 import module.IInstrument;
 import static ui.UIProperties.DEF_INSETS;
 import static ui.UIProperties.VALUE_SPINNER_SIZE;
@@ -29,6 +30,8 @@ public class InstrumentUI extends JPanel {
     
     // instance variables
     private int selectedInstrument;
+    private int modID;
+    private LanguageHandler languageHandler;
     // toolbar for pannel
     private GridBagLayout instrumentToolBarLayout;
     private GridBagConstraints instrumentTBC;
@@ -54,7 +57,11 @@ public class InstrumentUI extends JPanel {
     private EnvelopeWindow envelopeWindow;
     
     // constructor
-    public InstrumentUI(ArrayList<IInstrument> instruments, int modID) {
+    public InstrumentUI(ArrayList<IInstrument> instruments, int modID,
+            LanguageHandler languageHandler) {
+        
+        this.modID = modID;
+        this.languageHandler = languageHandler;
         
         // set layout
         this.setLayout(new BorderLayout());
@@ -63,7 +70,7 @@ public class InstrumentUI extends JPanel {
         selectedInstrument = 1;
         
         // initialise the UI windows
-        this.instrumentTools = new InstrumentTools(modID);
+        this.instrumentTools = new InstrumentTools(modID, languageHandler);
         this.envelopeWindow = new EnvelopeWindow(modID);
         
         // toolbar
@@ -131,7 +138,8 @@ public class InstrumentUI extends JPanel {
         // new instrument
         newInstrumentButton.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/New.png")));
-        newInstrumentButton.setToolTipText("New sample");
+        newInstrumentButton.setToolTipText(languageHandler
+                .getLanguageText("instrument.options.new"));
         newInstrumentButton.setFocusable(false);
         newInstrumentButton
                 .setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -146,7 +154,8 @@ public class InstrumentUI extends JPanel {
         // open instrument
         openInstrumentButton.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/Open.png")));
-        openInstrumentButton.setToolTipText("Open sample");
+        openInstrumentButton.setToolTipText(languageHandler
+                .getLanguageText("instrument.options.open"));
         openInstrumentButton.setFocusable(false);
         openInstrumentButton
                 .setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -161,7 +170,8 @@ public class InstrumentUI extends JPanel {
         // save instrument
         saveInstrumentButton.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/Filled save icon.png")));
-        saveInstrumentButton.setToolTipText("Save sample");
+        saveInstrumentButton.setToolTipText(languageHandler
+                .getLanguageText("instrument.options.save"));
         saveInstrumentButton.setFocusable(false);
         saveInstrumentButton
                 .setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -176,7 +186,8 @@ public class InstrumentUI extends JPanel {
         // delete sample
         deleteButton.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/Delete.png")));
-        deleteButton.setToolTipText("Delete sample");
+        deleteButton.setToolTipText(languageHandler
+                .getLanguageText("instrument.options.delete"));
         deleteButton.setFocusable(false);
         deleteButton
                 .setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -231,7 +242,8 @@ public class InstrumentUI extends JPanel {
         // play
         playInstrumentButton.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/Play Pause.png")));
-        playInstrumentButton.setToolTipText("Play/Pause sample");
+        playInstrumentButton.setToolTipText(languageHandler
+                .getLanguageText("instrument.options.play"));
         playInstrumentButton.setFocusable(false);
         playInstrumentButton
                 .setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);

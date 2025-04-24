@@ -16,6 +16,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeListener;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.DEF_FONT;
 import static ui.UIProperties.DEF_INSETS;
@@ -29,6 +30,7 @@ public class ModuleSoundOptions extends JPanel {
 
     // instance variables
     private int modType;
+    private final LanguageHandler languageHandler;
     private GridBagLayout soundOptionsLayout;
     private GridBagConstraints soc;
     private Border soundOptionsBorder;
@@ -52,8 +54,9 @@ public class ModuleSoundOptions extends JPanel {
     private SpinnerModel panSeparationSpinnerModel;
     private JSlider panSeparationSlider;
 
-    public ModuleSoundOptions(int modType) {
+    public ModuleSoundOptions(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         init();
     }
     
@@ -103,13 +106,15 @@ public class ModuleSoundOptions extends JPanel {
         // set the border title
         soundOptionsBorder
                 = BorderFactory.createTitledBorder(soundOptionsBorder,
-                        "Module sound options", 0, 0, BOLD_FONT);
+                        languageHandler.getLanguageText("module.sound.options"),
+                        0, 0, BOLD_FONT);
 
         // set options border
         setBorder(soundOptionsBorder);
 
         // channels
-        channelLabel = new JLabel("Channels: ");
+        channelLabel = new JLabel(languageHandler
+                .getLanguageText("module.sound.options.channels"));
         channelLabel.setFont(DEF_FONT);
         soc.gridx = 0;
         soc.gridy = 0;
@@ -148,7 +153,8 @@ public class ModuleSoundOptions extends JPanel {
         add(channelSpinner, soc);
 
         // set the global volume label
-        globalVolumeLabel = new JLabel("Global volume: ");
+        globalVolumeLabel = new JLabel(languageHandler
+                .getLanguageText("module.sound.options.global_volume"));
         globalVolumeLabel.setFont(DEF_FONT);
 
         soc.gridx = 0;
@@ -185,7 +191,8 @@ public class ModuleSoundOptions extends JPanel {
         if (modType >= 4) {
 
             // set the mix volume label
-            mixVolumeLabel = new JLabel("Mix volume: ");
+            mixVolumeLabel = new JLabel(languageHandler
+                .getLanguageText("module.sound.options.mix_volume"));
             mixVolumeLabel.setFont(DEF_FONT);
 
             soc.gridx = 0;
@@ -218,7 +225,8 @@ public class ModuleSoundOptions extends JPanel {
             add(mixVolumeSlider, soc);
             
             // set the pan separation label
-            panSeparationLabel = new JLabel("Pan separation: ");
+            panSeparationLabel = new JLabel(languageHandler
+                .getLanguageText("module.sound.options.pan_separation"));
             panSeparationLabel.setFont(DEF_FONT);
 
             soc.gridx = 0;

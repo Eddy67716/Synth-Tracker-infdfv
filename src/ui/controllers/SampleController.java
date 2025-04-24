@@ -23,9 +23,9 @@ import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
-import module.IAudioSample;
 import javax.swing.SwingUtilities;
 import javax.swing.undo.UndoManager;
+import lang.LanguageHandler;
 import ui.controllers.undo.UndoableCheckBoxChange;
 import ui.controllers.undo.UndoableComboBoxChange;
 import ui.controllers.undo.UndoableSliderChange;
@@ -37,6 +37,7 @@ import ui.view.samples.SampleSoundOptions;
 import ui.view.samples.SamplingTools;
 import ui.view.samples.SustainLoopTools;
 import ui.view.samples.VibratoOptions;
+import module.ISampleSynth;
 
 /**
  *
@@ -48,8 +49,9 @@ public class SampleController extends GenericController {
     private SampleUI sampleUI;
     private EditSampleViewModel editSampleVM;
     private LoadViewModel loadVM;
-    private IAudioSample selectedSample;
+    private ISampleSynth selectedSample;
     private UndoManager[] sampleManagers;
+    private LanguageHandler languageHandler;
     private String oldSampleName;
     private String oldFileName;
     private int defaultVolSpinnerOldValue;
@@ -75,6 +77,7 @@ public class SampleController extends GenericController {
     public SampleController(SampleUI sampleUI, LoadViewModel loadVM) {
         super();
         this.sampleUI = sampleUI;
+        this.languageHandler = sampleUI.getLanguageHandler();
         this.loadVM = loadVM;
 
         // initialise undo managers
@@ -209,7 +212,7 @@ public class SampleController extends GenericController {
         if (isAlteringModels()) {
 
             // update sample default volume value
-            selectedSample.setDefaultVolume((byte) value);
+            selectedSample.setNormalisedDefaultVolume((byte) value);
         }
     }
 
@@ -243,7 +246,7 @@ public class SampleController extends GenericController {
             if (isAlteringModels()) {
 
                 // update sample default volume value
-                selectedSample.setDefaultVolume((byte) value);
+                selectedSample.setNormalisedDefaultVolume((byte) value);
             }
         }
     }
@@ -276,7 +279,7 @@ public class SampleController extends GenericController {
         if (isAlteringModels()) {
 
             // update sample global volume value
-            selectedSample.setGlobalVolume((byte) value);
+            selectedSample.setNormalisedGlobalVolume((byte) value);
         }
     }
 
@@ -310,7 +313,7 @@ public class SampleController extends GenericController {
             if (isAlteringModels()) {
 
                 // update sample global volume value
-                selectedSample.setGlobalVolume((byte) value);
+                selectedSample.setNormalisedGlobalVolume((byte) value);
             }
         }
     }
@@ -369,7 +372,7 @@ public class SampleController extends GenericController {
         if (isAlteringModels()) {
 
             // update sample pan value
-            selectedSample.setPanValue((byte) value);
+            selectedSample.setNormalisedPanValue((byte) value);
         }
     }
 
@@ -770,7 +773,7 @@ public class SampleController extends GenericController {
                     .size());
         }
 
-        // get selected instrument value
+        // get selected sample value
         int value = (int) sampleUI.getSampleSelectSpinner().getValue()
                 - 1;
 
@@ -796,19 +799,32 @@ public class SampleController extends GenericController {
         String outputString;
 
         if (selectedSample.isCompressed()) {
-            outputString = "Compr..";
+            outputString = languageHandler
+                            .getLanguageText("sample.details.format.compressed");
         } else {
-            outputString = (selectedSample.isSigned()) ? "Signed " 
-                    : "Unsigned ";
+            outputString = (selectedSample.isSigned()) 
+                    ? languageHandler
+                            .getLanguageText("sample.details.format.signed")
+                    : languageHandler
+                            .getLanguageText("sample.details.format.unsigned");
         }
+        
+        String bitrate = languageHandler
+                            .getLanguageText("sample.details.format.bit")
+                .replaceFirst("%1", Short
+                        .toString(selectedSample.getBitRate()));
 
-        outputString += selectedSample.getBitRate() + "-bit";
+        outputString += bitrate;
 
         sampleUI.getTools().getSampleDetails()
                 .getSampleFormatLabel().setText(outputString);
 
         // channels
-        outputString = (selectedSample.isStereo()) ? "Stereo" : "Mono";
+        outputString = (selectedSample.isStereo()) 
+                ? languageHandler
+                            .getLanguageText("sound.channels.stereo") 
+                : languageHandler
+                            .getLanguageText("sound.channels.mono");
 
         sampleUI.getTools().getSampleDetails()
                 .getSampleChannelLabel().setText(outputString);
@@ -891,7 +907,7 @@ public class SampleController extends GenericController {
         sampleUI.getTools().getLoopingTools().getLoopEndSpinner()
                 .setModel(loopEndModel);
 
-        // sustainloop
+        // sustain loop
         sustainLoopOldIndex = 0;
 
         if (selectedSample.isSustainLooped()) {
@@ -973,18 +989,8 @@ public class SampleController extends GenericController {
 
         // sample data
         SwingUtilities.invokeLater(() -> {
-            if (selectedSample.isStereo()) {
-
-                // stereo samples
-                sampleUI.getSampleWindow().getCanvas()
-                        .setStereoSamples(selectedSample.getLData(),
-                                selectedSample.getRData());
-            } else {
-
-                // mono samples
-                sampleUI.getSampleWindow().getCanvas()
-                        .setMonoSamples(selectedSample.getLData());
-            }
+            sampleUI.getSampleWindow().getCanvas()
+                    .setSampleData(selectedSample.getAudioSampleData());
         });
 
         // set record undo back to true

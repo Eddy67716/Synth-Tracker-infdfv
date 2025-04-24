@@ -29,7 +29,8 @@ import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeListener;
-import module.IAudioSample;
+import lang.LanguageHandler;
+import module.ISampleSynth;
 
 /**
  *
@@ -40,6 +41,7 @@ public class SampleUI extends JPanel {
     // instance variables
     private int selectedSample;
     private int modID;
+    private final LanguageHandler languageHandler;
     // toolbar for pannel
     private GridBagLayout sampleToolBarLayout;
     private GridBagConstraints sampleTBC;
@@ -67,9 +69,11 @@ public class SampleUI extends JPanel {
     private SampleTools sampleTools;
     private SampleWindow sampleWindow;
 
-    public SampleUI(ArrayList<IAudioSample> samples, int modID) {
+    public SampleUI(ArrayList<ISampleSynth> samples, int modID, 
+            LanguageHandler languageHandler) {
         
         this.modID = modID;
+        this.languageHandler = languageHandler;
         
         // set layout
         this.setLayout(new BorderLayout());
@@ -78,7 +82,7 @@ public class SampleUI extends JPanel {
         selectedSample = 1;
         
         // initialise the UI windows
-        this.sampleTools = new SampleTools(modID);
+        this.sampleTools = new SampleTools(modID, languageHandler);
         this.sampleWindow = new SampleWindow(modID);
         
         // toolbar
@@ -96,7 +100,8 @@ public class SampleUI extends JPanel {
         sampleSelectPanel = new JPanel();
         sampleSelectLayout = new GridBagLayout();
         sampleSC = new GridBagConstraints();
-        sampleSelectLabel = new JLabel("Sample: ");
+        sampleSelectLabel = new JLabel(languageHandler
+                .getLanguageText("synth"));
         sampleSelectSpinner = new JSpinner(sampleSelectorModel);
         selectorPlaySeparator = new JSeparator();
         playSampleButton = new JButton();
@@ -107,6 +112,10 @@ public class SampleUI extends JPanel {
     }
     
     // getters
+    public LanguageHandler getLanguageHandler() {
+        return languageHandler;
+    }
+    
     public SampleTools getTools() {
         return this.sampleTools;
     }
@@ -146,7 +155,8 @@ public class SampleUI extends JPanel {
         // new sample
         newSampleButton.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/New.png")));
-        newSampleButton.setToolTipText("New sample");
+        newSampleButton.setToolTipText(languageHandler
+                .getLanguageText("synth.options.new"));
         newSampleButton.setFocusable(false);
         newSampleButton
                 .setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -161,7 +171,8 @@ public class SampleUI extends JPanel {
         // open sample
         openSampleButton.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/Open.png")));
-        openSampleButton.setToolTipText("Open sample");
+        openSampleButton.setToolTipText(languageHandler
+                .getLanguageText("synth.options.open"));
         openSampleButton.setFocusable(false);
         openSampleButton
                 .setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -176,7 +187,8 @@ public class SampleUI extends JPanel {
         // save sample
         saveSampleButton.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/Filled save icon.png")));
-        saveSampleButton.setToolTipText("Save sample");
+        saveSampleButton.setToolTipText(languageHandler
+                .getLanguageText("synth.options.save"));
         saveSampleButton.setFocusable(false);
         saveSampleButton
                 .setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -191,7 +203,8 @@ public class SampleUI extends JPanel {
         // delete sample
         deleteButton.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/Delete.png")));
-        deleteButton.setToolTipText("Delete sample");
+        deleteButton.setToolTipText(languageHandler
+                .getLanguageText("synth.options.delete"));
         deleteButton.setFocusable(false);
         deleteButton
                 .setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -247,7 +260,8 @@ public class SampleUI extends JPanel {
         // play
         playSampleButton.setIcon(new javax.swing.ImageIcon(getClass()
                 .getResource("/ui/assets/Play Pause.png")));
-        playSampleButton.setToolTipText("Play/Pause sample");
+        playSampleButton.setToolTipText(languageHandler
+                .getLanguageText("synth.options.play"));
         playSampleButton.setFocusable(false);
         playSampleButton
                 .setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -287,9 +301,15 @@ public class SampleUI extends JPanel {
     private void setSampleTypeList() {
         
         sampleTypeComboBox = new JComboBox();
-        String[] elements = {"Audio sample", "OPL2 sample", "OPL3 sample", 
-            "Chip synth sample", "Additive synth sample", "Organ sample", 
-            "FM sample"};
+        String[] elements = {
+            languageHandler.getLanguageText("synth.type.sampled"),
+            languageHandler.getLanguageText("synth.type.opl2"),
+            languageHandler.getLanguageText("synth.type.opl3"),
+            languageHandler.getLanguageText("synth.type.chip"),
+            languageHandler.getLanguageText("synth.type.additive"),
+            languageHandler.getLanguageText("synth.type.organ"),
+            languageHandler.getLanguageText("synth.type.fm"),
+        };
         
         switch (modID) {
             case 2:

@@ -7,6 +7,7 @@ package ui.view.details;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import javax.swing.JPanel;
+import lang.LanguageHandler;
 import module.IModuleHeader;
 
 /**
@@ -17,14 +18,17 @@ public class DetailsUI extends JPanel {
     
     // instance variables
     private int modType;
+    private LanguageHandler languageHandler;
     private IModuleHeader moduleHeader;
     private int channelCount;
     private BorderLayout channelPanelLayout;
     private ModuleTools moduleTools;
-    private ChannelDetailsScrollPanel channelsPanel;
+    private ChannelEditDetailsScrollPanel channelsPanel;
     
     // constructor
-    public DetailsUI(IModuleHeader moduleHeader, int modType) {
+    public DetailsUI(IModuleHeader moduleHeader, int modType, 
+            LanguageHandler languageHandler) {
+        this.languageHandler = languageHandler;
         this.moduleHeader = moduleHeader;
         this.modType = modType;
         this.channelCount = moduleHeader.getChannelCount();
@@ -36,7 +40,7 @@ public class DetailsUI extends JPanel {
         return moduleTools;
     }
 
-    public ChannelDetailsScrollPanel getChannelsPanel() {
+    public ChannelEditDetailsScrollPanel getChannelsPanel() {
         return channelsPanel;
     }
     
@@ -48,12 +52,13 @@ public class DetailsUI extends JPanel {
         setLayout(channelPanelLayout);
         
         // module tools
-        moduleTools = new ModuleTools(modType);
+        moduleTools = new ModuleTools(modType, languageHandler);
         
         add(moduleTools, BorderLayout.NORTH);
         
         // channels panel
-        channelsPanel = new ChannelDetailsScrollPanel(modType, channelCount);
+        channelsPanel = new ChannelEditDetailsScrollPanel(modType, 
+                languageHandler, channelCount);
         
         add(channelsPanel, BorderLayout.CENTER);
         

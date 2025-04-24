@@ -10,7 +10,6 @@ import module.IInstrument;
 import module.IModuleFile;
 import module.IPattern;
 import module.it.format.ItSampleHeader;
-import sound.formats.wave.WaveFile;
 import ui.view.ProgressionBar;
 import ui.workers.LoadModuleSwingWorker;
 import java.awt.EventQueue;
@@ -30,8 +29,9 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import module.IAudioSample;
 import module.IModuleHeader;
+import sound.formats.riff.wave.WaveFile;
+import module.ISampleSynth;
 
 /**
  *
@@ -41,22 +41,23 @@ public class LoadViewModel {
 
     // constnats
     public static final String[] MOD_EXTENSIONS = {
-        "mod", "s3m", "xm", "it", "str"
+        "mod", "s3m", "xm", "it", "mptm", "str"
     };
 
     public static final String[] SAMPLE_EXTENSIONS = {
-        "wav", "its"
+        "wav", "its", "stss", "stcs", "stas", "stos", "sopl", "stfm"
     };
 
     // instance variables
-    JFileChooser fileChooser;
-    JDialog errorDialog;
-    List<File> openedFiles;
-    FileNameExtensionFilter modFilter;
-    FileNameExtensionFilter sampleFiles;
-    int readFileType; // 1 is mod, 2 is s3m, 3 is xm, 4 is it, 5 is MPTM (not sure about implementing) and 6 is str
-    String fileExtention;
-    IModuleFile modFile;
+    private JFileChooser fileChooser;
+    private JDialog errorDialog;
+    private List<File> openedFiles;
+    private FileNameExtensionFilter modFilter;
+    private FileNameExtensionFilter sampleFiles;
+    // 1 is mod, 2 is s3m, 3 is xm, 4 is it, 5 is MPTM (not sure about implementing) and 6 is str
+    private int modID; 
+    private String fileExtention;
+    private IModuleFile modFile;
 
     // construcotr
     public LoadViewModel() {
@@ -64,7 +65,7 @@ public class LoadViewModel {
                 = new FileNameExtensionFilter("Tracker music", MOD_EXTENSIONS);
         sampleFiles
                 = new FileNameExtensionFilter("Samples", SAMPLE_EXTENSIONS);
-        openedFiles = new ArrayList<File>();
+        openedFiles = new ArrayList<>();
     }
 
     public String readModuleFile() throws Exception {
@@ -84,8 +85,30 @@ public class LoadViewModel {
         if (fileChooser.getSelectedFile() == null) {
             return "";
         }
-        openedFiles.add(fileChooser.getSelectedFile());
-        modFile = new ItFile(fileChooser.getSelectedFile().getPath());
+        
+        File modFileToOpen = fileChooser.getSelectedFile();
+        
+        String fileName = modFileToOpen.getName();
+        
+        int dotIndex = fileName.lastIndexOf(".");
+        
+        if (dotIndex == -1) {
+            throw new IllegalArgumentException("Could not find file type");
+        }
+        
+        String fileExtensionType = fileName.substring(dotIndex + 1);
+        
+        switch (fileExtensionType) {
+            case "it":
+                openedFiles.add(fileChooser.getSelectedFile());
+                this.
+                modFile = new ItFile(fileChooser.getSelectedFile().getPath());
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid file type");
+        }
+        
+        
         UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
         try {
 
@@ -104,10 +127,10 @@ public class LoadViewModel {
         }
     }
 
-    public IAudioSample readSampleFile(String path) {
+    public ISampleSynth readSampleFile(String path) {
 
         int lastIndexOfPeroid = path.lastIndexOf(".");
-        IAudioSample sample = null;
+        ISampleSynth sample = null;
         String fileExtension = path.substring(lastIndexOfPeroid + 1);
 
         for (String sampleExtension : SAMPLE_EXTENSIONS) {
@@ -117,7 +140,7 @@ public class LoadViewModel {
                 switch (fileExtension) {
                     case "wav":
                         WaveFile waveFile = new WaveFile(path);
-                        sample = new ItSampleHeader((IAudioSample) waveFile);
+                        sample = new ItSampleHeader((ISampleSynth) waveFile);
                         break;
                     case "its":
                         break;
@@ -136,6 +159,10 @@ public class LoadViewModel {
 
     }
     
+    public int getModID() {
+        return modFile.getModTypeID();
+    }
+    
     public int getChannels() {
         return modFile.getChannelsCount();
     }
@@ -144,7 +171,7 @@ public class LoadViewModel {
         return modFile.getIModuleheader();
     }
 
-    public List<IAudioSample> getSamples() {
+    public List<ISampleSynth> getSamples() {
 
         return modFile.getISamples();
     }
@@ -152,6 +179,10 @@ public class LoadViewModel {
     public List<IInstrument> getInstruments() {
 
         return modFile.getIInstruments();
+    }
+    
+    public short[] getPatternOrder() {
+        return modFile.getPatternOrder();
     }
 
     public List<IPattern> getPatterns() {

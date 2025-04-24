@@ -18,6 +18,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.UndoableEditListener;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.C5_SPINNER_SIZE;
 import static ui.UIProperties.DEF_FONT;
@@ -32,21 +33,9 @@ import static ui.UIProperties.VALUE_SPINNER_SIZE;
  */
 public class SustainOptions extends JPanel {
 
-    // cosntants
-    public static final String[] NEW_NOTE_ACTIONS = {
-        "Note cut", "Continue", "Note off", "Note fade"
-    };
-
-    public static final String[] DUPLICATE_CHECK_TYPE = {
-        "Off", "Note", "Sample", "Instrument"
-    };
-
-    public static final String[] DUPLICATE_CHECK_ACTION = {
-        NEW_NOTE_ACTIONS[0], NEW_NOTE_ACTIONS[2], NEW_NOTE_ACTIONS[3]
-    };
-
     // instance variables
     private int modType;
+    private LanguageHandler languageHandler;
     private GridBagLayout sustainOptionsLayout;
     private GridBagConstraints soc;
     private Border sustainOptionsBorder;
@@ -55,14 +44,37 @@ public class SustainOptions extends JPanel {
     private SpinnerModel fadeOutSpinnerModel;
     private JLabel newNoteActionLabel;
     private JComboBox newNoteActionComboBox;        // it and str
+    private String[] newNoteActions;
     private JLabel dupNoteTypeLabel;
     private JComboBox dupNoteTypeComboBox;          // it and str
+    private String[] dupNoteTypes;
     private JLabel dupNoteActionLabel;
     private JComboBox dupNoteActionComboBox;        // it and str
+    private String[] dupNoteActions;
 
     // constructor
-    public SustainOptions(int modType) {
+    public SustainOptions(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        if (modType == 4) {
+            // new note actions
+            newNoteActions = new String[]{
+                languageHandler.getLanguageText("note.cut"),
+                languageHandler.getLanguageText("note.continue"),
+                languageHandler.getLanguageText("note.off"),
+                languageHandler.getLanguageText("note.fade"),};
+            // duplicate note types
+            dupNoteTypes = new String[]{
+                languageHandler.getLanguageText("note.duplicate.off"),
+                languageHandler.getLanguageText("note"),
+                languageHandler.getLanguageText("sample"),
+                languageHandler.getLanguageText("instrument"),};
+            // duplicate note action
+            dupNoteActions = new String[]{
+                languageHandler.getLanguageText("note.cut"),
+                languageHandler.getLanguageText("note.off"),
+                languageHandler.getLanguageText("note.fade"),};
+        }
+        this.languageHandler = languageHandler;
         init();
     }
 
@@ -82,7 +94,7 @@ public class SustainOptions extends JPanel {
     public JComboBox getDupNoteActionComboBox() {
         return dupNoteActionComboBox;
     }
-    
+
     private void init() {
 
         // set the layout
@@ -99,13 +111,16 @@ public class SustainOptions extends JPanel {
         // set the border title
         sustainOptionsBorder
                 = BorderFactory.createTitledBorder(sustainOptionsBorder,
-                        "Sustain options", 0, 0, BOLD_FONT);
+                        languageHandler
+                                .getLanguageText("instrument.sustain_options"),
+                        0, 0, BOLD_FONT);
 
         // set options border
         setBorder(sustainOptionsBorder);
 
         // set the fade out label
-        fadeOutLabel = new JLabel("Fade out: ");
+        fadeOutLabel = new JLabel(languageHandler
+                .getLanguageText("instrument.sustain_options.fade_out"));
         fadeOutLabel.setFont(DEF_FONT);
         fadeOutLabel.setPreferredSize(LARGE_FIELD_SIZE);
         soc.gridx = 0;
@@ -129,7 +144,8 @@ public class SustainOptions extends JPanel {
         if (modType >= 4) {
 
             // set the new note action label
-            newNoteActionLabel = new JLabel("New note action: ");
+            newNoteActionLabel = new JLabel(languageHandler
+                    .getLanguageText("instrument.sustain_options.new_note_action"));
             newNoteActionLabel.setFont(DEF_FONT);
             newNoteActionLabel.setPreferredSize(LARGE_FIELD_SIZE);
             soc.gridx = 0;
@@ -138,14 +154,15 @@ public class SustainOptions extends JPanel {
             add(newNoteActionLabel, soc);
 
             // set the new note action combo box
-            newNoteActionComboBox = new JComboBox(NEW_NOTE_ACTIONS);
+            newNoteActionComboBox = new JComboBox(newNoteActions);
             soc.gridx = 2;
             soc.weightx = 1.0;
             soc.gridwidth = GridBagConstraints.REMAINDER;
             add(newNoteActionComboBox, soc);
-            
+
             // set the duplicate note type label
-            dupNoteTypeLabel = new JLabel("Duplicate note type: ");
+            dupNoteTypeLabel = new JLabel(languageHandler
+                    .getLanguageText("instrument.sustain_options.duplicate_note_type"));
             dupNoteTypeLabel.setFont(DEF_FONT);
             dupNoteTypeLabel.setPreferredSize(LARGE_FIELD_SIZE);
             soc.gridx = 0;
@@ -154,14 +171,15 @@ public class SustainOptions extends JPanel {
             add(dupNoteTypeLabel, soc);
 
             // set the new duplicate note type combo box
-            dupNoteTypeComboBox = new JComboBox(DUPLICATE_CHECK_TYPE);
+            dupNoteTypeComboBox = new JComboBox(dupNoteTypes);
             soc.gridx = 1;
             soc.weightx = 1.0;
             soc.gridwidth = GridBagConstraints.REMAINDER;
             add(dupNoteTypeComboBox, soc);
-            
+
             // set the duplicate note action label
-            dupNoteActionLabel = new JLabel("Duplicate note action: ");
+            dupNoteActionLabel = new JLabel(languageHandler
+                    .getLanguageText("instrument.sustain_options.duplicate_note_action"));
             dupNoteActionLabel.setFont(DEF_FONT);
             dupNoteActionLabel.setPreferredSize(LARGE_FIELD_SIZE);
             soc.gridx = 0;
@@ -170,7 +188,7 @@ public class SustainOptions extends JPanel {
             add(dupNoteActionLabel, soc);
 
             // set the duplicate note action combo box
-            dupNoteActionComboBox = new JComboBox(DUPLICATE_CHECK_ACTION);
+            dupNoteActionComboBox = new JComboBox(dupNoteActions);
             soc.gridx = 1;
             soc.weightx = 1.0;
             soc.gridwidth = GridBagConstraints.REMAINDER;
@@ -187,20 +205,20 @@ public class SustainOptions extends JPanel {
         soc.gridheight = GridBagConstraints.REMAINDER;
         add(new JPanel(), soc);
     }
-    
+
     // listeners
     public void addFadeOutSpinnerChangeListener(ChangeListener changePerformed) {
         fadeOutSpinner.addChangeListener(changePerformed);
     }
-    
+
     public void addNewNoteActionActionListener(ActionListener actionPerformed) {
         newNoteActionComboBox.addActionListener(actionPerformed);
     }
-    
+
     public void addDupNoteTypeActionListener(ActionListener actionPerformed) {
         dupNoteTypeComboBox.addActionListener(actionPerformed);
     }
-    
+
     public void addDupNoteActionActionListener(ActionListener actionPerformed) {
         dupNoteActionComboBox.addActionListener(actionPerformed);
     }

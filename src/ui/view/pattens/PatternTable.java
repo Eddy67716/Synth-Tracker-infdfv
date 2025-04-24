@@ -6,34 +6,73 @@ package ui.view.pattens;
 
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import module.IPattern;
+import ui.controllers.CellController;
 
 /**
  *
  * @author Edward Jenkins
  */
 public class PatternTable extends JTable {
-
+    
     // instance variables
-    private byte modType;
-    private String[] channelNames;
-    private byte[][][] patternData;
-    private short rows;
-    private byte channels;
+    private int modID;
+    private PatternCellEditor patternCellEditor;
 
     // constructor
-    public PatternTable(byte[][][] patternData, short rows, byte channels,
-            byte modType, String[] channelNames) {
-        this.modType = modType;
-        this.channelNames = channelNames;
-        this.patternData = patternData;
-        this.rows = rows;
-        this.channels = channels;
-        init();
+    public PatternTable(int modType, String[] channelNames, 
+            IPattern pattern, short instrumentCount, 
+            CellController cellController) {
+        super(new PatternTableModel(channelNames, pattern.getUnpackedData(), 
+                pattern.getRows(), pattern.getGlobalChannelCount()));
+        this.patternCellEditor = cellController.getPatternCell();
+        for (int i = 0; i < getColumnCount(); i++) {
+            TableColumn column = getColumnModel().getColumn(i);
+            if (i == 0) {
+                column.setMinWidth(30);
+                column.setPreferredWidth(30);
+                column.setMaxWidth(30);
+            } else {
+                column.setMinWidth(190);
+                column.setPreferredWidth(190);
+                column.setMaxWidth(190);
+            }
+        }
+        setRowHeight(40);
+        setDefaultRenderer(byte[].class, patternCellEditor);
+        setDefaultEditor(byte[].class, cellController);
+    }
+    
+    // getters
+    public int getModID() {
+        return modID;
     }
 
-    private void init() {
-        this.dataModel = new PatternTableModel(modType, channelNames,
-                patternData, channels, rows);
+    public PatternCellEditor getPatternCellEditor() {
+        return patternCellEditor;
     }
-
+    
+    public void changePattern(String[] channelNames, 
+            IPattern pattern) {
+        
+        this.setModel(new PatternTableModel(channelNames, pattern.getUnpackedData(), 
+                pattern.getRows(), pattern.getNumberOfChannels()));
+        for (int i = 0; i < getColumnCount(); i++) {
+            TableColumn column = getColumnModel().getColumn(i);
+            if (i == 0) {
+                column.setMinWidth(30);
+                column.setPreferredWidth(30);
+                column.setMaxWidth(30);
+            } else {
+                column.setMinWidth(190);
+                column.setPreferredWidth(190);
+                column.setMaxWidth(190);
+            }
+        }
+        setRowHeight(40);
+        this.repaint();
+    }
 }

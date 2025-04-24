@@ -1,7 +1,6 @@
 package module.it.format;
 
 import io.IReadable;
-import io.ISavableFile;
 import io.IWritable;
 import io.Reader;
 import java.io.DataInputStream;
@@ -43,7 +42,7 @@ class EnvelopeLayout {
     // position of sustain loop end
     private short sustainLoopEnd;
     // node points
-    private NodePoint[] nodePoints;     
+    private ItNodePoint[] nodePoints;     
     
     // constructor
     public EnvelopeLayout() {
@@ -90,7 +89,7 @@ class EnvelopeLayout {
         return sustainLoopEnd;
     }
 
-    public NodePoint[] getNodePoints() {
+    public ItNodePoint[] getNodePoints() {
         return nodePoints;
     }
     
@@ -132,7 +131,7 @@ class EnvelopeLayout {
         sustainLoopEnd = reader.getUByteAsShort();
         
         // node points
-        nodePoints = new NodePoint[nodePointCount];
+        nodePoints = new ItNodePoint[nodePointCount];
         
         byte nodeValue;
         short tickNumber;
@@ -148,7 +147,7 @@ class EnvelopeLayout {
             tickNumber = reader.getShort();
             
             // set node instance i
-            nodePoints[i] = new NodePoint(nodeValue, tickNumber);
+            nodePoints[i] = new ItNodePoint(nodeValue, tickNumber);
         }
         
         // skip the end
@@ -204,13 +203,13 @@ class EnvelopeLayout {
         int i = 0;
         
         // loop to write node points
-        for (NodePoint nodePoint : nodePoints) {
+        for (ItNodePoint nodePoint : nodePoints) {
             
             // node value
-            writer.writeByte(nodePoint.getNodeValue());
+            writer.writeByte((byte)nodePoint.getNodePoint());
             
             // tick number
-            writer.writeShort(nodePoint.getTickNumber());
+            writer.writeShort(nodePoint.getTickIndex());
             
             i++;
         }

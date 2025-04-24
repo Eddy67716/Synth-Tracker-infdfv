@@ -71,9 +71,9 @@ public class MidiTables {
     
     public static final String[] DRUM_NAMES = {
         "High Q", "Slap", "Scratch push", "Scratch pull", "Sticks", 
-        "Square click", "Metroname click", "Metronone bell", "Bass drum 1", 
-        "Bass drum 2", "Slide stick", "Accoustic Snare", "Clap", 
-        "Electric Snare", "Low floor tom", "Closed hi hat", "High floor tom", 
+        "Square click", "Metronome click", "Metronone bell", "Bass drum 1", 
+        "Bass drum 2", "Side stick", "Accoustic Snare", "Clap", 
+        "Rim/Electric Snare", "Low floor tom", "Closed hi hat", "High floor tom", 
         "Pedal hi hat", "Low tom", "Open Hi hat", "Low-mid tom", "High-mid tom", 
         "Crash cymbal 1", "High Tom", "Ride cymbal", "Chinese cymbal", 
         "Ride bell", "Tambourine", "Splash cymbal", "Cowbell", "Crash cymbal 2", 

@@ -8,7 +8,7 @@ import io.Reader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import module.ISavableModule;
+import module.ISaveableModule;
 import module.it.format.ItSampleHeader;
 import sound.generator.waveformes.ISamplePlayer;
 
@@ -16,7 +16,7 @@ import sound.generator.waveformes.ISamplePlayer;
  *
  * @author Edward Jenkins
  */
-public interface IToneAssignable extends ISavableModule {
+public interface IToneAssignable extends ISaveableModule {
     
     // assign a sample by note
     public ISamplePlayer assignByNote(int note, int volume) 

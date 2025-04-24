@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.DEF_FONT;
 import static ui.UIProperties.DEF_INSETS;
@@ -28,6 +29,7 @@ public class ModuleOptions extends JPanel {
     
     // instance variables
     private int modType;
+    private final LanguageHandler languageHandler;
     private GridBagLayout optionsLayout;
     private GridBagConstraints moc;
     private Border optionsBorder;
@@ -56,6 +58,7 @@ public class ModuleOptions extends JPanel {
     private JRadioButton newEffecstOption;
     // IT and STR
     private JCheckBox portamentoLink;
+    private JCheckBox usingPitchWheel; 
     // STR options
     private JCheckBox initialValueReset;
     private JCheckBox strPrecision;
@@ -63,8 +66,9 @@ public class ModuleOptions extends JPanel {
     private JCheckBox millisecondBaseOffset;
     private JCheckBox constantInstrumentRate;
     
-    public ModuleOptions(int modType) {
+    public ModuleOptions(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         init();
     }
     
@@ -81,6 +85,10 @@ public class ModuleOptions extends JPanel {
         return monoOption;
     }
 
+    public ButtonGroup getInstrumentGroup() {
+        return instrumentGroup;
+    }
+
     public JRadioButton getInstrumentOption() {
         return instrumentOption;
     }
@@ -93,12 +101,20 @@ public class ModuleOptions extends JPanel {
         return mappedOption;
     }
 
+    public ButtonGroup getSlideGroup() {
+        return slideGroup;
+    }
+
     public JRadioButton getLinearSlidesOption() {
         return linearSlidesOption;
     }
 
     public JRadioButton getAmigaSlidesOption() {
         return amigaSlidesOption;
+    }
+
+    public ButtonGroup getEffectGroup() {
+        return effectGroup;
     }
 
     public JRadioButton getOldEffectsOption() {
@@ -149,13 +165,15 @@ public class ModuleOptions extends JPanel {
         // set the border title
         optionsBorder
                 = BorderFactory.createTitledBorder(optionsBorder,
-                        "Module options", 0, 0, BOLD_FONT);
+                        languageHandler
+                .getLanguageText("module.options"), 0, 0, BOLD_FONT);
 
         // set options border
         setBorder(optionsBorder);
         
         // audio label
-        audioChannelsLabel = new JLabel("Audio: ");
+        audioChannelsLabel = new JLabel(languageHandler
+                .getLanguageText("module.options.audio"));
         audioChannelsLabel.setFont(DEF_FONT);
 
         moc.fill = GridBagConstraints.NONE;
@@ -167,7 +185,8 @@ public class ModuleOptions extends JPanel {
         add(audioChannelsLabel, moc);
 
         // stereo
-        stereoOption = new JRadioButton("Stereo");
+        stereoOption = new JRadioButton(languageHandler
+                .getLanguageText("sound.channels.stereo"));
 
         moc.gridx = 0;
         moc.gridy = 1;
@@ -177,7 +196,8 @@ public class ModuleOptions extends JPanel {
         add(stereoOption, moc);
 
         // mono
-        monoOption = new JRadioButton("Mono");
+        monoOption = new JRadioButton(languageHandler
+                .getLanguageText("sound.channels.mono"));
 
         moc.gridx = 1;
         moc.gridy = 1;
@@ -191,7 +211,8 @@ public class ModuleOptions extends JPanel {
         channelGroup.add(stereoOption);
         
         // slides
-        slidesLabal = new JLabel("Slides: ");
+        slidesLabal = new JLabel(languageHandler
+                .getLanguageText("module.options.slides"));
         slidesLabal.setFont(DEF_FONT);
 
         moc.gridx = 0;
@@ -200,8 +221,10 @@ public class ModuleOptions extends JPanel {
         add(slidesLabal, moc);
 
         // linear
-        linearSlidesOption = new JRadioButton("Linear");
-        linearSlidesOption.setToolTipText("Slides are tone linar");
+        linearSlidesOption = new JRadioButton(languageHandler
+                .getLanguageText("module.options.slides.linear"));
+        linearSlidesOption.setToolTipText(languageHandler
+                .getLanguageText("module.options.slides.linear.desc"));
 
         moc.gridx = 0;
         moc.gridy = 3;
@@ -211,8 +234,10 @@ public class ModuleOptions extends JPanel {
         add(linearSlidesOption, moc);
 
         // amiga
-        amigaSlidesOption = new JRadioButton("Amiga");
-        amigaSlidesOption.setToolTipText("Slides are tone logarithmic");
+        amigaSlidesOption = new JRadioButton(languageHandler
+                .getLanguageText("module.options.slides.amiga"));
+        amigaSlidesOption.setToolTipText(languageHandler
+                .getLanguageText("module.options.slides.amiga.desc"));
 
         moc.gridx = 1;
         moc.gridy = 3;
@@ -226,7 +251,8 @@ public class ModuleOptions extends JPanel {
         slideGroup.add(amigaSlidesOption);
         
         // effects
-        effectsLabal = new JLabel("Effects: ");
+        effectsLabal = new JLabel(languageHandler
+                .getLanguageText("module.options.effects"));
         effectsLabal.setFont(DEF_FONT);
 
         moc.gridx = 2;
@@ -236,8 +262,10 @@ public class ModuleOptions extends JPanel {
         add(effectsLabal, moc);
 
         // old
-        oldEffectsOption = new JRadioButton("Old");
-        oldEffectsOption.setToolTipText("Process every non-row tick.");
+        oldEffectsOption = new JRadioButton(languageHandler
+                .getLanguageText("module.options.effects.old"));
+        oldEffectsOption.setToolTipText(languageHandler
+                .getLanguageText("module.options.effects.old.desc"));
 
         moc.gridx = 2;
         moc.gridy = 1;
@@ -246,8 +274,10 @@ public class ModuleOptions extends JPanel {
         add(oldEffectsOption, moc);
 
         // new
-        newEffecstOption = new JRadioButton("New");
-        newEffecstOption.setToolTipText("Process every single tick.");
+        newEffecstOption = new JRadioButton(languageHandler
+                .getLanguageText("module.options.effects.new"));
+        newEffecstOption.setToolTipText(languageHandler
+                .getLanguageText("module.options.effects.new.desc"));
 
         moc.gridx = 3;
         moc.gridy = 1;
@@ -261,7 +291,8 @@ public class ModuleOptions extends JPanel {
         effectGroup.add(oldEffectsOption);
         
         // instrument type 
-        innstrumentTypeLabel = new JLabel("Instrument type: ");
+        innstrumentTypeLabel = new JLabel(languageHandler
+                .getLanguageText("module.options.instrument_type"));
         innstrumentTypeLabel.setFont(DEF_FONT);
 
         moc.gridx = 2;
@@ -270,9 +301,11 @@ public class ModuleOptions extends JPanel {
         moc.gridwidth = GridBagConstraints.REMAINDER;
         add(innstrumentTypeLabel, moc);
 
-        // old
-        sampleOption = new JRadioButton("Samples");
-        sampleOption.setToolTipText("Mod uses samples.");
+        // synths (samples)
+        sampleOption = new JRadioButton(languageHandler
+                .getLanguageText("module.options.instrument_type.synth"));
+        sampleOption.setToolTipText(languageHandler
+                .getLanguageText("module.options.instrument_type.synth.desc"));
 
         moc.gridx = 2;
         moc.gridy = 3;
@@ -280,9 +313,11 @@ public class ModuleOptions extends JPanel {
         moc.gridwidth = 1;
         add(sampleOption, moc);
 
-        // new
-        instrumentOption = new JRadioButton("Instruments");
-        instrumentOption.setToolTipText("Mod uses instruments.");
+        // instruments
+        instrumentOption = new JRadioButton(languageHandler
+                .getLanguageText("module.options.instrument_type.inst"));
+        instrumentOption.setToolTipText(languageHandler
+                .getLanguageText("module.options.instrument_type.inst.desc"));
 
         moc.gridx = 3;
         moc.gridy = 3;
@@ -296,7 +331,8 @@ public class ModuleOptions extends JPanel {
         instrumentGroup.add(instrumentOption);
         
         // EF to G link
-        portamentoLink = new JCheckBox("E/F link to G");
+        portamentoLink = new JCheckBox(languageHandler
+                .getLanguageText("module.optoins.memory_e_f_link"));
         
         moc.gridx = 0;
         moc.gridy = 4;
@@ -314,11 +350,39 @@ public class ModuleOptions extends JPanel {
     }
     
     // events and listeners
-    public void addStereoOptionsEvent(ActionListener actionPerformed) {
+    public void addStereoOptionsAction(ActionListener actionPerformed) {
         this.stereoOption.addActionListener(actionPerformed);
     }
     
-    public void addMonoOptionsEvent(ActionListener actionPerformed) {
+    public void addMonoOptionsAction(ActionListener actionPerformed) {
         this.monoOption.addActionListener(actionPerformed);
+    }
+    
+    public void addInstrumentOptionsAction(ActionListener actionPerformed) {
+        this.instrumentOption.addActionListener(actionPerformed);
+    }
+    
+    public void addSampleOptionsAction(ActionListener actionPerformed) {
+        this.sampleOption.addActionListener(actionPerformed);
+    }
+    
+    public void addLinearSlideOptionsAction(ActionListener actionPerformed) {
+        this.linearSlidesOption.addActionListener(actionPerformed);
+    }
+    
+    public void addAmigaSlideOptionsAction(ActionListener actionPerformed) {
+        this.amigaSlidesOption.addActionListener(actionPerformed);
+    }
+    
+    public void addOldEffectOptionsAction(ActionListener actionPerformed) {
+        this.oldEffectsOption.addActionListener(actionPerformed);
+    }
+    
+    public void addNewEffectOptionsAction(ActionListener actionPerformed) {
+        this.newEffecstOption.addActionListener(actionPerformed);
+    }
+    
+    public void addPortamentoLinkAction(ActionListener actionPerformed) {
+        this.portamentoLink.addActionListener(actionPerformed);
     }
 }

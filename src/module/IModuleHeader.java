@@ -4,6 +4,8 @@
  */
 package module;
 
+import java.util.List;
+
 /**
  *
  * @author Edward Jenkins
@@ -16,17 +18,23 @@ public interface IModuleHeader {
     // set author name
     public String getArtistName();
     
-    // get pettern highlight
+    // get pattern highlight
     public short[] getPatternHilight();
     
     // is stereo
     public boolean isStereo();
+    
+    // is usingInstruments
+    public boolean isUsingInstruments();
     
     // is using linear slides
     public boolean isUsingLinearSlides();
     
     // is using IT effects
     public boolean isUsingOldEffects();
+    
+    // portamento EF linked to G
+    public boolean isPortamentoLinked();
     
     // max global volume value
     public int getMaxGlobalVolume();
@@ -88,6 +96,9 @@ public interface IModuleHeader {
     // pattern count
     public short getPatternCount();
     
+    // get IChannels
+    public List<IChannel> getIChannels();
+    
     // get the message
     public String getMessage();
     
@@ -100,11 +111,17 @@ public interface IModuleHeader {
     // set stereo
     public void setStereo(boolean stereo);
     
+    // set using instrumetns
+    public void setUsingInstruments(boolean usingInstruments);
+    
     // set using linear slides
     public void setUsingLinearSlides(boolean usingLinearSlides);
     
     // set using IT effects
     public void setUsingOldEffects(boolean usingOldEffects);
+    
+    // set portamento EF linked to G
+    public void setPortamentoLinked(boolean portamentoLink);
     
     // set global volume
     public void setGlobalVolume(short globalVolume);

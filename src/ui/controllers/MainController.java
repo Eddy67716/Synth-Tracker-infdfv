@@ -25,12 +25,15 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import module.IAudioSample;
+import lang.LanguageHandler;
 import module.IInstrument;
+import module.IPattern;
 import ui.view.SettingsUI;
 import ui.view.details.DetailsUI;
 import ui.view.instruments.InstrumentUI;
 import ui.view.models.ControllerViewModel;
+import ui.view.pattens.PatternUI;
+import module.ISampleSynth;
 
 /**
  *
@@ -39,6 +42,7 @@ import ui.view.models.ControllerViewModel;
 public class MainController implements IUndoable {
 
     // instance variables
+    private LanguageHandler languageHandler;
     private MainUI mainUI;
     private List<TabController> tabControllers;
     private List<LoadViewModel> loadVMs;
@@ -48,6 +52,7 @@ public class MainController implements IUndoable {
 
         // set up mainUI and actionListeners
         this.mainUI = mainUI;
+        languageHandler = mainUI.getLanguageHandler();
         this.mainUI.addNewFileActionListener(e -> newFile());
         this.mainUI.addOpenFileActionListener(e -> loadFile());
         this.mainUI.addSaveFileActionListener(e -> saveFile());
@@ -107,7 +112,7 @@ public class MainController implements IUndoable {
                     = new ControllerViewModel();
 
             // set up TabUI
-            TabUI openedTab = new TabUI();
+            TabUI openedTab = new TabUI(languageHandler);
             TabController controller = new TabController(openedTab, loadVM,
                     tabControllerViewModel);
 
@@ -149,6 +154,8 @@ public class MainController implements IUndoable {
             setInstrumentUI(openedTab, loadVM, tabControllerViewModel);
             
             // set up patternsUI
+            setPatternUI(openedTab, loadVM, tabControllerViewModel);
+            
             // set up playChartUI
             // add value tab controller to list
             
@@ -168,7 +175,7 @@ public class MainController implements IUndoable {
 
         // setup detailsUI
         DetailsUI detailsUI = new DetailsUI(loadVM.getHeader(), 
-                loadVM.getModuleFile().getModTypeID());
+                loadVM.getModuleFile().getModTypeID(), languageHandler);
         
         // details controller
         DetailsController detailsController = new DetailsController(detailsUI,
@@ -184,12 +191,12 @@ public class MainController implements IUndoable {
     private void setSampleUI(TabUI openedTab, LoadViewModel loadVM,
             ControllerViewModel tabControllerViewModel) {
 
-        ArrayList<IAudioSample> samples
-                = (ArrayList<IAudioSample>) loadVM.getSamples();
+        ArrayList<ISampleSynth> samples
+                = (ArrayList<ISampleSynth>) loadVM.getSamples();
 
         // sampleUI
         SampleUI sampleUI = new SampleUI(samples,
-                loadVM.getModuleFile().getModTypeID());
+                loadVM.getModuleFile().getModTypeID(), languageHandler);
 
         // sampleController
         SampleController sampleController
@@ -210,7 +217,7 @@ public class MainController implements IUndoable {
 
         // instrumentUI
         InstrumentUI instrumentUI = new InstrumentUI(instruments,
-                loadVM.getModuleFile().getModTypeID());
+                loadVM.getModuleFile().getModTypeID(), languageHandler);
 
         // add the instrumentUI
         openedTab.addInstrumentInterface(instrumentUI);
@@ -226,7 +233,26 @@ public class MainController implements IUndoable {
 
     private void setPatternUI(TabUI openedTab, LoadViewModel loadVM,
             ControllerViewModel tabControllerViewModel) {
+        
+        ArrayList<IPattern> patterns
+                = (ArrayList<IPattern>) loadVM.getPatterns();
+        
+        short[] orders = loadVM.getPatternOrder();
 
+        // patternUI
+        PatternUI patternUI = new PatternUI(patterns, orders,
+                loadVM.getModuleFile().getModTypeID(), languageHandler);
+
+        // add the patternUI
+        openedTab.addPatternInterface(patternUI);
+
+        // instrumentController
+        PatternController patternColtroller
+                = new PatternController(patternUI, loadVM);
+
+        // add instrument controller to view model
+        tabControllerViewModel
+                .setPatternController(patternColtroller);
     }
 
     public void saveFile() {

@@ -16,6 +16,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeListener;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.DEF_FONT;
 import static ui.UIProperties.DEF_INSETS;
@@ -30,6 +31,7 @@ public class RandomOffsets extends JPanel {
 
     // instance variables
     private int modType;
+    private LanguageHandler languageHandler;
     private GridBagLayout randomOffsetsLayout;
     private GridBagConstraints roc;
     private Border randomOffsetsBorder;
@@ -51,8 +53,9 @@ public class RandomOffsets extends JPanel {
     private JSlider randomResonanceSlider;
 
     // constructor
-    public RandomOffsets(int modType) {
+    public RandomOffsets(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         init();
     }
 

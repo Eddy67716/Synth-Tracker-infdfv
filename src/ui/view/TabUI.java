@@ -29,9 +29,14 @@ import javax.swing.JToggleButton;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ListSelectionListener;
-import module.IAudioSample;
+import lang.LanguageHandler;
+import static ui.UIProperties.DEF_BACKGROUND_COLOUR;
+import static ui.UIProperties.DEF_FORGROUND_COLOUR;
+import static ui.UIProperties.DEF_TEXT_COLOUR;
 import ui.view.details.DetailsUI;
 import ui.view.instruments.InstrumentUI;
+import ui.view.pattens.PatternUI;
+import module.ISampleSynth;
 
 /**
  *
@@ -40,12 +45,14 @@ import ui.view.instruments.InstrumentUI;
 public class TabUI extends JPanel {
 
     // instance variables
+    private LanguageHandler languageHandler;
     private final JSplitPane contentsDataSplitPane;
     private final JPanel modDataPane;
     private final JTabbedPane modDataInterface;
     private final JPanel detailsPanel;
     private DetailsUI detailsUI;
     private final JPanel patternPanel;
+    private PatternUI patternUI;
     private final JPanel samplePanel;
     private SampleUI sampleUI;
     private final JPanel instrumentPanel;
@@ -62,7 +69,8 @@ public class TabUI extends JPanel {
     private final JList<String> instrumentList;
 
     // constructor
-    public TabUI() {
+    public TabUI(LanguageHandler languageHandler) {
+        this.languageHandler = languageHandler;
 
         // components
         contentsDataSplitPane = new JSplitPane();
@@ -118,27 +126,32 @@ public class TabUI extends JPanel {
         BorderLayout detailsInterfaceLayout = new BorderLayout();
         detailsPanel.setLayout(detailsInterfaceLayout);
 
-        modDataInterface.addTab("Details", detailsPanel);
+        modDataInterface.addTab(languageHandler
+                .getLanguageText("window.details"), detailsPanel);
 
         BorderLayout patternInterfaceLayout = new BorderLayout();
         patternPanel.setLayout(patternInterfaceLayout);
 
-        modDataInterface.addTab("Patterns", patternPanel);
+        modDataInterface.addTab(languageHandler
+                .getLanguageText("window.patterns"), patternPanel);
 
         BorderLayout sampleInterfaceLayout = new BorderLayout();
         samplePanel.setLayout(sampleInterfaceLayout);
 
-        modDataInterface.addTab("Samples", samplePanel);
+        modDataInterface.addTab(languageHandler
+                .getLanguageText("window.samples"), samplePanel);
 
         BorderLayout instrumentInterfaceLayout = new BorderLayout();
         instrumentPanel.setLayout(instrumentInterfaceLayout);
 
-        modDataInterface.addTab("Instruments", instrumentPanel);
+        modDataInterface.addTab(languageHandler
+                .getLanguageText("window.instruments"), instrumentPanel);
 
         BorderLayout playChartInterfaceLayout = new BorderLayout();
         playChartPanel.setLayout(playChartInterfaceLayout);
 
-        modDataInterface.addTab("Play chart", playChartPanel);
+        modDataInterface.addTab(languageHandler
+                .getLanguageText("window.play_chart"), playChartPanel);
 
         BorderLayout modDataPaneLayout = new BorderLayout();
         modDataPane.setLayout(modDataPaneLayout);
@@ -146,7 +159,9 @@ public class TabUI extends JPanel {
 
         contentsDataSplitPane.setRightComponent(modDataPane);
 
-        patternToggleButton.setText("Patterns");
+        // patterns
+        patternToggleButton.setText(languageHandler
+                .getLanguageText("pattern.plural"));
         patternToggleButton.setMaximumSize(new java.awt.Dimension(1000, 23));
         patternToggleButton.setMinimumSize(new java.awt.Dimension(140, 23));
         patternToggleButton.setPreferredSize(new java.awt.Dimension(140, 23));
@@ -155,7 +170,9 @@ public class TabUI extends JPanel {
         patternList.setMinimumSize(new java.awt.Dimension(140, 80));
         patternList.setPreferredSize(new java.awt.Dimension(140, 80));
 
-        sampleToggleButton.setText("Samples");
+        // samples
+        sampleToggleButton.setText(languageHandler
+                .getLanguageText("sample.plural"));
         sampleToggleButton.setMaximumSize(new java.awt.Dimension(1000, 23));
         sampleToggleButton.setMinimumSize(new java.awt.Dimension(140, 23));
         sampleToggleButton.setPreferredSize(new java.awt.Dimension(140, 23));
@@ -165,12 +182,15 @@ public class TabUI extends JPanel {
         sampleList.setPreferredSize(new java.awt.Dimension(140, 80));
         sampleList.setVisibleRowCount(256);
 
-        instrumentToggleButton.setText("Instrument");
+        // instruments
+        instrumentToggleButton.setText(languageHandler
+                .getLanguageText("instrument.plural"));
         instrumentToggleButton.setMaximumSize(new java.awt.Dimension(1000, 23));
         instrumentToggleButton.setMinimumSize(new java.awt.Dimension(140, 23));
         instrumentToggleButton.setPreferredSize(new java.awt.Dimension(140, 23));
 
-        instrumentList.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        instrumentList.setCursor(new java.awt.Cursor(java.awt.Cursor
+                .DEFAULT_CURSOR));
         instrumentList.setMaximumSize(new java.awt.Dimension(1000, 80));
         instrumentList.setMinimumSize(new java.awt.Dimension(140, 80));
         instrumentList.setPreferredSize(new java.awt.Dimension(140, 80));
@@ -280,6 +300,11 @@ public class TabUI extends JPanel {
     public void addInstrumentInterface(InstrumentUI instrumentUI) {
         this.instrumentUI = instrumentUI;
         instrumentPanel.add(instrumentUI);
+    }
+    
+    public void addPatternInterface(PatternUI patternUI) {
+        this.patternUI = patternUI;
+        patternPanel.add(patternUI);
     }
     
 }

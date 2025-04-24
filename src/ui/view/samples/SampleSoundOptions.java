@@ -18,6 +18,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeListener;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.CHECKBOX_INSETS;
 import static ui.UIProperties.DEF_FONT;
@@ -32,34 +33,36 @@ public class SampleSoundOptions extends JPanel {
 
     // instance variables
     private int modType;
+    private LanguageHandler languageHandler;
     private GridBagLayout soundOptionsLayout;
     private GridBagConstraints soc;
     private Border soundOptionsBorder;
     private JLabel defaultVolumeLabel;
     // all
-    private JSpinner defaultVolumeValue;            
+    private JSpinner defaultVolumeValue;
     private SpinnerModel defVolumeSpinnerModel;
     private JSlider defaultVolumeSlider;
     private JLabel globalVolumeLabel;
     // s3m, it and str
-    private JSpinner globalVolumeValue;             
+    private JSpinner globalVolumeValue;
     private SpinnerModel globalVolumeSpinnerModel;
     private JSlider globalVolumeSlider;
     private JLabel defaultPanningLabel;
     // xm, it and str
-    private JSpinner defaultPanningValue;           
+    private JSpinner defaultPanningValue;
     private SpinnerModel panSpinnerModel;
     private JSlider defaultPanningSlider;
     private JLabel usePanningLabel;
     // it and str
-    private JCheckBox panning;                      
+    private JCheckBox panning;
     private JLabel useSurroundLabel;
     // str
-    private JCheckBox surround;                     
+    private JCheckBox surround;
 
     // constructor
-    public SampleSoundOptions(int modType) {
+    public SampleSoundOptions(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         init();
     }
 
@@ -99,6 +102,7 @@ public class SampleSoundOptions extends JPanel {
         setLayout(soundOptionsLayout);
         soc = new GridBagConstraints();
         soc.anchor = GridBagConstraints.SOUTHWEST;
+        //soc.fill = GridBagConstraints.BOTH;
         soc.insets = DEF_INSETS;
 
         // set the border
@@ -108,22 +112,25 @@ public class SampleSoundOptions extends JPanel {
         // set the border title
         soundOptionsBorder
                 = BorderFactory.createTitledBorder(soundOptionsBorder,
-                        "Sound options", 0, 0, BOLD_FONT);
+                        languageHandler
+                                .getLanguageText("sound.options"), 0, 0,
+                        BOLD_FONT);
 
         // set options border
         setBorder(soundOptionsBorder);
 
         // set the default volume label
-        defaultVolumeLabel = new JLabel("Default volume: ");
+        defaultVolumeLabel = new JLabel(languageHandler
+                .getLanguageText("sound.default_volume"));
         defaultVolumeLabel.setFont(DEF_FONT);
         soc.gridx = 0;
         soc.gridy = 0;
         add(defaultVolumeLabel, soc);
 
         // set default volume spinner model
-        defVolumeSpinnerModel = (modType == 6) 
-                    ? new SpinnerNumberModel(128, 0, 255, 1)
-                    : new SpinnerNumberModel(64, 0, 64, 1);
+        defVolumeSpinnerModel = (modType == 6)
+                ? new SpinnerNumberModel(128, 0, 255, 1)
+                : new SpinnerNumberModel(64, 0, 64, 1);
 
         // set the default volume value spinner
         defaultVolumeValue = new JSpinner(defVolumeSpinnerModel);
@@ -134,8 +141,8 @@ public class SampleSoundOptions extends JPanel {
 
         // set the default volume slider
         defaultVolumeSlider = (modType == 6)
-                    ? new JSlider(0, 255, 128)
-                    : new JSlider(0, 64, 64);
+                ? new JSlider(0, 255, 128)
+                : new JSlider(0, 64, 64);
         soc.gridx = 2;
         soc.gridy = 0;
         soc.weightx = 1.0;
@@ -146,7 +153,8 @@ public class SampleSoundOptions extends JPanel {
         if (modType >= 4) {
 
             // set the global volume label
-            globalVolumeLabel = new JLabel("Global volume: ");
+            globalVolumeLabel = new JLabel(languageHandler
+                .getLanguageText("sound.global_volume"));
             globalVolumeLabel.setFont(DEF_FONT);
             soc.gridx = 0;
             soc.gridy = 1;
@@ -156,7 +164,7 @@ public class SampleSoundOptions extends JPanel {
             add(globalVolumeLabel, soc);
 
             // set global volume spinner model
-            globalVolumeSpinnerModel = (modType == 6) 
+            globalVolumeSpinnerModel = (modType == 6)
                     ? new SpinnerNumberModel(128, 0, 128, 1)
                     : new SpinnerNumberModel(64, 0, 64, 1);
 
@@ -178,9 +186,10 @@ public class SampleSoundOptions extends JPanel {
             soc.gridwidth = GridBagConstraints.REMAINDER;
             soc.fill = GridBagConstraints.HORIZONTAL;
             add(globalVolumeSlider, soc);
-        
+
             // set the use panning label
-            usePanningLabel = new JLabel("Use panning: ");
+            usePanningLabel = new JLabel(languageHandler
+                .getLanguageText("sound.use_panning"));
             usePanningLabel.setFont(DEF_FONT);
             soc.gridx = 0;
             soc.gridy++;
@@ -200,9 +209,10 @@ public class SampleSoundOptions extends JPanel {
         }
 
         if (modType >= 3) {
-            
+
             // set the default panning label
-            defaultPanningLabel = new JLabel("Default panning: ");
+            defaultPanningLabel = new JLabel(languageHandler
+                .getLanguageText("sound.default_panning"));
             defaultPanningLabel.setFont(DEF_FONT);
             soc.gridx = 0;
             soc.gridy++;
@@ -259,7 +269,8 @@ public class SampleSoundOptions extends JPanel {
 
         if (modType == 6) {
             // set the use surround label
-            useSurroundLabel = new JLabel("Use surround: ");
+            useSurroundLabel = new JLabel(languageHandler
+                .getLanguageText("sound.use_surround"));
             useSurroundLabel.setFont(DEF_FONT);
             soc.gridx = 0;
             soc.gridy++;

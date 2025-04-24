@@ -18,6 +18,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.DEF_FONT;
 import static ui.UIProperties.DEF_INSETS;
@@ -32,6 +33,7 @@ public class ModuleDetails extends JPanel {
 
     // instance variables
     private int modType;
+    private final LanguageHandler languageHandler;
     private GridBagLayout detailsLayout;
     private GridBagConstraints dc;
     private Border detailsBorder;
@@ -49,8 +51,9 @@ public class ModuleDetails extends JPanel {
     private JLabel ccompatibleVersionLabel;
 
     // constructor
-    public ModuleDetails(int modType) {
+    public ModuleDetails(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         init();
     }
     
@@ -93,7 +96,7 @@ public class ModuleDetails extends JPanel {
         setBorder(detailsBorder);
 
         // song name label
-        songNameLabel = new JLabel("Song name: ");
+        songNameLabel = new JLabel("Module name: ");
         songNameLabel.setFont(DEF_FONT);
 
         dc.gridx = 0;
@@ -104,7 +107,7 @@ public class ModuleDetails extends JPanel {
 
         // song name field
         songNameField = new JTextField();
-        songNameField.setToolTipText("Name of song");
+        songNameField.setToolTipText("Name of work");
         songNameField.setPreferredSize(LARGE_FIELD_SIZE);
 
         dc.fill = GridBagConstraints.HORIZONTAL;
@@ -113,7 +116,7 @@ public class ModuleDetails extends JPanel {
         add(songNameField, dc);
 
         // song author label
-        songArtistLabel = new JLabel("Song author: ");
+        songArtistLabel = new JLabel("Module author: ");
         songArtistLabel.setFont(DEF_FONT);
 
         dc.gridx = 0;
@@ -122,7 +125,7 @@ public class ModuleDetails extends JPanel {
 
         // song author field
         songArtistField = new JTextField();
-        songArtistField.setToolTipText("Writer of song");
+        songArtistField.setToolTipText("Writer of work");
         songArtistField.setPreferredSize(LARGE_FIELD_SIZE);
 
         dc.fill = GridBagConstraints.HORIZONTAL;

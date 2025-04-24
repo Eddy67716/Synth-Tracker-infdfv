@@ -22,6 +22,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeListener;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.CHECKBOX_INSETS;
 import static ui.UIProperties.DEF_FONT;
@@ -41,6 +42,7 @@ public class InstrumentSoundOptions extends JPanel {
 
     // instance variables
     private int modType;
+    private LanguageHandler languageHandler;
     private GridBagLayout soundOptionsLayout;
     private GridBagConstraints soc;
     private Border soundOptionsBorder;
@@ -66,8 +68,9 @@ public class InstrumentSoundOptions extends JPanel {
     private JCheckBox organPitchPanCheckBox;        // str
 
     // constructor
-    public InstrumentSoundOptions(int modType) {
+    public InstrumentSoundOptions(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         init();
     }
 

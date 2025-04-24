@@ -15,9 +15,11 @@ public interface IPattern {
     
     public int getLength();
 
-    public int getRows();
+    public short getRows();
 
     public byte[][][] getUnpackedData();
 
     public byte getNumberOfChannels();
+    
+    public byte getGlobalChannelCount();
 }

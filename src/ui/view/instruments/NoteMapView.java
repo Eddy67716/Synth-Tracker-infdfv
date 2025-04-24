@@ -16,6 +16,7 @@ import javax.swing.JTable;
 import static javax.swing.ScrollPaneConstants.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.DEF_INSETS;
 import static ui.UIProperties.SAMPLE_NOTES;
@@ -36,6 +37,7 @@ public class NoteMapView extends JPanel {
 
     // instance variables
     private int modType;
+    private LanguageHandler languageHandler;
     private GridBagLayout noteMapLayout;
     private GridBagConstraints nmc;
     private Border noteMapBorder;
@@ -44,8 +46,9 @@ public class NoteMapView extends JPanel {
     private JTable noteMapTable;
 
     // constructor
-    public NoteMapView(int modType) {
+    public NoteMapView(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         init();
     }
 

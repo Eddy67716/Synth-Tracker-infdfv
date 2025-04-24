@@ -11,7 +11,6 @@ import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.SwingUtilities;
 import javax.swing.undo.UndoManager;
-import module.IAudioSample;
 import module.IInstrument;
 import ui.controllers.undo.UndoableCheckBoxChange;
 import ui.controllers.undo.UndoableComboBoxChange;
@@ -27,6 +26,7 @@ import ui.view.instruments.MidiOptions;
 import ui.view.instruments.RandomOffsets;
 import ui.view.instruments.SustainOptions;
 import static sound.midi.MidiTables.MIDI_GEN_1_PROGRAM_LIST;
+import module.ISampleSynth;
 
 /**
  *
@@ -364,7 +364,7 @@ public class InstrumentController extends GenericController {
         if (isAlteringModels()) {
 
             // update instrument global volume value
-            selectedInstrument.setGlobalVolume((byte) value);
+            selectedInstrument.setGlobalVolumeValue((byte) value);
         }
     }
 
@@ -398,7 +398,7 @@ public class InstrumentController extends GenericController {
             if (isAlteringModels()) {
 
                 // update instrument global volume value
-                selectedInstrument.setGlobalVolume((byte) value);
+                selectedInstrument.setGlobalVolumeValue((byte) value);
             }
         }
     }
@@ -458,7 +458,7 @@ public class InstrumentController extends GenericController {
         if (isAlteringModels()) {
 
             // update instrument global volume value
-            selectedInstrument.setPanValue((byte) value);
+            selectedInstrument.setNormalisedPanValue((byte) value);
         }
     }
 
@@ -491,7 +491,7 @@ public class InstrumentController extends GenericController {
             if (isAlteringModels()) {
 
                 // update instrument global volume value
-                selectedInstrument.setPanValue((byte) value);
+                selectedInstrument.setNormalisedPanValue((byte) value);
             }
         }
     }
@@ -981,8 +981,10 @@ public class InstrumentController extends GenericController {
                 = instrumentUI.getTools().getMidiOptions()
                         .getMidiInstrumentSpinner();
 
-        if (selectedInstrument.getMidiProgram() < 129) {
-            instrumentSpinner.setValue((int) selectedInstrument.getMidiProgram());
+        if (selectedInstrument.getMidiProgram() > 0 
+                && selectedInstrument.getMidiProgram() < 129) {
+            instrumentSpinner.setValue((int) selectedInstrument
+                    .getMidiProgram());
         } else {
             instrumentSpinner.setValue(128);
         }

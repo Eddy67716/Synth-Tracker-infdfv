@@ -17,6 +17,7 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.DEF_FONT;
 import static ui.UIProperties.DEF_INSETS;
@@ -29,51 +30,35 @@ import static ui.UIProperties.LARGE_FIELD_SIZE;
  * @author Edward Jenkins
  */
 public class SampleDetails extends JPanel {
-    
+
     // instance variables
     private int modType;
+    private LanguageHandler languageHandler;
     private GridBagLayout sampleDetailsLayout;
     private GridBagConstraints sdc;
     private Border sampleDetailsBorder;
+    // all
     private JLabel sampleNameLabel;
-    private JTextField sampleNameField;         // all
+    private JTextField sampleNameField;
+    // s3m, it and str
     private JLabel fileNameLabel;
-    private JTextField fileNameField;           // s3m, it and str
+    private JTextField fileNameField;
     private JLabel sampleFormatTitleLabel;
-    private JLabel sampleFormatLabel;           // all
+    private JLabel sampleFormatLabel;
+    // all
     private JLabel sampleChannelTitleLabel;
-    private boolean stereo;                     // all
+    // all                   
     private JLabel sampleChannelLabel;
     private JLabel sampleLengthTitleLabel;
-    private JLabel sampleLengthLabel;           // all
-    // sound options (volume, panning, etc.)
-    private JPanel soundOptions;
-    private GridBagLayout soundOptionsLayout;
-    private GridBagConstraints soc;
-    private Border soundOptionsBorder;
-    private JLabel defaultVolumeLabel;
-    private JSpinner defaultVolumeValue;            // all
-    private SpinnerModel defVolumeSpinnerModel;
-    private JSlider defaultVolumeSlider;
-    private JLabel globalVolumeLabel;
-    private JSpinner globalVolumeValue;             // s3m, it and str
-    private SpinnerModel globalVolumeSpinnerModel;
-    private JSlider globalVolumeSlider;
-    private JLabel defaultPanningLabel;
-    private JSpinner defaultPanningValue;           // xm, it and str
-    private SpinnerModel panSpinnerModel;
-    private JSlider defaultPanningSlider;
-    private JLabel usePanningLabel;
-    private JCheckBox panning;                      // it and str
-    private JLabel useSurroundLabel;
-    private JCheckBox surround;                     // str
-    
+    private JLabel sampleLengthLabel;
+
     // constructor
-    public SampleDetails(int modType) {
+    public SampleDetails(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         init();
     }
-    
+
     // getters
     public JTextField getSampleNameField() {
         return this.sampleNameField;
@@ -94,16 +79,16 @@ public class SampleDetails extends JPanel {
     public JLabel getSampleLengthLabel() {
         return sampleLengthLabel;
     }
-    
+
     private void init() {
-        
+
         // set the layout
         sampleDetailsLayout = new GridBagLayout();
         setLayout(sampleDetailsLayout);
         sdc = new GridBagConstraints();
         sdc.anchor = GridBagConstraints.SOUTHWEST;
         sdc.insets = DEF_INSETS;
-        sdc.fill = GridBagConstraints.HORIZONTAL;
+        sdc.fill = GridBagConstraints.BOTH;
 
         // set the border
         sampleDetailsBorder
@@ -112,13 +97,15 @@ public class SampleDetails extends JPanel {
         // set the border title
         sampleDetailsBorder
                 = BorderFactory.createTitledBorder(sampleDetailsBorder,
-                        "Sample details", 0, 0, BOLD_FONT);
+                        languageHandler.getLanguageText("sample.details"),
+                        0, 0, BOLD_FONT);
 
         // set details border
         setBorder(sampleDetailsBorder);
 
         // set the sample name label
-        sampleNameLabel = new JLabel("Sample name: ");
+        sampleNameLabel = new JLabel(languageHandler
+                .getLanguageText("sample.details.name"));
         sampleNameLabel.setFont(DEF_FONT);
         sdc.gridx = 0;
         sdc.gridy = 0;
@@ -128,7 +115,8 @@ public class SampleDetails extends JPanel {
 
         // set the sample name field
         sampleNameField = new JTextField("");
-        sampleNameField.setToolTipText("Name of sample. ");
+        sampleNameField.setToolTipText(languageHandler
+                .getLanguageText("sample.details.name.desc"));
         sampleNameField.setPreferredSize(LARGE_FIELD_SIZE);
         sdc.gridx = 0;
         sdc.gridy++;
@@ -138,7 +126,8 @@ public class SampleDetails extends JPanel {
 
         if (modType == 2 || modType >= 4) {
             // set the file name label
-            fileNameLabel = new JLabel("Sample file name: ");
+            fileNameLabel = new JLabel(languageHandler
+                    .getLanguageText("sample.details.dos_file"));
             fileNameLabel.setFont(DEF_FONT);
             sdc.gridx = 0;
             sdc.gridy++;
@@ -148,8 +137,8 @@ public class SampleDetails extends JPanel {
 
             // set the file name field
             fileNameField = new JTextField("");
-            fileNameField.setToolTipText("File name of sample. "
-                    + "Mostly used with s3m samples.");
+            fileNameField.setToolTipText(languageHandler
+                    .getLanguageText("sample.details.dos_file.desc"));
             fileNameField.setPreferredSize(SMALLER_FIELD_SIZE);
             sdc.gridx = 1;
             sdc.weightx = 1.0;
@@ -158,7 +147,8 @@ public class SampleDetails extends JPanel {
         }
 
         // set the sample format title label
-        sampleFormatTitleLabel = new JLabel("Sample format: ");
+        sampleFormatTitleLabel = new JLabel(languageHandler
+                .getLanguageText("sample.details.format"));
         sampleFormatTitleLabel.setFont(DEF_FONT);
         sdc.gridx = 0;
         sdc.gridy++;
@@ -176,7 +166,8 @@ public class SampleDetails extends JPanel {
         add(sampleFormatLabel, sdc);
 
         // set the sample channel title label
-        sampleChannelTitleLabel = new JLabel("Sample channels: ");
+        sampleChannelTitleLabel = new JLabel(languageHandler
+                .getLanguageText("sample.details.channels"));
         sampleChannelTitleLabel.setFont(DEF_FONT);
         sdc.gridx = 0;
         sdc.gridy++;
@@ -194,7 +185,8 @@ public class SampleDetails extends JPanel {
         add(sampleChannelLabel, sdc);
 
         // set the sample length title label
-        sampleLengthTitleLabel = new JLabel("Sample length: ");
+        sampleLengthTitleLabel = new JLabel(languageHandler
+                .getLanguageText("sample.details.length"));
         sampleLengthTitleLabel.setFont(DEF_FONT);
         sdc.gridx = 0;
         sdc.gridy++;
@@ -220,12 +212,12 @@ public class SampleDetails extends JPanel {
         sdc.gridheight = GridBagConstraints.REMAINDER;
         add(new JPanel(), sdc);
     }
-    
+
     // events and listeners
     public void addSampleNameFieldActionListener(ActionListener actionPerformed) {
         sampleNameField.addActionListener(actionPerformed);
     }
-    
+
     public void addFileNameFieldActionListener(ActionListener actionPerformed) {
         fileNameField.addActionListener(actionPerformed);
     }

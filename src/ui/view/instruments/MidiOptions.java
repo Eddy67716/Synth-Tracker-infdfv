@@ -15,6 +15,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeListener;
+import lang.LanguageHandler;
 import static ui.UIProperties.BOLD_FONT;
 import static ui.UIProperties.C5_SPINNER_SIZE;
 import static ui.UIProperties.DEF_FONT;
@@ -28,11 +29,11 @@ import static sound.midi.MidiTables.MIDI_GEN_1_PROGRAM_LIST;
  * @author Edward Jenkins
  */
 public class MidiOptions extends JPanel {
-    
+
     // constants
-    
     // instance variables
     private int modType;
+    private LanguageHandler languageHandler;
     private GridBagLayout midiOptionsLayout;
     private GridBagConstraints moc;
     private Border midiOptionsBorder;
@@ -47,13 +48,14 @@ public class MidiOptions extends JPanel {
     private JSpinner midiBankSpinner;              // it and str
     private SpinnerModel midiBankSpinnerModel;
     private JLabel midiBankTypeLabel;
-    
+
     // constructor
-    public MidiOptions(int modType) {
+    public MidiOptions(int modType, LanguageHandler languageHandler) {
         this.modType = modType;
+        this.languageHandler = languageHandler;
         init();
     }
-    
+
     // getters
     public JSpinner getMidiChannelSpinner() {
         return midiChannelSpinner;
@@ -66,10 +68,9 @@ public class MidiOptions extends JPanel {
     public JSpinner getMidiBankSpinner() {
         return midiBankSpinner;
     }
-    
-    
+
     public void init() {
-        
+
         // set the layout
         midiOptionsLayout = new GridBagLayout();
         setLayout(midiOptionsLayout);
@@ -84,13 +85,16 @@ public class MidiOptions extends JPanel {
         // set the border title
         midiOptionsBorder
                 = BorderFactory.createTitledBorder(midiOptionsBorder,
-                        "MIDI options", 0, 0, BOLD_FONT);
+                        languageHandler
+                                .getLanguageText("midi.options"), 0, 0,
+                        BOLD_FONT);
 
         // set options border
         setBorder(midiOptionsBorder);
-        
+
         // set the MIDI channel label
-        midiChannelLabel = new JLabel("MIDI channel: ");
+        midiChannelLabel = new JLabel(languageHandler
+                .getLanguageText("midi.options.channel"));
         midiChannelLabel.setFont(DEF_FONT);
         midiChannelLabel.setPreferredSize(LARGE_FIELD_SIZE);
         moc.gridx = 0;
@@ -108,9 +112,10 @@ public class MidiOptions extends JPanel {
         moc.weightx = 1.0;
         moc.gridwidth = GridBagConstraints.REMAINDER;
         add(midiChannelSpinner, moc);
-        
+
         // set the MIDI instrument label
-        midiInstrumentLabel = new JLabel("MIDI instrument: ");
+        midiInstrumentLabel = new JLabel(languageHandler
+                .getLanguageText("midi.options.program"));
         midiInstrumentLabel.setFont(DEF_FONT);
         midiInstrumentLabel.setPreferredSize(LARGE_FIELD_SIZE);
         moc.gridx = 0;
@@ -129,9 +134,10 @@ public class MidiOptions extends JPanel {
         moc.weightx = 1.0;
         moc.gridwidth = GridBagConstraints.REMAINDER;
         add(midiInstrumentSpinner, moc);
-        
+
         // set the MIDI bank label
-        midiBankLabel = new JLabel("MIDI bank: ");
+        midiBankLabel = new JLabel(languageHandler
+                .getLanguageText("midi.options.bank"));
         midiBankLabel.setFont(DEF_FONT);
         midiBankLabel.setPreferredSize(LARGE_FIELD_SIZE);
         moc.gridx = 0;
@@ -150,7 +156,7 @@ public class MidiOptions extends JPanel {
         moc.weightx = 1.0;
         moc.gridwidth = GridBagConstraints.REMAINDER;
         add(midiBankSpinner, moc);
-        
+
         // add pannel to bottom column
         moc.gridx = 0;
         moc.gridy++;
@@ -160,16 +166,16 @@ public class MidiOptions extends JPanel {
         moc.gridheight = GridBagConstraints.REMAINDER;
         add(new JPanel(), moc);
     }
-    
+
     // change listeners
     public void addMidiChannelChangeListener(ChangeListener changePerformed) {
         this.midiChannelSpinner.addChangeListener(changePerformed);
     }
-    
+
     public void addMidiInstrumentChangeListener(ChangeListener changePerformed) {
         this.midiInstrumentSpinner.addChangeListener(changePerformed);
     }
-    
+
     public void addMidiBankChangeListener(ChangeListener changePerformed) {
         this.midiBankSpinner.addChangeListener(changePerformed);
     }
